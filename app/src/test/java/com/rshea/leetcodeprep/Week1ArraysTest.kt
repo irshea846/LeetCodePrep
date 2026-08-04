@@ -6,6 +6,38 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class Week1ArraysTest {
+
+    @Test
+    fun testIsAnagram_ValidAnagram() {
+        val s = "anagram"
+        val t = "nagaram"
+        val expectedResult = true
+        val actualResult = Week1Arrays.isAnagram(s, t)
+        assertEquals(actualResult, expectedResult,
+            "s and t are anagram!")
+    }
+
+    @Test
+    fun testIsAnagram_NotAnagram() {
+        val s = "rat"
+        val t = "car"
+        val expectedResult = false
+        val actualResult = Week1Arrays.isAnagram(s, t)
+        assertEquals(actualResult, expectedResult,
+            "s and t are not anagram!")
+    }
+
+    @Test
+    fun testIsAnagram_DifferentLength() {
+        val s = "abc"
+        val t = "dcba"
+        val expectedResult = false
+        val actualResult = Week1Arrays.isAnagram(s, t)
+        assertEquals(actualResult, expectedResult,
+            "s and t are not the same length!")
+    }
+
+
     @Test
     fun testContainsDuplicate_DuplicateFound() {
         val inputArray = intArrayOf(1, 2, 3, 4, 5, 2)
