@@ -19,8 +19,8 @@ class Week1ArraysTest {
 
     @Test
     fun testIsAnagram_NotAnagram() {
-        val s = "rat"
-        val t = "car"
+        val s = "anagram"
+        val t = "nagarmm"
         val expectedResult = false
         val actualResult = Week1Arrays.isAnagram(s, t)
         assertEquals(actualResult, expectedResult,
@@ -29,8 +29,8 @@ class Week1ArraysTest {
 
     @Test
     fun testIsAnagram_DifferentLength() {
-        val s = "abc"
-        val t = "dcba"
+        val s = "aabbcc"
+        val t = "abc"
         val expectedResult = false
         val actualResult = Week1Arrays.isAnagram(s, t)
         assertEquals(actualResult, expectedResult,
