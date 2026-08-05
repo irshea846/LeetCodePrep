@@ -35,7 +35,7 @@ value are 0.
 
 ### 3. Native Kotlin Syntax Pitfalls
 * Let's check each solution for syntax and edge cases.
-1. Sort: Use `String.toSortedSet().toString()` to sort the string. 
+1. Sort: Use `String.toCharArray().apply { sort() }.concatToString()` to sort the string. 
 2. Grouping: Use `String.groupingBy { it }.eachCount()` to group the string and check each 
 char's count.
 3. Counter: Use `for (i in s.indices)` to iterate through s string to increase the letter count and 
@@ -48,7 +48,8 @@ and `HashMap[t[i]] = HashMap.getOrDefault(t[i], 0) - 1` to decrease it.
 ```kotlin
 fun isAnagram(s: String, t: String): Boolean {
     if (s.length != t.length) return false
-    return s.toSortedSet().toString() == t.toSortedSet().toString()
+    return s.toCharArray().apply { sort() }.concatToString() == 
+            t.toCharArray().apply { sort() }.concatToString()
 }
 ```
   2. Grouping

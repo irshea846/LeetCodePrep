@@ -2,6 +2,11 @@ package com.rshea.leetcodeprep
 
 object Week1Arrays {
 
+    // Day 3
+    // LeetCode 1: Two Sum
+    // Time Complexity: O(N) | Space Complexity: O(1)
+
+
     // Day 2
     // LeetCode 242: Valid Anagram
     // Time Complexity: O(N) | Space Complexity: O(1)
@@ -9,7 +14,8 @@ object Week1Arrays {
         if (s.length != t.length) return false
 
         // 1. Sort both of the strings and compare each element
-        //return s.toSortedSet().toString() == t.toSortedSet().toString()
+        return s.toCharArray().apply { sort() }.concatToString() ==
+                t.toCharArray().apply { sort() }.concatToString()
 
         // 2. Grouping: when considering the Unicode case
         //return s.groupingBy { it }.eachCount() == t.groupingBy { it }.eachCount()
@@ -23,12 +29,12 @@ object Week1Arrays {
         //return letterCnt.all { it == 0 }
 
         // 4. HashMap: Use `HashMap[s[i]] = HashMap.getOrDefault(s[i], 0) + 1` to increase the letter count
-        val map = HashMap<Char, Int>()
-        for (i in s.indices) {
-            map[s[i]] = map.getOrDefault(s[i], 0) + 1
-            map[t[i]] = map.getOrDefault(t[i], 0) - 1
-        }
-        return map.all { it.value == 0 }
+        //val map = HashMap<Char, Int>()
+        //for (i in s.indices) {
+        //    map[s[i]] = map.getOrDefault(s[i], 0) + 1
+        //    map[t[i]] = map.getOrDefault(t[i], 0) - 1
+        //}
+        //return map.all { it.value == 0 }
     }
 
     // Day 1
