@@ -27,7 +27,7 @@ O(N) time and O(N) space to store each value and its index in the HashMap and Mu
 
 ### 3. Native Kotlin Syntax Pitfalls
 * Use `HashMap.containsKey(key)` to find the complement in the HashMap.
-* Use `MutableIntIntMAP()` to initialize the HashMap and no need to add <key, value> pair. Others
+* Use `mutableIntIntMapOf()` to initialize the HashMap and no need to add <key, value> pair. Others
 syntax are the same as HashMap.
 
 ### 4. Code Block
@@ -36,9 +36,9 @@ syntax are the same as HashMap.
         val visited = HashMap<Int, Int>() // Format: Value -> Index
 
         for ((index, value) in nums.withIndex()) {
-            val complement = target - value
-            if (visited.containsKey(complement)) {
-                return intArrayOf(visited[complement]!!, index)
+            val complementIndex = visited[target - value]
+            if (complementIndex != null) {
+              return intArrayOf(complementIndex, index)
             }
             visited[value] = index
         }
@@ -47,11 +47,11 @@ syntax are the same as HashMap.
 ```
 ```kotlin
     fun twoSumPrimitive(nums: IntArray, target: Int): IntArray {
-        val visited = MutableIntIntMap() // Format: Value -> Index
+        val visited = mutableIntIntMapOf() // Format: Value -> Index
         for ((index, value) in nums.withIndex()) {
             val complement = target - value
             if (visited.containsKey(complement)) {
-                return intArrayOf(visited.get(complement), index)
+                return intArrayOf(visited[complement], index)
             }
             visited[value] = index
         }

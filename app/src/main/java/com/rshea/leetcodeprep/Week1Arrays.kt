@@ -1,6 +1,7 @@
 package com.rshea.leetcodeprep
 
 import androidx.collection.MutableIntIntMap
+import androidx.collection.mutableIntIntMapOf
 
 object Week1Arrays {
 
@@ -11,9 +12,9 @@ object Week1Arrays {
         val visited = HashMap<Int, Int>() // Format: Value -> Index
 
         for ((index, value) in nums.withIndex()) {
-            val complement = target - value
-            if (visited.containsKey(complement)) {
-                return intArrayOf(visited[complement]!!, index)
+            val complementIndex = visited[target - value]
+            if (complementIndex != null) {
+                return intArrayOf(complementIndex, index)
             }
             visited[value] = index
         }
@@ -21,17 +22,16 @@ object Week1Arrays {
     }
 
     fun twoSumPrimitive(nums: IntArray, target: Int): IntArray {
-        val visited = MutableIntIntMap() // Format: Value -> Index
+        val visited = mutableIntIntMapOf() // Format: Value -> Index
         for ((index, value) in nums.withIndex()) {
             val complement = target - value
             if (visited.containsKey(complement)) {
-                return intArrayOf(visited.get(complement), index)
+                return intArrayOf(visited[complement], index)
             }
             visited[value] = index
         }
         return intArrayOf()
     }
-
 
     // Day 2
     // LeetCode 242: Valid Anagram
