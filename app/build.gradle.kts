@@ -31,6 +31,7 @@ android {
 
 dependencies {
     testImplementation(kotlin("test"))
+    implementation(libs.androidx.collection)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
