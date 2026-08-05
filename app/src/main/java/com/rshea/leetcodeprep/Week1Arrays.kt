@@ -1,10 +1,36 @@
 package com.rshea.leetcodeprep
 
+import androidx.collection.MutableIntIntMap
+
 object Week1Arrays {
 
     // Day 3
     // LeetCode 1: Two Sum
-    // Time Complexity: O(N) | Space Complexity: O(1)
+    // Time Complexity: O(N) | Space Complexity: O(N)
+    fun twoSum(nums: IntArray, target: Int): IntArray {
+        val visited = HashMap<Int, Int>() // Format: Value -> Index
+
+        for ((index, value) in nums.withIndex()) {
+            val complement = target - value
+            if (visited.containsKey(complement)) {
+                return intArrayOf(visited[complement]!!, index)
+            }
+            visited[value] = index
+        }
+        return intArrayOf()
+    }
+
+    fun twoSumPrimitive(nums: IntArray, target: Int): IntArray {
+        val visited = MutableIntIntMap() // Format: Value -> Index
+        for ((index, value) in nums.withIndex()) {
+            val complement = target - value
+            if (visited.containsKey(complement)) {
+                return intArrayOf(visited.get(complement), index)
+            }
+            visited[value] = index
+        }
+        return intArrayOf()
+    }
 
 
     // Day 2
@@ -48,21 +74,6 @@ object Week1Arrays {
             }
         }
         return false
-    }
-
-    // LeetCode 1: Two Sum
-    // Time Complexity: O(N) | Space Complexity: O(N)
-    fun twoSum(nums: IntArray, target: Int): IntArray {
-        val visited = HashMap<Int, Int>() // Format: Value -> Index
-
-        for ((index, value) in nums.withIndex()) {
-            val complement = target - value
-            if (visited.containsKey(complement)) {
-                return intArrayOf(visited[complement]!!, index)
-            }
-            visited[value] = index
-        }
-        return intArrayOf()
     }
 
 }

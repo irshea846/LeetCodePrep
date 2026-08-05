@@ -13,8 +13,67 @@ You can run the tests using Gradle:
 ## Topics Covered
 - [ ] Arrays & Hashing
 
-## Day 2 - LC 242 - Valid Anagram
+## Day 3 - LC 1 - Two Sum
+### 1. Core Pattern Identifier
+* What specific constraint triggered the solution design?
+* Using HashMap<Int, Int> - `visited[complement] = index` to record the complement and its index in 
+one pass is the best solution. It does not only collect the passing complement and index but also 
+directly grab it when the matching complement is found. 
+* Using MutableIntIntMap - `visited[value] = index` to record the value and its index in one pass. 
+The difference is to reduce the object allocation overhead and cause garbage collection pressure.
 
+### 2. Complexity Boundaries
+O(N) time and O(N) space to store each value and its index in the HashMap and MutableIntIntMap.
+
+### 3. Native Kotlin Syntax Pitfalls
+* Use `HashMap.containsKey(key)` to find the complement in the HashMap.
+* Use `MutableIntIntMAP()` to initialize the HashMap and no need to add <key, value> pair. Others
+syntax are the same as HashMap.
+
+### 4. Code Block
+```kotlin
+    fun twoSum(nums: IntArray, target: Int): IntArray {
+        val visited = HashMap<Int, Int>() // Format: Value -> Index
+
+        for ((index, value) in nums.withIndex()) {
+            val complement = target - value
+            if (visited.containsKey(complement)) {
+                return intArrayOf(visited[complement]!!, index)
+            }
+            visited[value] = index
+        }
+        return intArrayOf()
+    }
+```
+```kotlin
+    fun twoSumPrimitive(nums: IntArray, target: Int): IntArray {
+        val visited = MutableIntIntMap() // Format: Value -> Index
+        for ((index, value) in nums.withIndex()) {
+            val complement = target - value
+            if (visited.containsKey(complement)) {
+                return intArrayOf(visited.get(complement), index)
+            }
+            visited[value] = index
+        }
+        return intArrayOf()
+    }
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+* **Brute Force**: Two loops, O(N^2) time and O(1) space.
+* **HashMap**: Two passes - One to add <value, index> to the HashMap and another to find the 
+matching complement, O(N) time and O(N) space.
+*  **HashMap**: One pass - O(N) time and O(N) space. Both operations of adding and finding the 
+complement are done in one iteration. 
+* **MutableIntIntMap**: One pass - O(N) time and O(N) space. 
+While a standard HashMap<Integer, Integer> achieves a theoretical O(N) linear runtime complexity, 
+it introduces massive object allocation overhead on the heap due to Java primitive type erasure. 
+By utilizing Jetpack's unboxed MutableIntIntMap, the system stores keys and values sequentially 
+inside primitive data buffers under the hood. This eliminates Garbage Collector pressure, completely 
+stops object boxing overhead, and ensures high cache locality within performance-critical data 
+pipelines.
+
+## Day 2 - LC 242 - Valid Anagram
 ### 1. Core Pattern Identifier
 * What specific constraint triggered the solution design?
 * Finding the same frequency of letters in s and t strings can be done in the following ways:
@@ -95,7 +154,6 @@ and O(1) space).
 
 
 ## Day 1 - LC 217 - Contains Duplicates
-
 ### 1. Core Pattern Identifier
 * What specific constraint triggered the solution design?
 * Finding any value in an unsorted IntArray appearing at least twice implies to use HashSet to store

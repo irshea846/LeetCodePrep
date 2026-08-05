@@ -8,6 +8,54 @@ import kotlin.test.assertTrue
 class Week1ArraysTest {
 
     @Test
+    fun testTwoSum_ValidMatch() {
+        val inputNumbers = intArrayOf(2, 7, 11, 15)
+        val targetValue = 9
+        val expectedIndices = intArrayOf(0, 1)
+
+        val actualResult = Week1Arrays.twoSum(inputNumbers, targetValue)
+
+        // Verifies the contents of the returned index positions match perfectly
+        assertTrue(actualResult.contentEquals(expectedIndices),
+            "Indices must match [0, 1]")
+    }
+
+    @Test
+    fun testTwoSum_NoMatchFound() {
+        val inputNumbers = intArrayOf(1, 2, 3)
+        val targetValue = 10
+
+        val actualResult = Week1Arrays.twoSum(inputNumbers, targetValue)
+
+        assertTrue(actualResult.isEmpty(),
+            "Array must return empty on invalid target configurations")
+    }
+
+    @Test
+    fun testTwoSumPrimitive_ValidMatch() {
+        val inputNumbers = intArrayOf(2, 7, 11, 15)
+        val targetValue = 9
+        val expectedIndices = intArrayOf(0, 1)
+
+        val actualResult = Week1Arrays.twoSumPrimitive(inputNumbers, targetValue)
+
+        // Verifies the contents of the returned index positions match perfectly
+        assertTrue(actualResult.contentEquals(expectedIndices),
+            "Indices must match [0, 1]")
+    }
+
+    @Test
+    fun testTwoSumPrimitive_NoMatchFound() {
+        val inputNumbers = intArrayOf(5, 10, 15)
+        val targetValue = 100
+
+        val actualResult = Week1Arrays.twoSumPrimitive(inputNumbers, targetValue)
+
+        assertTrue(actualResult.isEmpty(),
+            "Array must return empty on invalid target configurations")
+    }
+
+    @Test
     fun testIsAnagram_ValidAnagram() {
         val s = "anagram"
         val t = "nagaram"
@@ -53,28 +101,6 @@ class Week1ArraysTest {
         val actualResult = Week1Arrays.containsDuplicate(inputArray)
 
         assertEquals(actualResult, expectedResult, "Array must not contain duplicates")
-    }
-
-    @Test
-    fun testTwoSum_ValidMatch() {
-        val inputNumbers = intArrayOf(2, 7, 11, 15)
-        val targetValue = 9
-        val expectedIndices = intArrayOf(0, 1)
-
-        val actualResult = Week1Arrays.twoSum(inputNumbers, targetValue)
-
-        // Verifies the contents of the returned index positions match perfectly
-        assertTrue(actualResult.contentEquals(expectedIndices), "Indices must match [0, 1]")
-    }
-
-    @Test
-    fun testTwoSum_NoMatchFound() {
-        val inputNumbers = intArrayOf(1, 2, 3)
-        val targetValue = 10
-
-        val actualResult = Week1Arrays.twoSum(inputNumbers, targetValue)
-
-        assertTrue(actualResult.isEmpty(), "Array must return empty on invalid target configurations")
     }
 
 }
