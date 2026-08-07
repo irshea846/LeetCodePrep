@@ -13,6 +13,100 @@ You can run the tests using Gradle:
 ## Topics Covered
 - [ ] Arrays & Hashing
 
+## Day 4 - LC 14 - Longest Common Prefix
+### 1. Core Pattern Identifier
+* What specific constraint triggered the solution design?
+* **Sort and compare the first and last string**
+Sort the Array<String> and use `commonPrefixWith()` to find the common prefix.
+
+* **Horizontal Linear Scan**
+Either using for-loop or .reduceOrNull() do linear scan. Inside both of loops, using 
+`commonPrefixWith()` finds the common prefix. Finally adding short-circuit check for 
+early exit when no prefix happens.
+
+### 2. Complexity Boundaries
+* **Sort and compare the first and last string**
+
+O(M * N(Log(N))) time complexity where N is the number of strings and M is the maximum length of 
+a string. sorting strings instead of simple integers, every single comparison step requires checking
+the characters inside the strings up to length M.
+
+O(1) space complexity.
+
+* **Horizontal Linear Scan**
+
+O(S) time complexity where S is the sum of all characters in all strings.
+
+O(N) space complexity. `fun longestCommonPrefixMemoryOptimized` can make it O(1) space complexity. 
+
+### 3. Native Kotlin Syntax Pitfalls
+* Use `String.commonPrefixWith()` to find the common prefix.
+* Use `strs.reduceOrNull { prefix, s -> prefix.commonPrefixWith(s) }` to scan each string.
+
+### 4. Code Block
+* Sort and compare the first and last string 
+```kotlin
+    fun longestCommonPrefix(strs: Array<String>): String {
+        if (strs.isEmpty()) return ""
+        val sortedList = strs.sorted()
+        return sortedList.first().commonPrefixWith(sortedList.last())
+    }
+```
+* Horizontal Linear Scan
+```kotlin
+    fun longestCommonPrefix(strs: Array<String>): String {
+        return strs.reduceOrNull { prefix, s ->
+            if (prefix.isEmpty()) return ""
+            prefix.commonPrefixWith(s)
+        } ?: ""
+    }
+```
+```kotlin
+    fun longestCommonPrefixMemoryOptimized(strs: Array<String>): String {
+        if (strs.isEmpty()) return ""
+        if (strs.size == 1) return strs[0]
+    
+        // Track the absolute alphabetical minimum and maximum values inline
+        var first = strs[0]
+        var last = strs[0]
+    
+        // A single pass identifies the boundaries without allocating a new array container
+        for (s in strs) {
+            if (s < first) first = s
+            if (s > last) last = s
+        }
+    
+        // Compare only the two extreme strings in O(1) space!
+        return first.commonPrefixWith(last)
+    }   
+```
+### 5. Alternative Trade-offs (For System Design Dialogues)
+* Horizontal Scan (Current Choice):
+
+**Pros:** Best when the common prefix is short or non-existent. It short-circuits early, saving CPU 
+cycles by not looking at the tail end of the strings or the rest of the array.
+
+**Cons:** If all strings are identical and very long, it performs redundant comparisons across the 
+entire array.
+
+* Sorting Approach:
+
+**Pros:** Minimal code footprint. By sorting, you only need to compare the two most different 
+strings (first and last).
+
+**Cons:** O(M * N(Log(N))) overhead. Sorting modifies the original data (side effect) and is much slower 
+if the number of strings (N) is large, even if the strings themselves are short.
+
+* Divide and Conquer:
+
+**Pros:** This can be parallelized. In a distributed system (like processing logs in MapReduce), 
+you could find the common prefix of two halves of the data on different CPU cores/machines 
+simultaneously and then merge the results.
+
+**Time Complexity:** Still O(S), but significantly lower latency on multi-core systems.
+
+**Key Takeaway:** Horizontal Scan is the "General Purpose" winner, while Divide and Conquer is the "Scale/Parallel" winner.
+
 ## Day 3 - LC 1 - Two Sum
 ### 1. Core Pattern Identifier
 * What specific constraint triggered the solution design?

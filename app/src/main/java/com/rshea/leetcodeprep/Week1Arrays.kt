@@ -1,9 +1,33 @@
 package com.rshea.leetcodeprep
 
-import androidx.collection.MutableIntIntMap
 import androidx.collection.mutableIntIntMapOf
 
 object Week1Arrays {
+
+    // Day 4
+    // LeetCode 14: Longest Common Prefix
+    // Time Complexity: O(N) | Space Complexity: O(N)
+    fun longestCommonPrefix(strs: Array<String>): String {
+        if (strs.isEmpty()) return ""
+
+        // 1. Sort and compare the first and last string.
+        // val sortedList = strs.sorted()
+        // return sortedList.first().commonPrefixWith(sortedList.last())
+
+        // 2. Horizontal Linear Scan
+        // For loop solution -
+        // var commonPrefix = strs[0]
+        // for (i in 1 until strs.size) {
+        //    commonPrefix = commonPrefix.commonPrefixWith(strs[i])
+        //    if (commonPrefix.isEmpty()) return ""
+        // }
+        // return commonPrefix
+        // Idiomatic function solution -
+        return strs.reduceOrNull { prefix, s ->
+            if (prefix.isEmpty()) return ""
+            prefix.commonPrefixWith(s)
+        } ?: ""
+    }
 
     // Day 3
     // LeetCode 1: Two Sum
