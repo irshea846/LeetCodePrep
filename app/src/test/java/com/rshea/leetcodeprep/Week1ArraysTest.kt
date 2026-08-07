@@ -8,6 +8,38 @@ import kotlin.test.assertTrue
 class Week1ArraysTest {
 
     @Test
+    fun testLongestCommonPrefix_ValidPrefix() {
+        val inputStrings = arrayOf("flower", "flow", "flight")
+        val expectedPrefix = "fl"
+        val actualResult = Week1Arrays.longestCommonPrefix(inputStrings)
+        assertEquals(actualResult, expectedPrefix, "Prefix must match")
+    }
+
+    @Test
+    fun testLongestCommonPrefix_NoPrefix() {
+        val inputStrings = arrayOf("dog", "racecar", "car")
+        val actualResult = Week1Arrays.longestCommonPrefix(inputStrings)
+        assertTrue(actualResult.isEmpty(), "Prefix must be empty")
+    }
+
+    @Test
+    fun testLongestCommonPrefix_SimilarPrefixString() {
+        val inputStrings = arrayOf("acc", "aaa", "aaba")
+        val expectedPrefix = "a"
+        val actualResult = Week1Arrays.longestCommonPrefix(inputStrings)
+        assertEquals(actualResult, expectedPrefix, "Prefix must match")
+    }
+
+    @Test
+    fun testLongestCommonPrefix_MiddleElementMismatch() {
+        // This test case will fail with the current implementation
+        val inputStrings = arrayOf("refactor", "abc", "reface")
+        val expectedPrefix = ""
+        val actualResult = Week1Arrays.longestCommonPrefix(inputStrings)
+        assertEquals(expectedPrefix, actualResult, "Prefix should be empty because of 'abc'")
+    }
+
+    @Test
     fun testTwoSum_ValidMatch() {
         val inputNumbers = intArrayOf(2, 7, 11, 15)
         val targetValue = 9
