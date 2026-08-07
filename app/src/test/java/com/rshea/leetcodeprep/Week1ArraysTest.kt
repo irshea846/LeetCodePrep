@@ -8,6 +8,44 @@ import kotlin.test.assertTrue
 class Week1ArraysTest {
 
     @Test
+    fun testGroupAnagrams_ValidAnagrams() {
+        val inputStrings = arrayOf("eat", "tea", "tan", "ate", "nat", "bat")
+        val expectedGroups = listOf(
+            listOf("tan", "nat"),
+            listOf("bat"),
+            listOf("eat", "tea", "ate")
+        )
+        val actualResult = Week1Arrays.groupAnagrams(inputStrings)
+        assertEquals(HashSet(actualResult),
+            HashSet(expectedGroups), "Anagrams must match")
+    }
+
+    @Test
+    fun testGroupAnagrams_NoAnagrams() {
+        val inputStrings = arrayOf("apple", "banana", "cherry")
+        val expectedGroups = listOf(
+            listOf("apple"),
+            listOf("banana"),
+            listOf("cherry")
+        )
+        val actualResult = Week1Arrays.groupAnagrams(inputStrings)
+        assertEquals(HashSet(actualResult)
+            , HashSet(expectedGroups), "No anagrams must match")
+    }
+
+    @Test
+    fun testGroupAnagrams_MoreAnagrams() {
+        val inputStrings = arrayOf("eat","tea","tan","ate","nat","bat","ac","bd","aac","bbd","aacc","bbdd","acc","bdd")
+        val expectedGroups = listOf(listOf("tan","nat"),listOf("bdd"),listOf("bd"),listOf("bbdd"),
+            listOf("bat"),listOf("aac"),listOf("ac"),listOf("eat","tea","ate"),
+            listOf("bbd"),listOf("acc"),listOf("aacc")
+        )
+        val actualResult = Week1Arrays.groupAnagrams(inputStrings)
+        assertEquals(HashSet(actualResult),
+            HashSet(expectedGroups), "Some anagrams must match")
+    }
+
+    @Test
     fun testLongestCommonPrefix_ValidPrefix() {
         val inputStrings = arrayOf("flower", "flow", "flight")
         val expectedPrefix = "fl"
