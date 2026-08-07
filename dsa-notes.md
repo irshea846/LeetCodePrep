@@ -13,6 +13,71 @@ You can run the tests using Gradle:
 ## Topics Covered
 - [ ] Arrays & Hashing
 
+## Day 4 - LC 49 - Group Anagrams
+### 1. Core Pattern Identifier
+* Idiomatic Kotlin solution
+1. Sort each string lexicographically and group them together
+2. Count each character's frequency and group them together
+* Count each character's frequency in IntArray(26) and create the hashcode as a key in Map
+
+### 2. Complexity Boundaries
+* Idiomatic Kotlin solution
+1. Sort: O(N * K(Log(K))) time and O(N * K) space.
+2. Count: O(N * K) time and O(N * K) space.
+* Count each character's frequency in IntArray(26) and create the hashcode as a key in Map -
+O(N * K) time and O(N * K) space
+
+### 3. Native Kotlin Syntax Pitfalls
+* Use `String.toCharArray().apply { sort() }.concatToString()` to sort the string.
+* Use `String.groupingBy { it }.eachCount()` to group the string and check each char's count.
+* Use `val keyString = letterCnt.joinToString(",")` to create the key by using the IntArray 
+for each word's letter count.
+
+### 4. Code Block
+* Idiomatic Kotlin solution - Sort + Grouping
+```kotlin
+    fun groupAnagrams(strs: Array<String>): List<List<String>> {
+        return strs.groupBy {
+            it.toCharArray().apply { sort() }.concatToString()
+        }.values.toList()
+    }
+```
+* Idiomatic Kotlin solution - Counting + Grouping
+```kotlin
+    fun groupAnagrams(strs: Array<String>): List<List<String>> {
+        return strs.groupBy { str ->
+            str.groupingBy { it }.eachCount()
+        }.values.toList()
+    }
+```
+* Count each character's frequency in IntArray(26) and create the hashcode as a key in Map
+```kotlin
+    fun groupAnagrams(strs: Array<String>): List<List<String>> {
+        val letterCnt = IntArray(26)
+        val map = HashMap<Int, MutableList<String>>()
+        var hashCode: Int
+        for (str in strs) {
+          for (c in str) {
+            letterCnt[c - 'a']++
+          }
+          // Convert the frequency array to a distinct string signature key
+          val keyString = letterCnt.joinToString(",")
+          map.getOrPut(keyString) { mutableListOf() }.add(str)
+          letterCnt.fill(0)
+        }
+        return map.values.toList()
+    }
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+* **Sorting + Grouping**: Idiomatic Kotlin solution. We could group them by sorting each word 
+lexicographically.
+* **Counting + Grouping**: Idiomatic Kotlin solution. We could group them by the same appearing 
+letters with the same frequency
+* **InArray(26) + HashMap**: We could create an IntArray(26) counter from 'a' to 'z' to store 
+appearing frequency from each letter in a word and use the whole array as a key in a HashMap. 
+
+
 ## Day 4 - LC 14 - Longest Common Prefix
 ### 1. Core Pattern Identifier
 * What specific constraint triggered the solution design?

@@ -1,8 +1,39 @@
 package com.rshea.leetcodeprep
 
 import androidx.collection.mutableIntIntMapOf
+import java.util.Arrays
 
 object Week1Arrays {
+
+    // Day 5
+    // LeetCode 49: Group Anagram
+    fun groupAnagrams(strs: Array<String>): List<List<String>> {
+        // 1. Idiomatic Kotlin solution
+        // Sort each string lexicographically and group them together
+        //return strs.groupBy {
+        //    it.toCharArray().apply { sort() }.concatToString()
+        //}.values.toList()
+
+        // Count each character's frequency and group them together
+        //return strs.groupBy { str ->
+        //    str.groupingBy { it }.eachCount()
+        //}.values.toList()
+
+        // 2.Count each character's frequency in IntArray(26) and create the hashcode as a key in Map
+        val letterCnt = IntArray(26)
+        val map = HashMap<String, MutableList<String>>()
+        for (str in strs) {
+            for (c in str) {
+                letterCnt[c - 'a']++
+            }
+            // Convert the frequency array to a distinct string signature key
+            val keyString = letterCnt.joinToString(",")
+            map.getOrPut(keyString) { mutableListOf() }.add(str)
+            letterCnt.fill(0)
+        }
+        return map.values.toList()
+
+    }
 
     // Day 4
     // LeetCode 14: Longest Common Prefix
