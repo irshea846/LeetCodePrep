@@ -32,6 +32,8 @@ O(N * K) time and O(N * K) space
 * Use `String.groupingBy { it }.eachCount()` to group the string and check each char's count.
 * Use `val keyString = letterCnt.joinToString(",")` to create the key by using the IntArray 
 for each word's letter count.
+* Use `map.getOrPut(keyString) { mutableListOf() }.add(str)` instead of
+`if (map.containsKey(keyString)) { map[keyString]?.add(str) } else { map[keyString] = mutableListOf(str) }`
 
 ### 4. Code Block
 * Idiomatic Kotlin solution - Sort + Grouping
@@ -74,8 +76,9 @@ for each word's letter count.
 lexicographically.
 * **Counting + Grouping**: Idiomatic Kotlin solution. We could group them by the same appearing 
 letters with the same frequency
-* **InArray(26) + HashMap**: We could create an IntArray(26) counter from 'a' to 'z' to store 
-appearing frequency from each letter in a word and use the whole array as a key in a HashMap. 
+* **InArray(26) + HashMap**: We could create an IntArray(26) counter from 'a' to 'z' to store
+appearing frequency from each letter in a word and use the whole array as a key in a HashMap.
+IntArray(26).joinToString(",") instead of IntArray(26).contentHashCode() to avoid collision.
 
 
 ## Day 4 - LC 14 - Longest Common Prefix
