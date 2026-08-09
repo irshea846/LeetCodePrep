@@ -13,7 +13,159 @@ You can run the tests using Gradle:
 ## Topics Covered
 - [ ] Arrays & Hashing
 
-## Day 4 - LC 49 - Group Anagrams
+## Day 6 - LC 347 - Top K Frequent Elements
+### 1. Core Pattern Identifier
+* Idiomatic Kotlin solution
+
+Purely using functional chain for frequency counting and efficient selection to identify the top k 
+elements by frequency using .
+
+* HashMap + Idiomatic Kotlin solution
+
+Efficiently selecting the top k elements based on frequency counts gathered via hash map.
+
+* HashMap + PriorityQueue solution
+
+Frequency counting combined with dropping all entries in the Priority Queue but keeping the k size 
+to get top K elements.
+
+* HashMap + Bucket Sort solution
+
+Frequency counting combined with linear time selection and Bucket Sort.
+
+### 2. Complexity Boundaries
+* Idiomatic Kotlin solution - O(N * Log(N)) time and O(N) space.
+* HashMap + Idiomatic Kotlin solution - O(N * Log(N)) time and O(N) space.
+* HashMap + PriorityQueue solution - O(N * Log(K)) time when K is top K elements and O(N) space.
+* HashMap + Bucket Sort solution - O(N) time and O(N) space.
+
+
+### 3. Native Kotlin Syntax Pitfalls
+* Use `nums.asSequence().groupingBy { it }.eachCount()`. IntArray.asSequence() bypasses heavy list 
+allocations by mapping elements through a lazy sequence iterator. Calling .toList() for large arrays
+on a primitive array (IntArray) copies the elements into a heap-allocated collection wrapper 
+(List<Int>). This causes massive object boxing overhead.
+* Use `map.entries.sortedByDescending { it.value }.take(k).map { it.key }.toIntArray()` to sort by 
+descending order, take top k elements, and map keys to IntArray.
+* Use `PriorityQueue<Map.Entry<Int, Int>>(compareBy { it.value })` to initialize the 
+PriorityQueue with descending order.
+
+### 4. Code Block
+* Idiomatic Kotlin solution
+```kotlin
+  fun topKFrequent(nums: IntArray, k: Int): IntArray { 
+      return nums.asSequence().groupingBy { it }.eachCount().entries
+          .sortedByDescending { it.value }.take(k).map { it.key }.toIntArray()
+  }
+```
+* HashMap + Idiomatic Kotlin solution
+```kotlin
+  fun topKFrequent(nums: IntArray, k: Int): IntArray {
+      val map = HashMap<Int, Int>()
+      for (num in nums) {
+          map[num] = map.getOrDefault(num, 0) + 1
+      }
+      return map.entries.sortedByDescending { it.value }.take(k)
+          .map { it.key }.toIntArray()
+  }
+```
+* HashMap + PriorityQueue solution
+```kotlin
+  fun topKFrequent(nums: IntArray, k: Int): IntArray {
+      val map = HashMap<Int, Int>()
+      nums.forEach {
+        map[it] = map.getOrDefault(it, 0) + 1
+      }
+      val pq = PriorityQueue<Map.Entry<Int, Int>>(compareBy { it.value })
+      for (entry in map.entries) {
+        pq.add(entry)
+        if (pq.size > k) {
+          pq.poll()
+        }
+      }
+      val res = IntArray(k)
+      var i = 0
+      while (pq.isNotEmpty()) {
+        res[i++] = pq.poll()!!.key
+      }
+      return res
+  }
+```
+
+* HashMap + Bucket Sort solution
+```kotlin
+  fun topKFrequent(nums: IntArray, k: Int): IntArray {
+      val map = HashMap<Int, Int>()
+      for (num in nums) {
+        map[num] = map.getOrDefault(num, 0) + 1
+      }
+      val bucket = Array<MutableList<Int>>(nums.size + 1) { mutableListOf() }
+      for (entry in map.entries) {
+        bucket[entry.value].add(entry.key)
+      }
+    
+      val res = IntArray(k)
+      var i = 0
+      for (j in bucket.size - 1 downTo 0) {
+        for (num in bucket[j]) {
+          res[i++] = num
+        }
+        if (i == k) break
+      }
+      return res
+  }
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+### Heap (PriorityQueue) vs. Bucket Sort:
+#### Heap approach:
+* Pros: Better when K is very small (K < N). If you use a Min-Heap of size K, the 
+complexity is O(N * Log(K)). It is also more memory-efficient because you only ever store 
+K elements in the heap.
+* Cons: Slower than Bucket Sort if K is large or close to N.
+#### Bucket Sort approach:
+* Pros: The fastest theoretical time O(N) linear time algorithm. It avoids the log 
+factor entirely.
+* Cons: Higher Memory Overhead. You must allocate an array of lists of size N + 1. If 
+N=1,000,000 but you only have 2 unique elements, you still allocate a massive empty array.
+
+### Quickselect (Hoare's Selection Algorithm):
+* Pros: Faster than Heap and Bucket Sort. Average time complexity is O(N), and it uses 
+O(1) extra space (in-place). This is what many standard libraries use under the hood 
+for "partial sorting."
+* Cons: Worst-case time is O(N^2) (though rare with random pivoting), and it's much 
+harder to implement bug-free in a high-pressure interview.
+
+### Streaming Data / Heavy Hitters (System Design Scale):
+* The Problem: What if the data doesn't fit on one machine? (e.g., finding top K searched 
+terms on Google today).
+* Solution - Count-Min Sketch: A probabilistic data structure that uses a hash table to 
+estimate frequencies with a tiny memory footprint.
+> Trade-off: You get approximate counts rather than exact ones, but you save gigabytes of RAM.
+* Solution - MapReduce / Spark:
+
+▪ Step 1: Distribute the numbers across workers.
+
+▪ Step 2: Each worker counts local frequencies (Map).
+
+▪ Step 3: Aggregate frequencies globally (Reduce).
+
+▪ Step 4: Use a Min-Heap on the final controller to get the top K.
+
+### Offline vs. Online Processing:
+* Offline: If you only need the report once a day, Bucket Sort on a single large-memory instance 
+is fine.
+* Online: If you need a "Trending Now" feature, use a Redis Sorted Set (ZSET). It maintains the 
+elements in a skip-list/hash-map hybrid, allowing you to get the top K in O(Log(N)) time at any 
+moment as data flows in.
+
+### Summary for Notes:
+* Small K: Use Min-Heap.
+* Large N, limited Time: Use Bucket Sort.
+* Massive/Distributed Data: Use MapReduce + Min-Heap or Count-Min Sketch for approximations.
+
+
+## Day 5 - LC 49 - Group Anagrams
 ### 1. Core Pattern Identifier
 * Idiomatic Kotlin solution
 1. Sort each string lexicographically and group them together
@@ -76,9 +228,9 @@ for each word's letter count.
 lexicographically.
 * **Counting + Grouping**: Idiomatic Kotlin solution. We could group them by the same appearing 
 letters with the same frequency
-* **InArray(26) + HashMap**: We could create an IntArray(26) counter from 'a' to 'z' to store
+* **InArray(26) + HashMap**: We could create an IntArray(26) counter from 'a' to 'z' to store 
 appearing frequency from each letter in a word and use the whole array as a key in a HashMap.
-IntArray(26).joinToString(",") instead of IntArray(26).contentHashCode() to avoid collision.
+IntArray(26).joinToString(",") instead of IntArray(26).contentHashCode() to avoid collision.  
 
 
 ## Day 4 - LC 14 - Longest Common Prefix
