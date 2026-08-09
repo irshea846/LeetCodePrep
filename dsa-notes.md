@@ -13,6 +13,171 @@ You can run the tests using Gradle:
 ## Topics Covered
 - [ ] Arrays & Hashing
 
+## Day 7 - 238 - Product of Array Except Self
+### 1. Core Pattern Identifier
+#### Two-Array approach - Three Loops with Two Arrays
+
+* The first loop is to accumulate the prefix product and save in one array. The second loop is to 
+accumulate the suffix product and save in another array. The third loop is to multiply the prefix 
+product and suffix product for each index.
+
+####  In-Place Approach - Two Loops and One Array for Result
+
+* The first loop is to accumulate the prefix product and store it in the result array before the last 
+element. The last element of the result is the current prefix product. And then we create a variable
+to persist the current suffix product and is initialized to the last element of the input array. 
+The second loop is to update the result by multiplying the current suffix product with the result 
+from previous index. 
+
+####  Prefix/Suffix Approach - Two Pointers in One Pass
+
+One array is to accumulate the prefix product directd by left pointer from left to right. The other 
+is to accumulate the suffix product direct by right pointer from right to left. The product of array
+except self starts from left and right point in the same middle element for odd length array or left
+point is on the right of right point for even length array. Prod[N] = L[N-1] * R[N+1]
+
+### 2. Complexity Boundaries
+* Two-Array approach - O(N) time and O(N) space.
+* In-Place Approach - O(N) time and O(1) space
+* Prefix/Suffix Approach - O(N) time and O(N) space.
+
+### 3. Native Kotlin Syntax Pitfalls
+Since the implementation is very trivial with standard Kotlin syntax, there are no native Kotlin 
+syntax pitfalls.
+
+### 4. Code Block
+#### Two-Array approach - Three Loops with Two Arrays
+```kotlin
+    fun productExceptSelf(nums: IntArray): IntArray {
+        val rProd = IntArray(nums.size)
+        val lProd = IntArray(nums.size)
+        nums.size - 1
+        lProd[0] = nums[0]
+        for (i in 1 until nums.size) {
+          lProd[i] = lProd[i - 1] * nums[i]
+        }
+        rProd[nums.size - 1] = nums[nums.size - 1]
+        for (i in nums.size - 2 downTo 0) {
+          rProd[i] = rProd[i + 1] * nums[i]
+        }
+
+        val output = IntArray(nums.size)
+        output[0] = rProd[1]
+        output[nums.size - 1] = lProd[nums.size - 2]
+        for (i in 1 until nums.size - 1) {
+          output[i] = lProd[i - 1] * rProd[i + 1]
+        }
+        return output
+    }
+```
+
+####  In-Place Approach - Two Loops and One Array for Result
+```kotlin
+    fun productExceptSelf(nums: IntArray): IntArray {
+        val size = nums.size
+      
+        // Allocate the distinct output container requested by the problem
+        val output = IntArray(size)
+
+        // Forward Pass: Accumulate left-side prefix products directly into output
+        output[0] = 1
+        for (i in 1 until size) {
+          output[i] = output[i - 1] * nums[i - 1]
+        }
+      
+        // Backward Pass: Accumulate right-side suffix products inline via a primitive tracker
+        var rightSuffixProduct = 1
+        for (i in size - 1 downTo 0) {
+          output[i] = output[i] * rightSuffixProduct // Combines prefix and suffix
+          rightSuffixProduct *= nums[i] // Updates running product for the next leftward step
+        }
+        return output
+    }
+```
+
+####  Prefix/Suffix Approach - Two Pointers in One Pass
+```kotlin
+    fun productExceptSelf(nums: IntArray): IntArray {
+        val rProd = IntArray(nums.size)
+        val lProd = IntArray(nums.size)
+        var l = 0
+        var r = nums.size - 1
+        lProd[l] = nums[l]
+        rProd[r] = nums[r]
+        while (++l < --r) {
+          lProd[l] = lProd[l - 1] * nums[l]
+          rProd[r] = rProd[r + 1] * nums[r]
+        }
+      
+        while (l < nums.size - 1 && r > 0) {
+          lProd[l] = lProd[l - 1] * nums[l]
+          rProd[r] = rProd[r + 1] * nums[r]
+          if (l == r) {
+            nums[l] = lProd[l - 1] * rProd[r + 1]
+          } else {
+            nums[l] = rProd[l + 1] * lProd[l - 1]
+            nums[r] = lProd[r - 1] * rProd[r + 1]
+          }
+          l++; r--
+        }
+        nums[r] = rProd[r + 1]
+        nums[l] = lProd[l - 1]
+        return nums
+    }
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+
+### Prefix & Suffix Arrays vs. In-place Space Optimization:
+#### Two-Array approach:
+* Pros: Much easier to read, debug, and implement. It separates the "Left Product" logic from the 
+"Right Product" logic.
+* Cons: Uses O(N) extra space. On a memory-constrained device (like an embedded sensor or an older 
+Android phone), this could matter for massive arrays.
+#### In-place approach:
+* Pros: Achieves O(1) extra space (if the output array doesn't count as extra).
+* Cons: Harder to maintain. The logic of reusing the result array to store prefix products and then 
+multiplying it by suffix products in reverse is prone to "off-by-one" errors.
+
+### Handling Zeros (Edge Case Strategy):
+#### Division-based approach:
+* Logic: Calculate the total product of the whole array, then for each element i, do total / nums[i].
+* Pros: O(N) and very simple code.
+* Cons: Fails completely with zeros. If there is one zero, all except one result will be 0. If there
+are two zeros, all results will be 0. You have to write messy if statements to handle these.
+
+#### Prefix/Suffix approach (Current):
+* Pros: Naturally handles zeros without any special if logic.
+
+### Numeric Overflow (Critical for System Design):
+* The Problem: Multiplying many integers can easily exceed the 32-bit Int limit (approx. 2 billion).
+* Trade-off:
+
+  ▪ If the system requires high precision for very large arrays, you must use LongArray (64-bit) or 
+BigInteger.
+
+  ▪ In some signal processing contexts, we use the Logarithmic property: $Log(a \times b) = 
+Log(a) + Log(b)$. You can sum the logs and then take the exponent (exp) of the sum.
+
+  ▪ Pros of Logs: Prevents overflow.
+
+  ▪ Cons of Logs: Floating point precision errors can occur (e.g., getting 9.99999 instead of 10).
+
+### Parallelization (Large Scale Data):
+* Scenario: What if the array has 10 billion numbers?
+* Solution: Use a Prefix Sum / Prefix Product Tree.
+
+  ▪ The array is divided into blocks. Each block calculates its own product. These products are then 
+combined in a tree-like structure.
+
+  ▪ Pros: Can be done in $O(\log N)$ time on a massive GPU or a cluster of servers.
+
+### Summary for Notes:
+* Interview Focus: Emphasize the In-place O(1) space optimization as the "senior dev" move.
+* System Design Focus: Discuss Numeric Overflow (using Long) and the Logarithmic approach for 
+extreme cases.
+
+
 ## Day 6 - LC 347 - Top K Frequent Elements
 ### 1. Core Pattern Identifier
 * Idiomatic Kotlin solution
