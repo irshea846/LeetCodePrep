@@ -8,6 +8,32 @@ import kotlin.test.assertTrue
 class Week1ArraysTest {
 
     @Test
+    fun testTopKFrequent_ValidInput() {
+        val inputArray = intArrayOf(1,2,1,2,1,2,3,1,3,2)
+        val k = 2
+        val expectedResult = intArrayOf(1, 2)
+        val actualResult = Week1Arrays.topKFrequent(inputArray, k)
+        assertEquals(
+            HashSet(expectedResult.toList()),
+            HashSet(actualResult.toList()),
+            "Result must match"
+        )
+    }
+
+    @Test
+    fun testTopKFrequent_SingleElement() {
+        val inputArray = intArrayOf(1)
+        val k = 1
+        val expectedResult = intArrayOf(1)
+        val actualResult = Week1Arrays.topKFrequent(inputArray, k)
+        assertEquals(
+            HashSet(expectedResult.toList()),
+            HashSet(actualResult.toList()),
+            "Result must match"
+        )
+    }
+
+    @Test
     fun testGroupAnagrams_ValidAnagrams() {
         val inputStrings = arrayOf("eat", "tea", "tan", "ate", "nat", "bat")
         val expectedGroups = listOf(

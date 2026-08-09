@@ -2,8 +2,66 @@ package com.rshea.leetcodeprep
 
 import androidx.collection.mutableIntIntMapOf
 import java.util.Arrays
+import java.util.PriorityQueue
 
 object Week1Arrays {
+
+    // Day 6
+    // LeetCode 347: Top K Frequent Elements
+    fun topKFrequent(nums: IntArray, k: Int): IntArray {
+        // 1. Idiomatic Kotlin solution .asSequence() is faster than .toList() for large arrays
+        // ◄── Lazy sequence processing loop
+        return nums.asSequence().groupingBy { it }.eachCount().entries
+            .sortedByDescending { it.value }.take(k).map { it.key }.toIntArray()
+
+        // 2. HashMap + Idiomatic Kotlin solution
+        //        val map = HashMap<Int, Int>()
+        //        for (num in nums) {
+        //            map[num] = map.getOrDefault(num, 0) + 1
+        //        }
+        //        return map.entries.sortedByDescending { it.value }.take(k)
+        //            .map { it.key }.toIntArray()
+
+        // 3. HashMap + PriorityQueue solution
+        //        val map = HashMap<Int, Int>()
+        //        nums.forEach {
+        //            map[it] = map.getOrDefault(it, 0) + 1
+        //        }
+        //        val pq = PriorityQueue<Map.Entry<Int, Int>>(compareBy { it.value })
+        //        for (entry in map.entries) {
+        //            pq.add(entry)
+        //            if (pq.size > k) {
+        //                pq.poll()
+        //            }
+        //        }
+        //        val res = IntArray(k)
+        //        var i = 0
+        //        while (pq.isNotEmpty()) {
+        //            res[i++] = pq.poll()!!.key
+        //        }
+        //        return res
+
+        // 4. HashMap + Bucket Sort solution
+        //        val map = HashMap<Int, Int>()
+        //        for (num in nums) {
+        //            map[num] = map.getOrDefault(num, 0) + 1
+        //        }
+        //        val bucket = Array<MutableList<Int>>(nums.size + 1) { mutableListOf() }
+        //        for (entry in map.entries) {
+        //            bucket[entry.value].add(entry.key)
+        //        }
+        //
+        //        val res = IntArray(k)
+        //        var i = 0
+        //        for (j in bucket.size - 1 downTo 0) {
+        //            for (num in bucket[j]) {
+        //                res[i++] = num
+        //            }
+        //            if (i == k) break
+        //        }
+        //        return res
+
+    }
 
     // Day 5
     // LeetCode 49: Group Anagram
