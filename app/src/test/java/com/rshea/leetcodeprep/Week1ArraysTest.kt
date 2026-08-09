@@ -8,6 +8,30 @@ import kotlin.test.assertTrue
 class Week1ArraysTest {
 
     @Test
+    fun testProductExceptSelf_EvenLength() {
+        val inputArray = intArrayOf(1, 2, 3, 4)
+        val expectedResult = intArrayOf(24, 12, 8, 6)
+        val actualResult = Week1Arrays.productExceptSelf(inputArray)
+        assertEquals(
+            actualResult.toList(),
+            expectedResult.toList(),
+            "Result must match"
+        )
+    }
+
+    @Test
+    fun testProductExceptSelf_OddLength() {
+        val inputArray = intArrayOf(-1,1,0,-3,3)
+        val expectedResult = intArrayOf(0,0,9,0,0)
+        val actualResult = Week1Arrays.productExceptSelf(inputArray)
+        assertEquals(
+            actualResult.toList(),
+            expectedResult.toList(),
+            "Result must match"
+        )
+    }
+
+    @Test
     fun testTopKFrequent_ValidInput() {
         val inputArray = intArrayOf(1,2,1,2,1,2,3,1,3,2)
         val k = 2

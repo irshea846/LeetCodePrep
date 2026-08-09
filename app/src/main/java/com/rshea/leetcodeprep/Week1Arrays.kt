@@ -1,10 +1,83 @@
 package com.rshea.leetcodeprep
 
 import androidx.collection.mutableIntIntMapOf
-import java.util.Arrays
-import java.util.PriorityQueue
 
 object Week1Arrays {
+
+    // Day 7
+    // LeetCode 238: Product of Array Except Self
+    fun productExceptSelf(nums: IntArray): IntArray {
+        // 1. Three Loops
+        //        val rProd = IntArray(nums.size)
+        //        val lProd = IntArray(nums.size)
+        //        nums.size - 1
+        //        lProd[0] = nums[0]
+        //        for (i in 1 until nums.size) {
+        //            lProd[i] = lProd[i - 1] * nums[i]
+        //        }
+        //        rProd[nums.size - 1] = nums[nums.size - 1]
+        //        for (i in nums.size - 2 downTo 0) {
+        //            rProd[i] = rProd[i + 1] * nums[i]
+        //        }
+        //
+        //        val output = IntArray(nums.size)
+        //        output[0] = rProd[1]
+        //        output[nums.size - 1] = lProd[nums.size - 2]
+        //        for (i in 1 until nums.size - 1) {
+        //            output[i] = lProd[i - 1] * rProd[i + 1]
+        //        }
+        //        return output
+
+        // 2. Two Loops and One Array for Result.
+        val size = nums.size
+
+        // Allocate the distinct output container requested by the problem
+        val output = IntArray(size)
+
+        // Forward Pass: Accumulate left-side prefix products directly into output
+        output[0] = 1
+        for (i in 1 until size) {
+            output[i] = output[i - 1] * nums[i - 1]
+        }
+
+        // Backward Pass: Accumulate right-side suffix products inline via a primitive tracker
+        var rightSuffixProduct = 1
+        for (i in size - 1 downTo 0) {
+            output[i] = output[i] * rightSuffixProduct // Combines prefix and suffix
+            rightSuffixProduct *= nums[i] // Updates running product for the next leftward step
+        }
+        return output
+
+
+        // 3. Two Pointers in One Pass
+        //        val rProd = IntArray(nums.size)
+        //        val lProd = IntArray(nums.size)
+        //        var l = 0
+        //        var r = nums.size - 1
+        //        lProd[l] = nums[l]
+        //        rProd[r] = nums[r]
+        //        while (++l < --r) {
+        //            lProd[l] = lProd[l - 1] * nums[l]
+        //            rProd[r] = rProd[r + 1] * nums[r]
+        //        }
+        //
+        //        while (l < nums.size - 1 && r > 0) {
+        //            lProd[l] = lProd[l - 1] * nums[l]
+        //            rProd[r] = rProd[r + 1] * nums[r]
+        //            if (l == r) {
+        //                nums[l] = lProd[l - 1] * rProd[r + 1]
+        //            } else {
+        //                nums[l] = rProd[l + 1] * lProd[l - 1]
+        //                nums[r] = lProd[r - 1] * rProd[r + 1]
+        //            }
+        //            l++; r--
+        //        }
+        //        nums[r] = rProd[r + 1]
+        //        nums[l] = lProd[l - 1]
+        //        return nums
+
+    }
+
 
     // Day 6
     // LeetCode 347: Top K Frequent Elements
