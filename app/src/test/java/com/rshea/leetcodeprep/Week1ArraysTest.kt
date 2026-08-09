@@ -96,7 +96,6 @@ class Week1ArraysTest {
 
     @Test
     fun testLongestCommonPrefix_MiddleElementMismatch() {
-        // This test case will fail with the current implementation
         val inputStrings = arrayOf("refactor", "abc", "reface")
         val expectedPrefix = ""
         val actualResult = Week1Arrays.longestCommonPrefix(inputStrings)
