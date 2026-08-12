@@ -8,10 +8,179 @@ You can run the tests using Gradle:
 ./gradlew test
 ```
 
-## Week 1 Problem Bank
+# ===============================================================
+# WEEK 2: TWO POINTERS & SLIDING WINDOWS (August 11 - August 15)
+# ===============================================================
+
+## Topics Covered
+
+- [ ] Arrays & Hashing
+- [ ] Two Pointers
+- [ ] Sliding Window
+
+## Day 8 - LC 125 - Valid Palindrome
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+    * **Ignoring Non-Alphanumeric Characters**: The problem forces us to process a string while 
+  "skipping" irrelevant data (spaces, punctuation). This triggers the need for a **conditional 
+  pointer movement** strategy.
+    * **Space Constraint (Optional but critical)**: If the interviewer mentions "large-scale data" 
+  or "memory efficiency," the constraint shifts from a simple `filter` to an **In-Place Two-Pointer** 
+  approach to avoid $O(N)$ memory allocation.
+    * **Case Insensitivity**: This requires a **normalized comparison** (`ignoreCase = true` or 
+  `lowercase()`), ensuring that 'A' and 'a' are treated as identical.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach                    | Time     | Space    | Best Used When... |
+|:----------------------------|:---------|:---------| :--- |
+| **Filtered + Two Pointers** | **O(N)** | **O(N)** | You want readable, simple code for small/medium strings. |
+| **Two Pointers In-Place**   | **O(N)** | **O(1)** | You are dealing with massive data or memory-constrained environments. |
+| **Reverse and Compare**     | **O(N)** | **O(N)** | You are writing a quick script and don't care about performance. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* Use `Char.equals(other, ignoreCase = true)` instead of `char.lowercase()`. `lowercase()` in Kotlin returns a `String` (to handle complex Unicode cases), which creates unnecessary object allocations inside a loop.
+* `s.lastIndex` is the idiomatic Kotlin way to write `s.length - 1`.
+
+### 4. Code Block
+```kotlin
+fun isPalindrome(s: String): Boolean {
+    // Optimized Two-Pointer In-Place Approach
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    // Using if/continue provides a flatter control flow that is often
+    // faster on the JVM due to better JIT optimization and branch prediction.
+    var i = 0
+    var j = s.lastIndex
+    while (i < j) {
+        if (!s[i].isLetterOrDigit()) {
+            i++
+            continue
+        }
+        if (!s[j].isLetterOrDigit()) {
+            j--
+            continue
+        }
+        if (!s[i++].equals(s[j--], ignoreCase = true)) return false
+    }
+    return true
+}
+```
+
+```kotlin
+fun isPalindrome(s: String): Boolean {
+    // Filtering + Two Pointers Approach
+    // Time Complexity: O(N) | Space Complexity: O(N)
+    val str = s.filter { it.isLetterOrDigit() }
+    val lastIdx = str.length - 1
+    for (i in 0 until str.length / 2) {
+      if (str[i].lowercase() != str[lastIdx - i].lowercase()) {
+        return false
+      }
+    }
+    return true
+}
+```
+
+```kotlin
+fun isPalindrome(s: String): Boolean {
+    // Filtering + Reverse and Compare Approach
+    // Time Complexity: O(N) | Space Complexity: O(N)
+    val str = s.filter { it.isLetterOrDigit() }.lowercase()
+    return str == str.reversed()
+}
+```
+### 5. Alternative Trade-offs (For System Design Dialogues)
+* **Horizontal Scan vs. Vertical Scan**: In Palindrome problems, we always do a "Horizontal Scan" 
+(from both ends). A "Vertical Scan" isn't applicable here, but you can discuss **Parallelization** 
+for extremely long strings by splitting the string into chunks and checking symmetry across the 
+split points in a distributed system.
+* **Early Exit (Short-Circuiting)**: The `if/continue` approach is superior to `filter().reversed()`
+because it can return `false` as soon as the first mismatch is found (potentially after checking 
+only 2 characters), whereas `filter().reversed()` must process the entire string twice before 
+starting the comparison.
+
+---
+
+## Day 8 - LC 167 - Two Sum II (Input Array Is Sorted)
+### 1. Core Pattern Identifier
+* What specific constraint triggered the solution design?
+* **Input Array is sorted**: This is the "Golden Constraint." Because the array is ordered, we know 
+that moving a pointer to the right always increases the sum, and moving to the left always decreases
+it. This triggers the **Two-Pointer Squeeze** pattern (a common term in algorithm interviews).
+* **Constant Extra Space O(1)**: The problem usually forbids using a HashMap. This constraint forces
+us to use the structure of the array itself (the sorting) rather than external memory to find the 
+complement.
+* **1-Indexed Result**: A minor constraint that requires us to add +1 to our zero-based indices before 
+returning.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach                    | Time         | Space    | Best Used When... |
+|:----------------------------|:-------------|:---------| :--- |
+| **Two Pointers Squeeze**    | **O(N)**     | **O(1)** | **Optimal.** Standard for sorted arrays. |
+| **Binary Search**           | **O(N log N)** | **O(1)** | You are only allowed to move one pointer or for specific "jumping" optimizations. |
+| **HashMap**                 | **O(N)**     | **O(N)** | Array is **not** sorted (standard Two Sum). Wastes space here. |
+| **Brute Force**             | **O(N^2)**   | **O(1)** | Array is tiny and you want zero extra logic. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Avoid `arrayOf()`**: The problem requires an `IntArray` result. `arrayOf(1, 2)` creates an `Array<Int>` (boxed `Integer` objects), which will fail to compile against the required return type. Use **`intArrayOf(i + 1, j + 1)`**.
+* **Idiomatic Range End**: Use **`numbers.lastIndex`** instead of `numbers.size - 1`.
+* **Binary Search Indices**: Kotlin's `IntArray.binarySearch(element, fromIndex, toIndex)` treats `toIndex` as **exclusive**. If you use binary search, ensure the range is correctly bounded to avoid re-checking the same element.
+* **Int Overflow**: When calculating `numbers[i] + numbers[j]`, be mindful of potential `Int` overflow if the numbers are close to $2^{31}-1$. A safer comparison in large-scale systems is `numbers[i] == target - numbers[j]`.
+
+### 4. Code Block
+```kotlin
+fun twoSumSorted(numbers: IntArray, target: Int): IntArray {
+    // 1. Two-Pointer In-Place Approach
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    var i = 0
+    var j = numbers.lastIndex
+    while (i < j) {
+      val complement = target - numbers[i]
+      when {
+        numbers[j] == complement -> return intArrayOf(i + 1, j + 1)
+        numbers[j] > complement -> j--
+        else -> i++
+      }
+    }
+    return intArrayOf()
+}
+```
+
+```kotlin
+fun twoSumSorted(numbers: IntArray, target: Int): IntArray {
+    // 2. One Pointer + Binary Search Approach
+    // Time Complexity: O(N * Log(N)) | Space Complexity: O(1)
+    for (i in numbers.indices) {
+      val complement = target - numbers[i]
+      val idx = numbers.binarySearch(complement, i + 1, numbers.size)
+      if (idx >= 0) { // instead of `if (idx > i)`
+        return intArrayOf(i + 1, idx + 1)
+      }
+    }
+    return intArrayOf()
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+* **Galloping (Exponential) Search**: If the `target` is extremely far from the average, you can use
+Binary Search to "jump" the `right` pointer rather than moving it by `j--`. This changes the 
+complexity from O(N) to O(K * Log(N)) where K is the number of jumps.
+* **Cache Locality**: The Two-Pointer Squeeze is extremely cache-friendly because it accesses memory
+sequentially. Binary Search jumps between memory locations, which can cause cache misses on very 
+large arrays.
+* **Functional vs. Imperative**: While `numbers.withIndex().firstOrNull { ... }` looks cleaner, 
+the imperative `while` loop is preferred here for precise control over two simultaneous pointers.
+
+# ===============================================================
+# WEEK 1: Arrays, HashMap, Priority Queue, Functional  (August 3 - August 9)
+# ===============================================================
 
 ## Topics Covered
 - [ ] Arrays & Hashing
+- [ ] Heap / Priority Queue
 
 ## Day 7 - 238 - Product of Array Except Self
 ### 1. Core Pattern Identifier
@@ -31,7 +200,7 @@ from previous index.
 
 ####  Prefix/Suffix Approach - Two Pointers in One Pass
 
-One array is to accumulate the prefix product directd by left pointer from left to right. The other 
+* One array is to accumulate the prefix product directd by left pointer from left to right. The other 
 is to accumulate the suffix product direct by right pointer from right to left. The product of array
 except self starts from left and right point in the same middle element for odd length array or left
 point is on the right of right point for even length array. Prod[N] = L[N-1] * R[N+1]
