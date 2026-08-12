@@ -2,6 +2,83 @@ package com.rshea.leetcodeprep
 
 object Week2Pointers {
 
+    // Day 9
+    // LeetCode 15. Three Sum
+    fun threeSum(nums: IntArray): List<List<Int>> {
+        // 1. Sort + Two-Pointer Approach (Manual Deduplication)
+        // Time Complexity: O(N^2) | Space Complexity: O(Log(N))
+        nums.sort()
+        val triplets = mutableListOf<List<Int>>()
+        for (i in nums.indices) {
+            // Optimization: If the smallest number is > 0, sum can't be 0
+            if (nums[i] > 0) break
+
+            // Skip duplicate anchor elements
+            if (i == 0 || nums[i] != nums[i - 1]) {
+                val target = -nums[i]
+                var left = i + 1
+                var right = nums.lastIndex
+                while (left < right) {
+                    val sum = nums[left] + nums[right]
+                    when {
+                        sum == target -> {
+                            triplets.add(listOf(nums[i], nums[left++], nums[right--]))
+                            // Skip duplicates for the second element
+                            while (left < right && nums[left] == nums[left - 1]) left++
+                            while (left < right && nums[right] == nums[right + 1]) right--
+                        }
+
+                        sum < target -> left++
+                        else -> right--
+                    }
+                }
+            }
+        }
+        return triplets
+
+        // 2. Sort + Two-Pointer Approach (Deduplication via Set)
+        // Time: O(N^2) | Space: O(N) for the Set
+        //        nums.sort()
+        //        val triplets = mutableSetOf<List<Int>>()
+        //        for (i in nums.indices) {
+        //            if (nums[i] > 0) break
+        //            val target = -nums[i]
+        //            var left = i + 1
+        //            var right = nums.lastIndex
+        //            while (left < right) {
+        //                val sum = nums[left] + nums[right]
+        //                when {
+        //                    sum == target -> triplets.add(listOf(nums[i], nums[left++], nums[right--]))
+        //                    sum < target -> left++
+        //                    else -> right--
+        //                }
+        //            }
+        //        }
+        //        return triplets.toList()
+
+        // 3. Sort + Two-Pointer Approach (Post-Generation .distinct())
+        // Time: O(N^2) | Space: O(N) for triplets list
+        // Note: Least efficient due to overhead of collecting duplicates and distinct() call.
+        //        nums.sort()
+        //        val triplets = mutableListOf<List<Int>>()
+        //        for (i in nums.indices) {
+        //            if (nums[i] > 0) break
+        //            val target = -nums[i]
+        //            var left = i + 1
+        //            var right = nums.lastIndex
+        //            while (left < right) {
+        //                val sum = nums[left] + nums[right]
+        //                when {
+        //                    sum == target -> triplets.add(listOf(nums[i], nums[left++], nums[right--]))
+        //                    sum < target -> left++
+        //                    else -> right--
+        //                }
+        //            }
+        //        }
+        //        return triplets.distinct()
+
+    }
+
     // Day 8
     // LeetCode 125. Valid Palindrome
     fun isPalindrome(s: String): Boolean {
