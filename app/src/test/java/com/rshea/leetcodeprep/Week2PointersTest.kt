@@ -6,6 +6,65 @@ import kotlin.test.assertEquals
 class Week2PointersTest {
 
     @Test
+    fun testThreeSum_ValidCase() {
+        val numbers = intArrayOf(-1, 0, 1, 2, -1, -4)
+        val expectedResult = listOf(listOf(-1, -1, 2), listOf(-1, 0, 1))
+        val actualResult = Week2Pointers.threeSum(numbers)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testThreeSum_InvalidCase() {
+        val numbers = intArrayOf(0, 1, 1)
+        val expectedResult = emptyList<List<Int>>()
+        val actualResult = Week2Pointers.threeSum(numbers)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testThreeSum_AllZerosCase() {
+        val numbers = intArrayOf(0, 0, 0)
+        val expectedResult = listOf(listOf(0, 0, 0))
+        val actualResult = Week2Pointers.threeSum(numbers)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testThreeSum_EdgeCase() {
+        val numbers = intArrayOf(-2, 0, 0, 2, 2)
+        val expectedResult = listOf(listOf(-2, 0, 2))
+        val actualResult = Week2Pointers.threeSum(numbers)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testTwoSumSorted_ValidCase1() {
+        val numbers = intArrayOf(2, 7, 11, 15)
+        val target = 9
+        val expectedResult = intArrayOf(1, 2)
+        val actualResult = Week2Pointers.twoSumSorted(numbers, target)
+        assertEquals(expectedResult.contentToString(), actualResult.contentToString(), "Result must be match")
+    }
+
+    @Test
+    fun testTwoSumSorted_ValidCase2() {
+        val numbers = intArrayOf(2, 3, 4)
+        val target = 6
+        val expectedResult = intArrayOf(1, 3)
+        val actualResult = Week2Pointers.twoSumSorted(numbers, target)
+        assertEquals(expectedResult.contentToString(), actualResult.contentToString(), "Result must be match")
+    }
+
+    @Test
+    fun testTwoSumSorted_ValidCase3() {
+        val numbers = intArrayOf(-1, 0)
+        val target = -1
+        val expectedResult = intArrayOf(1, 2)
+        val actualResult = Week2Pointers.twoSumSorted(numbers, target)
+        assertEquals(expectedResult.contentToString(), actualResult.contentToString(), "Result must be match")
+    }
+
+    @Test
     fun testIsPalindrome_IsPalindromeCase() {
         val s = "A man, a plan, a canal: Panama"
         val expectedResult = true
@@ -45,30 +104,4 @@ class Week2PointersTest {
         assertEquals(expectedResult, actualResult, "Result must be match")
     }
 
-    @Test
-    fun testTwoSumSorted_ValidCase1() {
-        val numbers = intArrayOf(2, 7, 11, 15)
-        val target = 9
-        val expectedResult = intArrayOf(1, 2)
-        val actualResult = Week2Pointers.twoSumSorted(numbers, target)
-        assertEquals(expectedResult.contentToString(), actualResult.contentToString(), "Result must be match")
-    }
-
-    @Test
-    fun testTwoSumSorted_ValidCase2() {
-        val numbers = intArrayOf(2, 3, 4)
-        val target = 6
-        val expectedResult = intArrayOf(1, 3)
-        val actualResult = Week2Pointers.twoSumSorted(numbers, target)
-        assertEquals(expectedResult.contentToString(), actualResult.contentToString(), "Result must be match")
-    }
-
-    @Test
-    fun testTwoSumSorted_ValidCase3() {
-        val numbers = intArrayOf(-1, 0)
-        val target = -1
-        val expectedResult = intArrayOf(1, 2)
-        val actualResult = Week2Pointers.twoSumSorted(numbers, target)
-        assertEquals(expectedResult.contentToString(), actualResult.contentToString(), "Result must be match")
-    }
 }

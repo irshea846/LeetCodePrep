@@ -18,6 +18,161 @@ You can run the tests using Gradle:
 - [ ] Two Pointers
 - [ ] Sliding Window
 
+## Day 9 - LC 15 - Three Sum
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **No Duplicate Triplets**: This is the most critical constraint. It triggers two design decisions:
+    1.  **Sorting**: We must sort the array first O(N * Log(N)) to bring duplicates together, making
+    them easy to skip.
+    2.  **Skipping Logic**: We skip the "anchor" element if it matches the previous one, and we also
+    skip the `left`/`right` pointers after finding a valid triplet to avoid identical combinations.
+  * **Sum to Zero ($a + b + c = 0$)**: This triggers a **"Fix One, Search Two"** strategy. By fixing
+  `a`, the problem transforms into finding two numbers that sum to `-a` (**Two Sum II**).
+  * **Efficiency Requirement**: Brute force is $O(N^3)$. Sorting allows us to use a nested 
+  **Two-Pointer Squeeze**, reducing the complexity to **$O(N^2)$** time and **$O(1)$** space 
+  (ignoring sorting overhead).
+  
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time   | Space        | Best Used When... |
+| :--- |:-------|:-------------| :--- |
+| **Brute Force** | **O(N^3)** | **O(1)**     | Array is tiny and you want the simplest possible logic. |
+| **Sorting + Two Pointers** | **O(N^2)** | **O(Log N)** | **Optimal.** Most efficient for both time and memory in a sorted context. |
+| **Sorting + HashSet** | **O(N^2)** | **O(N)**     | You want to use a `Set` to handle deduplication automatically. |
+| **No-Sort HashSet** | **O(N^2)** | **O(N)**         | You are strictly forbidden from sorting or modifying the input array. |
+
+*\*Space complexity for sorting is typically **O(Log(N))** or **O(N)** depending on the 
+language/library implementation.*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **`nums.sort()` vs. `nums.sorted()`**: Use `nums.sort()` to modify the array in-place (O(1) extra
+space). `nums.sorted()` creates a new `List<Int>`, which adds $O(N)$ space overhead and involves 
+object boxing.
+* **Return Type Boxing**: The required return type `List<List<Int>>` forces object boxing of every 
+primitive `Int` into a `java.lang.Integer` object. In performance-critical systems, a flat `IntArray` 
+or a custom primitive collection would be preferred.
+* **`listOf()` vs. `intArrayOf()`**: Use `listOf(a, b, c)` because the return type is `List<Int>`. 
+However, be aware that this creates a new `ArrayList` object for every triplet found.
+* **Early Exit Optimization**: Since the array is sorted, if `nums[i] > 0`, it is impossible for 
+`nums[i] + nums[j] + nums[k]` to equal 0 (as all subsequent elements are also positive). You can 
+`break` the loop early.
+* **Skip Logic**: Ensure the skipping `while` loops (e.g., `while (j < k && nums[j] == nums[j - 1])`)
+are placed *after* the `j++` increment to avoid infinite loops or re-processing the same value.
+
+### 4. Code Block
+```kotlin
+fun threeSum(nums: IntArray): List<List<Int>> {
+    // 1. Sort + Two-Pointer Approach (Manual Deduplication)
+    // Time Complexity: O(N^2) | Space Complexity: O(Log(N))
+    nums.sort()
+    val triplets = mutableListOf<List<Int>>()
+    for (i in nums.indices) {
+        // Optimization: If the smallest number is > 0, sum can't be 0
+        if (nums[i] > 0) break
+        
+        // Skip duplicate anchor elements
+        if (i == 0 || nums[i] != nums[i - 1]) {
+            val target = -nums[i]
+            var left = i + 1
+            var right = nums.lastIndex
+            while (left < right) {
+                val sum = nums[left] + nums[right]
+                when {
+                    sum == target -> {
+                        triplets.add(listOf(nums[i], nums[left++], nums[right--]))
+                        // Skip duplicates for the second element
+                        while (left < right && nums[left] == nums[left - 1]) left++
+                    }
+                    sum < target -> left++
+                    else -> right--
+                }
+            }
+        }
+    }
+    return triplets
+}
+```
+
+```kotlin
+fun threeSum(nums: IntArray): List<List<Int>> {
+    // 2. Sort + Two-Pointer Approach (Deduplication via Set)
+    // Time: O(N^2) | Space: O(N) for the Set
+    nums.sort()
+    val triplets = mutableSetOf<List<Int>>()
+    for (i in nums.indices) {
+        if (nums[i] > 0) break
+        val target = -nums[i]
+        var left = i + 1
+        var right = nums.lastIndex
+        while (left < right) {
+            val sum = nums[left] + nums[right]
+            when {
+                sum == target -> triplets.add(listOf(nums[i], nums[left++], nums[right--]))
+                sum < target -> left++
+                else -> right--
+            }
+        }
+    }
+    return triplets.toList()
+}
+```
+
+```kotlin
+fun threeSum(nums: IntArray): List<List<Int>> {
+    // 3. Sort + Two-Pointer Approach (Post-Generation .distinct())
+    // Time: O(N^2) | Space: O(N) for triplets list
+    // Note: Least efficient due to overhead of collecting duplicates and distinct() call.
+    nums.sort()
+    val triplets = mutableListOf<List<Int>>()
+    for (i in nums.indices) {
+        if (nums[i] > 0) break
+        val target = -nums[i]
+        var left = i + 1
+        var right = nums.lastIndex
+        while (left < right) {
+            val sum = nums[left] + nums[right]
+            when {
+                sum == target -> triplets.add(listOf(nums[i], nums[left++], nums[right--]))
+                sum < target -> left++
+                else -> right--
+            }
+        }
+    }
+    return triplets.distinct()
+}
+```
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Sorting vs. HashSet (In-place vs. Extra Space)**:
+    *   **Sorting**: Achieves the optimal **O(N^2)** time with **O(1)** space. However, it requires 
+    modifying the input array (side effect) or making a copy (**O(N)** space).
+    *   **HashSet (No-Sort)**: Useful if the input array is strictly read-only, and you cannot afford
+    even **O(Log(N))** extra space for sorting. You would use a HashSet to find the complement, but 
+    handling duplicate triplets without sorting is much more complex and memory-intensive **O(N)** 
+    space for tracking seen combinations.
+
+*   **Large Scale / Distributed Data**:
+    *   **Scenario**: What if the array has 10 billion numbers?
+    *   **Solution**: **MapReduce / Sharding**.
+        *   **Step 1**: Sort the massive dataset globally (External Merge Sort).
+        *   **Step 2**: Distribute the data across machines by value ranges.
+        *   **Step 3**: Each machine takes an "anchor" element `a` and searches for `b + c = -a`.
+        *   **Challenge**: Machines need access to overlapping ranges because `b` and `c` could be 
+        anywhere in the sorted dataset.
+
+*   **Early Exit & Search Pruning**:
+    *   Sorting enables powerful pruning. If `nums[i] > 0`, we stop the entire process because no 
+    three positive numbers can sum to zero. In a real-time system, this "Early Exit" can save 
+    massive amounts of compute time on skewed datasets.
+
+*   **Memory Pressure (JVM Specific)**:
+    *   The standard `List<List<Int>>` return type is very "heavy." Each `Int` is boxed into an 
+    `Integer` object, and each triplet is an `ArrayList` object. For millions of results, this could
+    trigger **GC (Garbage Collection) Thrashing**.
+    *   **System Design Fix**: Use a single flat `IntArray` where every three elements represent a 
+    triplet, or a specialized primitive collection library to keep data on the stack/contiguous memory.
+
+
 ## Day 8 - LC 125 - Valid Palindrome
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
@@ -91,6 +246,24 @@ fun isPalindrome(s: String): Boolean {
 }
 ```
 ### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Sorting vs. HashSet (In-place vs. Extra Space)**:
+    *   **Sorting**: Achieves the optimal $O(N^2)$ time with $O(1)$ space. However, it requires modifying the input array (side effect) or making a copy ($O(N)$ space).
+    *   **HashSet (No-Sort)**: Useful if the input array is strictly read-only and you cannot afford even $O(\log N)$ extra space for sorting. You would use a HashSet to find the complement, but handling duplicate triplets without sorting is much more complex and memory-intensive ($O(N)$ space for tracking seen combinations).
+
+*   **Large Scale / Distributed Data**:
+    *   **Scenario**: What if the array has 10 billion numbers?
+    *   **Solution**: **MapReduce / Sharding**.
+        *   **Step 1**: Sort the massive dataset globally (External Merge Sort).
+        *   **Step 2**: Distribute the data across machines by value ranges.
+        *   **Step 3**: Each machine takes an "anchor" element `a` and searches for `b + c = -a`.
+        *   **Challenge**: Machines need access to overlapping ranges because `b` and `c` could be anywhere in the sorted dataset.
+
+*   **Early Exit & Search Pruning**:
+    *   Sorting enables powerful pruning. If `nums[i] > 0`, we stop the entire process because no three positive numbers can sum to zero. In a real-time system, this "Early Exit" can save massive amounts of compute time on skewed datasets.
+
+*   **Memory Pressure (JVM Specific)**:
+    *   The standard `List<List<Int>>` return type is very "heavy." Each `Int` is boxed into an `Integer` object, and each triplet is an `ArrayList` object. For millions of results, this could trigger **GC (Garbage Collection) Thrashing**.
+    *   **System Design Fix**: Use a single flat `IntArray` where every three elements represent a triplet, or a specialized primitive collection library to keep data on the stack/contiguous memory.
 * **Horizontal Scan vs. Vertical Scan**: In Palindrome problems, we always do a "Horizontal Scan" 
 (from both ends). A "Vertical Scan" isn't applicable here, but you can discuss **Parallelization** 
 for extremely long strings by splitting the string into chunks and checking symmetry across the 
@@ -828,13 +1001,14 @@ fun containsDuplicate(nums: IntArray): Boolean {
 }
 ```
 
+```kotlin
+fun containsDuplicate(nums: IntArray) = HashSet<Int>().let { set -> 
+    nums.any { !set.add(it) } 
+}
+```
 ### 5. Alternative Trade-offs (For System Design Dialogues)
 * **Sorting**: We could sort the array first (O(N log N) time) and then check adjacent elements (O(1) space). This is better if memory is strictly limited.
 * **Idiomatic Kotlin**: Use `any` and the fact that `HashSet.add()` returns `false` if the element already exists:
-  ```kotlin
-  fun containsDuplicate(nums: IntArray) = HashSet<Int>().let { set -> 
-      nums.any { !set.add(it) } 
-  }
-  ```
+
 
 
