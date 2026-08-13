@@ -2,6 +2,54 @@ package com.rshea.leetcodeprep
 
 object Week2Pointers {
 
+    // Day 10
+    // LeetCode 11. Container with Most Water
+    fun maxArea(height: IntArray): Int {
+
+        // Highly Optimized Greedy Two-Pointer Convergence Model
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        var mostWater = 0
+        var left = 0
+        var right = height.lastIndex
+
+        while (left < right) {
+            val width = right - left
+
+            // Calculate the area inside the conditional branches to eliminate redundant minOf checks
+            if (height[left] < height[right]) {
+                val currentArea = height[left] * width
+                if (currentArea > mostWater) mostWater = currentArea
+                left++
+            } else if (height[left] > height[right]) {
+                val currentArea = height[right] * width
+                if (currentArea > mostWater) mostWater = currentArea
+                right--
+            } else {
+                val currentArea = height[left] * width
+                if (currentArea > mostWater) mostWater = currentArea
+                left++
+                right--
+            }
+        }
+        return mostWater
+
+        // Greedy Two-Pointer Convergence Model Approach
+        //        var mostWater = 0
+        //        var left = 0
+        //        var right = height.lastIndex
+        //        while (left < right) {
+        //            mostWater = maxOf(mostWater,
+        //                minOf(height[left], height[right]) * (right - left))
+        //
+        //            when {
+        //                height[left] > height[right] -> right--
+        //                height[left] < height[right] -> left++
+        //                else -> { right--; left++ }
+        //            }
+        //        }
+        //        return mostWater
+    }
+
     // Day 9
     // LeetCode 15. Three Sum
     fun threeSum(nums: IntArray): List<List<Int>> {

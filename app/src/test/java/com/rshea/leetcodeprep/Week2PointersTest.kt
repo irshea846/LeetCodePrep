@@ -6,6 +6,22 @@ import kotlin.test.assertEquals
 class Week2PointersTest {
 
     @Test
+    fun testMaxArea_ValidCase() {
+        val height = intArrayOf(1,8,6,2,5,4,8,3,7)
+        val expectedResult = 49
+        val actualResult = Week2Pointers.maxArea(height)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testMaxArea_OnlyOneGapCase() {
+        val height = intArrayOf(1, 1)
+        val expectedResult = 1
+        val actualResult = Week2Pointers.maxArea(height)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
     fun testThreeSum_ValidCase() {
         val numbers = intArrayOf(-1, 0, 1, 2, -1, -4)
         val expectedResult = listOf(listOf(-1, -1, 2), listOf(-1, 0, 1))

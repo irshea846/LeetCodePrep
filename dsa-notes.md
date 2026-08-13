@@ -18,6 +18,143 @@ You can run the tests using Gradle:
 - [ ] Two Pointers
 - [ ] Sliding Window
 
+## Day 10 - LC 11 - Container With Most Water
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **The "Shortest Bar" Bottleneck**: The area of the container is strictly limited by the height
+  of the shorter bar (`min(height[left], height[right])`). The area is calculated as width * min(h1,
+  h2). Since moving any pointer inward always decreases the width, the only way to potentially 
+  increase the total area is to find a taller height.
+
+  * **Width always decreases**: As we move pointers inward, the width (`right - left`) decreases at 
+  every step.
+  
+  * **Greedy Decision**: The shorter bar is the limiting factor (the bottleneck). To find a larger 
+  area despite the shrinking width, we *must* find a taller bar. Moving the taller bar's pointer is 
+  guaranteed to result in a smaller area (same or smaller bottleneck, smaller width). Thus, we must 
+  move the pointer at the **shorter height** in hopes of finding a taller one to potentially overcome 
+  the width loss.
+  
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time       | Space    | Best Used When...                         |
+| :--- |:-----------|:---------|:------------------------------------------|
+| **Brute Force** | **O(N^2)** | **O(1)** | Array size is very small (N < 100).       |
+| **Two Pointers (Greedy)** | **O(N)**   | **O(1)** | **Optimal.** Standard for any input size. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **`minOf` / `maxOf` vs. manual `if`**: Kotlin's `minOf` and `maxOf` are highly readable and can 
+take multiple arguments, which is idiomatic. However, in extremely tight loops, a manual `if` 
+statement might avoid a tiny bit of function call overhead (though usually inlined by JIT).
+* **`height.lastIndex`**: Always prefer `lastIndex` over `size - 1` for idiomatic clarity and 
+conciseness.
+* **Range safety**: In the `else -> { right--; left++ }` case, ensure that the pointers don't 
+cross or go out of bounds if the logic was inside a nested loop. Here, the outer `while (left < right)` 
+handles it safely.
+* **Value vs Index Confusion**: A common logic error is comparing indices (`left < right`) 
+vs comparing values (`height[left] < height[right]`). Kotlin's strong typing helps, but logic 
+errors can still slip through.
+
+### 4. Code Block
+```kotlin
+fun maxArea(height: IntArray): Int {
+    // 1. Greedy Two-Pointer Convergence Model Approach
+    var mostWater = 0
+    var left = 0
+    var right = height.lastIndex
+    while (left < right) {
+        mostWater = maxOf(mostWater,
+            minOf(height[left], height[right]) * (right - left))
+
+        when {
+            height[left] > height[right] -> right--
+            height[left] < height[right] -> left++
+            else -> { right--; left++ }
+        }
+    }
+    return mostWater
+}
+```
+
+```kotlin
+fun maxArea(height: IntArray): Int {
+    // 2. Highly Optimized Greedy Two-Pointer Convergence Model
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    var mostWater = 0
+    var left = 0
+    var right = height.lastIndex
+
+    while (left < right) {
+        val width = right - left
+
+        // Calculate the area inside the conditional branches to eliminate redundant minOf checks
+        if (height[left] < height[right]) {
+            val currentArea = height[left] * width
+            if (currentArea > mostWater) mostWater = currentArea
+            left++
+        } else if (height[left] > height[right]) {
+            val currentArea = height[right] * width
+            if (currentArea > mostWater) mostWater = currentArea
+            right--
+        } else {
+            val currentArea = height[left] * width
+            if (currentArea > mostWater) mostWater = currentArea
+            left++
+            right--
+        }
+    }
+    return mostWater
+}
+
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+* **Time vs. Complexity**:
+    * The **Two-Pointer** approach is the gold standard (**O(N)**), but it assumes you have random 
+    access to the entire array (memory-resident).
+    * If the data is too large for memory (e.g., 100 Billion heights), you would need to store it 
+    in a distributed database. However, this specific "Most Water" problem is hard to parallelize 
+    directly because the pointers converge from ends based on local decisions.
+
+* **Equal Heights Optimization**:
+    * **Correctness**: When `height[left] == height[right]`, moving just one pointer (either `left++` 
+    or `right--`) is mathematically sufficient to find the global maximum.
+    * **Efficiency**: Moving **both pointers** simultaneously is a safe optimization. Since the new 
+    container's height would be capped by the unmoved equal height, and the width has decreased, a 
+    single move is guaranteed to produce a smaller area. Pruning both bars is a "greedy skip" that 
+    saves one iteration.
+
+* **Micro-Optimization**: 
+    * **Reason**: The implementation is completely correct and will pass LeetCode 
+    verification with zero issues. However, if you are interviewing for a low-latency or 
+    high-performance engineering role (such as processing high-frequency data streams on a mobile 
+    device), there is a minor optimization we can make to your inner loop execution as in **2. 
+    Highly Optimized Greedy Two-Pointer Convergence Model**.
+    * **Pruning Redundant Calculations**: Look closely at your area calculation line inside the 
+    while loop: `mostWater = maxOf(mostWater, minOf(height[left], height[right]) * (right - left))`
+      * **The Nuance**: You are calling minOf and calculating the area on every single iteration.
+      * **The Performance Catch**: In the else branch of your when statement, both heights are 
+      identical, so you can pick either one. But in the first two branches, you already know which 
+      bar is shorter because your when conditions check `height[left] > height[right]` and 
+      `height[left] < height[right]`.
+      * **The Senior Optimization**: By calculating the area inside the branches of your when block, 
+      you save yourself a redundant height comparison on every step. This flattens the execution 
+      path and allows the JVM to inline the operations more efficiently. 
+
+* **Comparison to Trapping Rain Water (LC 42)**:
+    * While both use two pointers, **Container With Most Water** looks for a single global maximum 
+    area between two bars. **Trapping Rain Water** calculates the cumulative volume trapped across 
+    all bars. 
+    * Container: Greedy movement of the shorter bar. 
+    * Trapping: Keeping track of left/right max heights to calculate local depth.
+
+* **Monotonic Stack?**:
+    * Some might wonder if a monotonic stack works here (like in LC 84 - Largest Rectangle in Histogram). 
+    In LC 84, the width is determined by all bars being taller than the current one. Here, the width 
+    is simply the distance between two specific bars. The two-pointer approach is more efficient 
+    for this specific constraint.
+
 ## Day 9 - LC 15 - Three Sum
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
