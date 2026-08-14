@@ -18,6 +18,134 @@ You can run the tests using Gradle:
 - [ ] Two Pointers
 - [ ] Sliding Window
 
+## Day 11 - LC 121 - Best Time to Buy and Sell Stock
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Temporal Ordering Constraint**: You must buy before you can sell. This prevents simply 
+  finding the absolute min and max of the array (as the max might occur before the min).
+  * **Greedy Extremum Tracking**: To calculate the max profit at any given day, you only need to 
+  know the most extreme price seen in the "other" direction (either the minimum price seen *before* 
+  today or the maximum price seen *after* today).
+  * **Backward Iteration (Current Choice)**: By iterating from the end, we maintain a "Global 
+  Maximum to the Right." For every price, the potential profit is `maxRight - currentPrice`. 
+  This avoids nested loops and reduces complexity to linear time.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time     | Space    | Best Used When...                         |
+| :--- |:---------|:---------|:------------------------------------------|
+| **Brute Force** | **O(N^2)** | **O(1)**   | Array size is tiny (N < 100).             |
+| **One Pass (Greedy)** | **O(N)** | **O(1)** | **Optimal.** Standard for any input size. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **`if-else` vs `maxOf`**: While `maxOf(a, b)` is idiomatic and concise, it delegates to 
+`Math.max(a, b)` under the hood. In extremely tight loops (processing millions of records), a 
+manual `if (a > b)` statement can be slightly faster by avoiding the overhead of a function call 
+and providing a flatter execution path for the JIT compiler.
+* **`prices.lastIndex`**: Always prefer `lastIndex` over `size - 1` for idiomatic Kotlin clarity.
+* **Index Safety**: When iterating `downTo 0`, ensure the initial value handles the boundary 
+correctly (starting at `lastIndex - 1` since `lastIndex` is used as the initial `bestPrice`).
+* **The Monotonic Equality Slip**: Look closely at your conditional branching rules in 2:
+    * **The Catch**: You use an explicit if check for < bestPrice and an else if check for >
+      bestPrice.
+    * **The Edge Case**: What happens if prices == bestPrice? Because it fails both conditions, the
+      code falls out of the branch entirely and executes nothing for that step.
+    * **The Operational Impact**: While a flat price equality won't corrupt your maxDiff or break
+      your tracking parameters directly (since a flat value can't yield a larger profit delta or shift
+      your max price limits), leaving equality branches unhandled inside an explicit if / else if tree
+      can leave your compiler vulnerable to unexpected branch-prediction penalties or miss updates if
+      you ever decide to track indices alongside values.
+    * **The Senior Fix**: Change your second condition to a flat else branch, or integrate equality
+      smoothly to ensure every possible CPU evaluation falls into a clean, predictable control path.
+
+``` kotlin
+if (prices[i] < bestPrice) {
+    val diff = bestPrice - prices[i]
+    if (diff > maxDiff) maxDiff = diff
+} else if (prices[i] > bestPrice) {
+    bestPrice = prices[i]
+}
+```
+
+### 4. Code Block
+```kotlin
+fun maxProfit(prices: IntArray): Int {
+    // 1. Greedy if-else Approach (Optimized for Branch Prediction & Unboxed Execution)
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    if (prices.isEmpty()) return 0
+
+    var maxDiff = 0
+    var bestPrice = prices[prices.lastIndex]
+
+    for (i in prices.lastIndex - 1 downTo 0) {
+        val currentPrice = prices[i]
+
+        if (currentPrice < bestPrice) {
+            val diff = bestPrice - currentPrice
+            if (diff > maxDiff) maxDiff = diff
+        } else {
+            // FIXED: Flat fallback branch handles equality safely, ensuring the
+            // CPU register layout optimizes branch predictions predictably.
+            bestPrice = currentPrice
+        }
+    }
+    return maxDiff
+}
+```
+
+```kotlin
+fun maxProfit(prices: IntArray): Int {
+    // 2. Greedy if-else Approach (Optimized for Branch Prediction)
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    if (prices.isEmpty()) return 0
+    var maxDiff = 0
+    var bestPrice = prices[prices.lastIndex]
+    for (i in prices.lastIndex - 1 downTo 0) {
+        if (prices[i] < bestPrice) {
+            val diff = bestPrice - prices[i]
+            if (diff > maxDiff) maxDiff = diff
+        } else if (prices[i] > bestPrice) { 
+            bestPrice = prices[i]
+        }
+    }
+    return maxDiff
+}
+```
+```kotlin
+fun maxProfit(prices: IntArray): Int {
+    // 3. Greedy maxOf Approach (Idiomatic Kotlin)
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    if (prices.isEmpty()) return 0
+    var maxDiff = 0
+    var bestPrice = prices[prices.lastIndex]
+    for (i in prices.lastIndex - 1 downTo 0) {
+        maxDiff = maxOf(maxDiff, bestPrice - prices[i])
+        bestPrice = maxOf(bestPrice, prices[i])
+    }
+    return maxDiff
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Forward vs. Backward Iteration**:
+    *   **Forward**: Tracks `minPriceSoFar` and calculates `profit = currentPrice - minPrice`. This 
+    is the most intuitive way (simulating time passing).
+    *   **Backward**: Tracks `maxPriceSoFar` and calculates `profit = maxPrice - currentPrice`. 
+    Mathematically identical, but useful if the data is being streamed from a buffer or log 
+    where reading backwards is more efficient.
+*   **Kadane’s Algorithm Variant**:
+    *   The problem can be modeled as finding the maximum subarray sum of the **differences** 
+    between adjacent days.
+    *   Example: `[7, 1, 5, 3, 6, 4]` becomes `[-6, 4, -2, 3, -2]`. The max subarray sum is `4 + (-2) + 3 = 5`.
+    *   *Trade-off*: More complex to implement and reason about, but highlights a deep connection 
+    between different array patterns.
+*   **Streaming Data / Memory Management**:
+    *   In a real-time trading system, you wouldn't store the whole `IntArray`. You would process 
+    each price as it arrives (**O(1)** space, **O(1)** per tick). The "Forward" iteration is 
+    mandatory in this "Online" scenario.
+
+
 ## Day 10 - LC 11 - Container With Most Water
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
