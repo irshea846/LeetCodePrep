@@ -6,6 +6,38 @@ import kotlin.test.assertEquals
 class Week2PointersTest {
 
     @Test
+    fun testMaxProfit_ValidCase() {
+        val prices = intArrayOf(7, 1, 5, 3, 6, 4)
+        val expectedResult = 5
+        val actualResult = Week2Pointers.maxProfit(prices)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testMaxProfit_InvalidCase() {
+        val prices = intArrayOf(7, 6, 4, 3, 1)
+        val expectedResult = 0
+        val actualResult = Week2Pointers.maxProfit(prices)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testMaxProfit_EdgeCase1() {
+        val prices = intArrayOf(2,4,1)
+        val expectedResult = 2
+        val actualResult = Week2Pointers.maxProfit(prices)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testMaxProfit_EdgeCase2() {
+        val prices = intArrayOf(2,1,4)
+        val expectedResult = 3
+        val actualResult = Week2Pointers.maxProfit(prices)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
     fun testMaxArea_ValidCase() {
         val height = intArrayOf(1,8,6,2,5,4,8,3,7)
         val expectedResult = 49

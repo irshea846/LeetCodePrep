@@ -2,6 +2,56 @@ package com.rshea.leetcodeprep
 
 object Week2Pointers {
 
+    // Day 11
+    // LeetCode 121. Best Time to Buy and Sell Stock
+    fun maxProfit(prices: IntArray): Int {
+        // 1. Greedy if-else Approach (Optimized for Branch Prediction & Unboxed Execution)
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        if (prices.isEmpty()) return 0
+
+        var maxDiff = 0
+        var bestPrice = prices[prices.lastIndex]
+
+        for (i in prices.lastIndex - 1 downTo 0) {
+            val currentPrice = prices[i]
+
+            if (currentPrice < bestPrice) {
+                val diff = bestPrice - currentPrice
+                if (diff > maxDiff) maxDiff = diff
+            } else {
+                // FIXED: Flat fallback branch handles equality safely, ensuring the
+                // CPU register layout optimizes branch predictions predictably.
+                bestPrice = currentPrice
+            }
+        }
+        return maxDiff
+
+        // 2. Greedy if-else Approach
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        //        var maxDiff = 0
+        //        var bestPrice = prices[prices.lastIndex]
+        //        for (i in prices.lastIndex - 1 downTo 0) {
+        //            if (prices[i] < bestPrice) {
+        //                val diff = bestPrice - prices[i]
+        //                if (diff > maxDiff) maxDiff = diff
+        //            } else if (prices[i] > bestPrice) {
+        //                bestPrice = prices[i]
+        //            }
+        //        }
+        //        return maxDiff
+
+        // 3. Greedy maxOf approach
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        //        var maxDiff = 0
+        //        var bestPrice = prices[prices.lastIndex]
+        //        for (i in prices.lastIndex - 1 downTo 0) {
+        //            maxDiff = maxOf(maxDiff, bestPrice - prices[i])
+        //            bestPrice = maxOf(bestPrice, prices[i])
+        //        }
+        //        return maxDiff
+
+    }
+
     // Day 10
     // LeetCode 11. Container with Most Water
     fun maxArea(height: IntArray): Int {
