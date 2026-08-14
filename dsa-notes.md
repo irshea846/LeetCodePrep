@@ -47,6 +47,24 @@ You can run the tests using Gradle:
 * **`minOf` / `maxOf` vs. manual `if`**: Kotlin's `minOf` and `maxOf` are highly readable and can 
 take multiple arguments, which is idiomatic. However, in extremely tight loops, a manual `if` 
 statement might avoid a tiny bit of function call overhead (though usually inlined by JIT).
+  * **The Performance Catch**: Because `minOf` is marked as **`inline`**, the Kotlin compiler copies
+  the body of the function directly into your loop, which helps prevent call-stack creation overhead. 
+  However, it delegates the check directly to **`Math.min(a, b)`** (a native Java helper).
+  * **The JIT Trap**: While modern JVM Just-In-Time (JIT) compilers are smart enough to optimize 
+  `Math.min` directly down to hardware instructions (like `CMOV` or conditional moves), it still 
+  requires an extra compilation step. In extremely tight loops (like checking billions of integers 
+  in a sliding window), an `if-else` statement avoids any intermediate library delegation entirely, 
+  ensuring the flattens execution path runs directly on the CPU register layout.
+  * **How to Ace this Question in an Interview**: If an interviewer watches you write an `if-else` 
+  block instead of using `minOf()` and asks why, deliver this exact response to showcase your 
+  mastery of memory management and system design:
+    * *While Kotlin’s `minOf()` is highly readable and inlined at compile-time, it delegates under
+    the hood to Java's `Math.min()`. In standard applications, this is perfectly fine. However, in 
+    hot, tight execution loops—such as processing high-frequency data streams or graphics 
+    calculations—a manual `if-else` statement compiles directly down to raw primitive conditional 
+    jump bytecodes on the CPU stack, bypassing library delegation and guaranteeing maximum 
+    low-latency performance.*
+
 * **`height.lastIndex`**: Always prefer `lastIndex` over `size - 1` for idiomatic clarity and 
 conciseness.
 * **Range safety**: In the `else -> { right--; left++ }` case, ensure that the pointers don't 
