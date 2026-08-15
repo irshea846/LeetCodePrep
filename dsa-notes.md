@@ -18,6 +18,146 @@ You can run the tests using Gradle:
 - [ ] Two Pointers
 - [ ] Sliding Window
 
+## Day 12 - LC 3 - Longest Substring Without Repeating Characters
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Continuous Subarray/Substring Constraint**: The problem asks for a *substring*, which implies 
+  the elements must be contiguous. This is a classic signal for the **Sliding Window** pattern.
+  * **Uniqueness Invariant**: Every character in the window must be unique. This requires a 
+  secondary data structure (like a `HashSet` or `Map`) to track character frequencies or their last 
+  seen indices within the current window.
+  * **Dynamic Window Adjustment**: When a duplicate is encountered (violating the invariant), the 
+  left boundary of the window must "shrink" or "jump" to exclude the previous occurrence of that 
+  character. This allows us to find the maximum possible length in a single linear pass **O(N)**.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time       | Space            | Best Used When... |
+| :--- |:-----------|:-----------------| :--- |
+| **Brute Force** | **O(N^3)** | **O(min(N, M))** | String size is tiny. |
+| **Sliding Window (HashSet)** | **O(N)**   | **O(min(N, M))** | Standard linear approach for any character set. |
+| **Sliding Window (Array)** | **O(N)**   | **O(1)**         | **Optimal.** Fast jumps using last-seen index. |
+
+* **Space** **O(M)** where **M** is the size of the character set:
+    * **int[26]** for Letters 'a' - 'z' or 'A' - 'Z'
+    * **int[128]** for ASCII
+    * **int[256]** for extended ASCII)
+
+### 3. Native Kotlin Syntax Pitfalls
+* **`s.withIndex()`**: Extremely idiomatic for sliding windows as you often need both the character 
+and its absolute position (`idx`) to update the "last seen" map.
+* **`c.code`**: In Kotlin, use `.code` (or `.toInt()` in older versions) to get the ASCII value of a 
+`Char` when using a fixed-size `IntArray` as a frequency/index map.
+* **`IntArray(256) { -1 }`**: When tracking "last seen" indices, initialize with -1 to distinguish 
+between index 0 and "not seen yet."
+* **Eliminating Iterator Object Allocation in Hot Paths**:
+  * **The Nuance**: Kotlin's .withIndex() extension on a CharSequence or String is highly idiomatic 
+  and readable.
+  * **The Hot-Path Performance Catch**: Under the hood on the JVM, calling .withIndex() creates an 
+  intermediate IndexedValue iterator object wrapper that allocates memory on the heap for every loop
+  iteration. In an ultra-hot path checking millions of streaming characters, this triggers garbage 
+  collection memory pressure.
+  * **The Senior Fix**: Use a standard primitive indexing for loop (for (idx in 0 until s.length)) 
+  and look up characters natively using s[idx]. This achieves the exact same mathematical index 
+  tracking while using zero object allocations, keeping data entirely on the CPU stack.
+```kotlin
+    for ((idx, char) in s.withIndex()) {
+        // your code here
+    }
+```
+
+
+### 4. Code Block
+```kotlin
+fun lengthOfLongestSubstring(s: String): Int {
+    // 1. Highly Optimized Sliding Window (One-Pass with allocation-free index mapping)
+    // Time Complexity: O(N) | Space Complexity: O(M)
+    val lastSeen = IntArray(256) { -1 }
+    var start = 0
+    var maxLen = 0
+
+    // FIXED: Bypasses .withIndex() object allocation by using primitive indexed iteration loops
+    for (idx in 0 until s.length) {
+        val charCode = s[idx].code
+
+        // If we've seen this char inside the current window, jump 'start' forward instantly
+        if (lastSeen[charCode] >= start) {
+            start = lastSeen[charCode] + 1
+        }
+
+        lastSeen[charCode] = idx
+
+        // Calculate max window distance inline
+        val currentWindowLen = idx - start + 1
+        if (currentWindowLen > maxLen) {
+            maxLen = currentWindowLen
+        }
+    }
+    return maxLen
+}
+```
+
+```kotlin
+fun lengthOfLongestSubstring(s: String): Int {
+    // 2. Sliding Window Approach with Fixed-Size Array Strategy
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    val chars = IntArray(256) { -1 }
+    var start = 0
+    var maxSubStrLen = 0
+    for ((idx, c) in s.withIndex()) {
+        val ascii = c.code
+        val pos = chars[ascii]
+        val len = idx - start + if (pos < start) 1 else 0
+        if (len > maxSubStrLen) maxSubStrLen = len
+        if (pos >= start) {
+            start = pos + 1
+        }
+        chars[ascii] = idx
+    }
+    return maxSubStrLen
+}
+```
+
+```kotlin
+fun lengthOfLongestSubstring(s: String): Int {
+    // 3. Sliding Window Approach with HashMap Strategy
+    // Time Complexity: O(N) | Space Complexity: O(N)
+    val map = HashMap<Char, Int>()
+    var start = 0
+    var maxSubStrLen = 0
+    for ((idx, c) in s.withIndex()) {
+        if (!map.containsKey(c)) {
+            map[c] = idx
+            maxSubStrLen = maxOf(maxSubStrLen, idx - start + 1)
+        } else {
+            val pos = map[c]!!
+            val len = idx - start + if (pos < start) 1 else 0
+            if (len > maxSubStrLen) maxSubStrLen = len
+            if (pos >= start) {
+                start = pos + 1
+            }
+        }
+        map[c] = idx
+    }
+    return maxSubStrLen
+
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **HashMap vs. IntArray**:
+    *   **HashMap**: Handles any Unicode character (emojis, multi-language). Higher memory 
+    overhead due to object boxing (`Character` and `Integer` objects).
+    *   **IntArray(256)**: Extremely fast (O(1) lookups, zero boxing). Limited to Extended ASCII. 
+    Ideal for standard web/text processing where character range is known.
+*   **Two-Pointer Shrinking vs. Index Jumping**:
+    *   **Shrinking (while loop)**: The left pointer moves one by one until the duplicate is 
+    removed. Easier to reason about for beginners.
+    *   **Jumping (lastSeen map)**: The left pointer "jumps" directly to the valid position. 
+    Mathematically cleaner and ensures exactly **N** iterations.
+
+
 ## Day 11 - LC 121 - Best Time to Buy and Sell Stock
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
