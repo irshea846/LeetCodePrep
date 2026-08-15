@@ -6,6 +6,62 @@ import kotlin.test.assertEquals
 class Week2PointersTest {
 
     @Test
+    fun testLengthOfLongestSubstring_ValidCase1() {
+        val s = "abcabcbb"
+        val expectedResult = 3
+        val actualResult = Week2Pointers.lengthOfLongestSubstring(s)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase2() {
+        val s = "bbbbb"
+        val expectedResult = 1
+        val actualResult = Week2Pointers.lengthOfLongestSubstring(s)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase3() {
+        val s = "pwwkew"
+        val expectedResult = 3
+        val actualResult = Week2Pointers.lengthOfLongestSubstring(s)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase4() {
+        val s = "ccbbcc"
+        val expectedResult = 2
+        val actualResult = Week2Pointers.lengthOfLongestSubstring(s)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase5() {
+        val s = "ff"
+        val expectedResult = 1
+        val actualResult = Week2Pointers.lengthOfLongestSubstring(s)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase6() {
+        val s = "a"
+        val expectedResult = 1
+        val actualResult = Week2Pointers.lengthOfLongestSubstring(s)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_InvalidCase() {
+        val s = "dvdf"
+        val expectedResult = 3
+        val actualResult = Week2Pointers.lengthOfLongestSubstring(s)
+        assertEquals(expectedResult, actualResult, "Result must be match")
+    }
+
+    @Test
     fun testMaxProfit_ValidCase() {
         val prices = intArrayOf(7, 1, 5, 3, 6, 4)
         val expectedResult = 5

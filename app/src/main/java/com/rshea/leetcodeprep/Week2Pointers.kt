@@ -2,6 +2,73 @@ package com.rshea.leetcodeprep
 
 object Week2Pointers {
 
+    // Day 12
+    // LeetCode 3. Longest Substring Without Repeating Characters
+    fun lengthOfLongestSubstring(s: String): Int {
+        // 1. Highly Optimized Sliding Window (One-Pass with allocation-free index mapping)
+        // Time Complexity: O(N) | Space Complexity: O(M)
+        //        val lastSeen = IntArray(256) { -1 }
+        //        var start = 0
+        //        var maxLen = 0
+        //
+        //        // FIXED: Bypasses .withIndex() object allocation by using primitive indexed iteration loops
+        //        for (idx in 0 until s.length) {
+        //            val charCode = s[idx].code
+        //
+        //            // If we've seen this char inside the current window, jump 'start' forward instantly
+        //            if (lastSeen[charCode] >= start) {
+        //                start = lastSeen[charCode] + 1
+        //            }
+        //
+        //            lastSeen[charCode] = idx
+        //
+        //            // Calculate max window distance inline
+        //            val currentWindowLen = idx - start + 1
+        //            if (currentWindowLen > maxLen) {
+        //                maxLen = currentWindowLen
+        //            }
+        //        }
+        //        return maxLen
+
+        // 2. Sliding Window Approach with Fixed-Size Array Strategy
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        //        val chars = IntArray(256) { -1 }
+        //        var start = 0
+        //        var maxSubStrLen = 0
+        //        for ((idx, c) in s.withIndex()) {
+        //            val ascii = c.code
+        //            val pos = chars[ascii]
+        //            val len = idx - start + if (pos < start) 1 else 0
+        //            if (len > maxSubStrLen) maxSubStrLen = len
+        //            if (pos >= start) {
+        //                start = pos + 1
+        //            }
+        //            chars[ascii] = idx
+        //        }
+        //        return maxSubStrLen
+
+        // 3. Sliding Window Approach with HashMap Strategy
+        // Time Complexity: O(N) | Space Complexity: O(N)
+        val map = HashMap<Char, Int>()
+        var start = 0
+        var maxSubStrLen = 0
+        for ((idx, c) in s.withIndex()) {
+            if (!map.containsKey(c)) {
+                map[c] = idx
+                maxSubStrLen = maxOf(maxSubStrLen, idx - start + 1)
+            } else {
+                val pos = map[c]!!
+                val len = idx - start + if (pos < start) 1 else 0
+                if (len > maxSubStrLen) maxSubStrLen = len
+                if (pos >= start) {
+                    start = pos + 1
+                }
+            }
+            map[c] = idx
+        }
+        return maxSubStrLen
+    }
+
     // Day 11
     // LeetCode 121. Best Time to Buy and Sell Stock
     fun maxProfit(prices: IntArray): Int {
