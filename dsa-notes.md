@@ -449,10 +449,10 @@ fun maxArea(height: IntArray): Int {
     them easy to skip.
     2.  **Skipping Logic**: We skip the "anchor" element if it matches the previous one, and we also
     skip the `left`/`right` pointers after finding a valid triplet to avoid identical combinations.
-  * **Sum to Zero ($a + b + c = 0$)**: This triggers a **"Fix One, Search Two"** strategy. By fixing
+  * **Sum to Zero (a + b + c = 0)**: This triggers a **"Fix One, Search Two"** strategy. By fixing
   `a`, the problem transforms into finding two numbers that sum to `-a` (**Two Sum II**).
   * **Efficiency Requirement**: Brute force is $O(N^3)$. Sorting allows us to use a nested 
-  **Two-Pointer Squeeze**, reducing the complexity to **$O(N^2)$** time and **$O(1)$** space 
+  **Two-Pointer Squeeze**, reducing the complexity to **O(N^2)** time and **O(1)** space 
   (ignoring sorting overhead).
   
 ### 2. Complexity Boundaries
