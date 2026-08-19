@@ -2,6 +2,93 @@ package com.rshea.leetcodeprep
 
 object Week3Windows {
 
+    // Day 14
+    // LeetCode 11. Container With Most Water
+    fun maxArea(height: IntArray): Int {
+        // Highly Optimized Greedy Two-Pointer (Merged Logic)
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        var i = 0
+        var j = height.lastIndex
+        var mostWater = 0
+
+        while (i < j) {
+            val width = j - i
+
+            // Combine height comparison with area calculation to minimize CPU jumps
+            if (height[i] < height[j]) {
+                val area = height[i] * width
+                if (area > mostWater) mostWater = area
+                i++
+            } else if (height[i] > height[j]) {
+                val area = height[j] * width
+                if (area > mostWater) mostWater = area
+                j--
+            } else {
+                // "Equal Heights" optimization: move both pointers as neither can
+                // contribute to a larger container given the decreasing width.
+                val area = height[i] * width
+                if (area > mostWater) mostWater = area
+                i++; j--
+            }
+        }
+        return mostWater
+
+        // Greedy Two-Pointer Approach
+        //        var i = 0
+        //        var j = height.lastIndex
+        //        var mostWater = 0
+        //
+        //        while (i < j) {
+        //            val minHeight = minOf(height[i], height[j])
+        //            val currWater = (j - i) * minHeight
+        //            if (currWater > mostWater) mostWater = currWater
+        //            when {
+        //                height[i] > height[j] -> j--
+        //                height[i] < height[j] -> i++
+        //                else -> {
+        //                    i++; j--
+        //                }
+        //            }
+        //        }
+        //        return mostWater
+    }
+
+
+    // Day 14
+    // LeetCode 167. Two Sum II - Input Array Is Sorted
+    fun twoSum(numbers: IntArray, target: Int): IntArray {
+        // 1. Two Pointers Approach
+        //        var i = 0
+        //        var j = numbers.lastIndex
+        //        while (i < j) {
+        //            val complement = target - numbers[i]
+        //            when {
+        //                numbers[j] == complement -> return intArrayOf(i + 1, j + 1)
+        //                numbers[j] > complement -> j--
+        //                else -> i++
+        //            }
+        //        }
+        //        return intArrayOf()
+
+        // 2. Binary Search Approach
+        // Time Complexity: O(N * Log (N)) | Space Complexity: O(1)
+        // The Nuance: Kotlin's built-in IntArray.binarySearch(element, fromIndex, toIndex) accepts
+        // an optional toIndex parameter, which defaults to the full size of the array (numbers.size).
+        // By omitting it, your code automatically scans all the way to the end of the array, which
+        // is perfectly correct.
+        // The Optimization Edge: Since your for loop ranges until numbers.lastIndex, your search
+        // path is already safely bounded. If you ever scale this pattern to a sliding sub-window or
+        // a partitioned chunk inside a concurrent data pipeline, explicitly passing the exclusive
+        // upper boundary parameter toIndex = numbers.size ensures your code bounds remain completely
+        // clear to anyone reading the source file.
+        for (i in 0 until numbers.lastIndex) {
+            val complement = target - numbers[i]
+            val j = numbers.binarySearch(complement, fromIndex = i + 1, numbers.size)
+            if (j >= 0) return intArrayOf(i + 1, j + 1)
+        }
+        return intArrayOf()
+    }
+
     // Day 13
     // LeetCode 680. Valid Palindrome II
     fun validPalindrome(s: String): Boolean {
@@ -26,7 +113,7 @@ object Week3Windows {
         // 2. Two Pointers Recursive Strategy
         // Suggestions: Your recursive approach is elegant but consumes stack space. Using an
         // iterative while loop for the character checks would achieve constant auxiliary space.
-        //return isValidPalindrome(s, 0, s.lastIndex, 0)
+        // return isValidPalindrome(s, 0, s.lastIndex, 0)
         // Consider: If the problem allowed deleting up to two characters, how would you modify your
         // recursive logic to prevent redundant subproblem calculations?
     }
