@@ -12,7 +12,177 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Two Pointers
 - [ ] Sliding Window
 
-## Day 12 - LC 680 - Valid Palindrome II
+## Day 14 - LC 11 - Container With Most Water
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **The "Shortest Bar" Bottleneck**: The area is defined as `width * min(h1, h2)`. Since width 
+  **always decreases** as pointers move inward, the only way to potentially increase the area is to 
+  find a taller bottleneck.
+  * **Greedy Decision Rule**: We always shift the pointer pointing to the **shorter** bar. Moving 
+  the taller bar would decrease the width while the bottleneck height is guaranteed to stay the same
+  or get even smaller.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time | Space | Best Used When... |
+| :--- | :--- | :--- | :--- |
+| **Brute Force** | $O(N^2)$ | **O(1)** | Array is very small (N < 100). |
+| **Two Pointers (Greedy)** | **O(N)** | **O(1)** | **Optimal.** Standard for high-performance linear scanning. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Double Comparison Overhead**: Avoid calling `minOf()` and then performing a separate `when/if` 
+check on the same bars. This forces the CPU to perform the same comparison twice.
+* **Merged Logic Strategy**: Calculating the area **inside** the conditional branches (as shown 
+below) is the fastest way to execute this loop on the JVM, as it flattens the jump table.
+
+### 4. Code Block
+```kotlin
+fun maxArea(height: IntArray): Int {
+    // Highly Optimized Greedy Two-Pointer (Merged Logic)
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    var i = 0
+    var j = height.lastIndex
+    var mostWater = 0
+
+    while (i < j) {
+        val width = j - i
+        
+        // Combine height comparison with area calculation to minimize CPU jumps
+        if (height[i] < height[j]) {
+            val area = height[i] * width
+            if (area > mostWater) mostWater = area
+            i++
+        } else if (height[i] > height[j]) {
+            val area = height[j] * width
+            if (area > mostWater) mostWater = area
+            j--
+        } else {
+            // "Equal Heights" optimization: move both pointers as neither can
+            // contribute to a larger container given the decreasing width.
+            val area = height[i] * width
+            if (area > mostWater) mostWater = area
+            i++; j--
+        }
+    }
+    return mostWater
+}
+```
+
+```kotlin
+fun maxArea(height: IntArray): Int {
+    // Greedy Two-Pointer Approach (Original Implementation)
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    var i = 0
+    var j = height.lastIndex
+    var mostWater = 0
+
+    while (i < j) { 
+        // In your current code, you perform the same comparison twice in every iteration of the loop:
+        // 1. First in val minHeight = minOf(height[i], height[j])
+        // 2. Second in when { height[i] > height[j] -> ... }
+        // While modern JIT compilers might optimize this, from a clean-code and low-level performance 
+        // perspective, it is better to merge the area calculation into the pointer logic.
+        val minHeight = minOf(height[i], height[j])
+
+        // Redundancy: The currWater variable is only used once; you can inline it directly into the 
+        // maxOf or if check.
+        val currWater = (j - i) * minHeight
+        if (currWater > mostWater) mostWater = currWater
+        when {
+            height[i] > height[j] -> j--
+            height[i] < height[j] -> i++
+            else -> {
+                i++; j--
+            }
+        }
+    }
+    return mostWater
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+* **Equal Height Pruning**: Moving both pointers when heights are equal is a safe optimization. 
+Since the new area is capped by the unmoved bar, moving only one is guaranteed to produce a smaller 
+result.
+* **Hardware Cache Locality**: This algorithm is cache-friendly because it reads from both ends 
+toward the middle. However, on massive datasets (GBs of heights), reading from both ends can cause 
+"Cache Thrashing" if the two memory locations are in different pages.
+* **Parallelization**: Unlike sorting, the Two-Pointer convergence is hard to parallelize because 
+the next move depends on the current result.
+
+
+## Day 14 - LC 167 - Two Sum II - Input Array Is Sorted
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Input Array is sorted**: This is the "Golden Constraint." Because the array is ordered, we 
+  know that moving a pointer to the right always increases the sum, and moving to the left always 
+  decreases it. This triggers the **Two-Pointer Squeeze** pattern.
+  * **Constant Extra Space O(1)**: Forces us to use the structure of the array itself (the sorting) 
+  rather than external memory like a HashMap.
+  * **1-Indexed Result**: Requires adding `+1` to zero-based indices before returning.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time               | Space | Best Used When... |
+| :--- |:-------------------| :--- | :--- |
+| **Two Pointers Squeeze** | **O(N)**           | **O(1)** | **Optimal.** Standard for sorted arrays. |
+| **Binary Search** | **O(N * Log (N))** | **O(1)** | Only allowed to move one pointer or for "jumping" optimizations. |
+| **HashMap** | **O(N)**           | **O(N)** | Array is **not** sorted. Wastes space in this specific problem. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Avoid `arrayOf()`**: The return type must be `IntArray`. `arrayOf(1, 2)` creates an `Array<Int>` 
+(boxed objects), which will fail to compile. Use **`intArrayOf(i + 1, j + 1)`**.
+* **KSL `binarySearch()`**: Use the built-in `IntArray.binarySearch()` for zero-risk, optimized 
+performance. It handles overflow and ranges perfectly.
+* **Overflow Safety**: Calculating `numbers[i] + numbers[j]` can overflow if values are near 
+$2^{31}-1$. A safer check is `numbers[j] == target - numbers[i]`.
+
+### 4. Code Block
+```kotlin
+fun twoSum(numbers: IntArray, target: Int): IntArray {
+    // 1. Two Pointers Squeeze (Optimal)
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    var i = 0
+    var j = numbers.lastIndex
+    while (i < j) {
+        val complement = target - numbers[i]
+        when {
+            numbers[j] == complement -> return intArrayOf(i + 1, j + 1)
+            numbers[j] > complement -> j--
+            else -> i++
+        }
+    }
+    return intArrayOf()
+}
+```
+
+```kotlin
+fun twoSum(numbers: IntArray, target: Int): IntArray {
+    // 2. Binary Search (KSL Optimized)
+    // Time Complexity: O(N log N) | Space Complexity: O(1)
+    for (i in 0 until numbers.lastIndex) {
+        val complement = target - numbers[i]
+        val j = numbers.binarySearch(complement, fromIndex = i + 1, numbers.size)
+        if (j >= 0) return intArrayOf(i + 1, j + 1)
+    }
+    return intArrayOf()
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+* **Galloping (Exponential) Search**: If the `target` is extremely far from the average, you can 
+use Binary Search to "jump" the pointers rather than moving them one-by-one.
+* **Cache Locality**: The Two-Pointer Squeeze is extremely cache-friendly because it accesses 
+memory sequentially. Binary Search jumps between memory locations, which can cause cache misses 
+on very large arrays.
+* **Stream Processing**: In a real-time system, if the sorted data is being streamed, two-pointer 
+convergence requires buffering the whole stream. Binary Search might be more feasible if you can 
+only "peek" into specific indexed offsets of a remote file.
+
+
+## Day 13 - LC 680 - Valid Palindrome II
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
   * **Single Deletion Tolerance**: The constraint allows for **at most one** character to be removed. 
@@ -136,7 +306,11 @@ private fun isValidPalindrome(str: String, i: Int, j: Int, k: Int): Boolean {
   reversed second half into the same buffer so the CPU can read them linearly (sequentially), 
   which is significantly faster.
 
-## Day 12 - LC 125 - Valid Palindrome
+* *"While the Greedy Iterative approach is optimal for **`K = 1`**, the Recursive approach is a more
+robust design for varying tolerances. At system scale, distributed alignment and memory locality 
+(cache misses) become the primary performance bottlenecks, not the algorithmic complexity."*
+
+## Day 13 - LC 125 - Valid Palindrome
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
     * **Ignoring Non-Alphanumeric Characters**: The problem forces us to process a string while
