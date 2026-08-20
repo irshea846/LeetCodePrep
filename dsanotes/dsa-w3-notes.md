@@ -12,6 +12,119 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Two Pointers
 - [ ] Sliding Window
 
+## Day 15 - LC 15 - 3 Sum
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **No Duplicate Triplets**: This is the most critical constraint. It triggers two design decisions:
+    1.  **Sorting**: We must sort the array first (**O(N * Log(N))**) to bring duplicates together, 
+    making them easy to skip.
+    2.  **Skipping Logic**: We skip the "anchor" element if it matches the previous one, and we also
+    skip the `left`/`right` pointers after finding a valid triplet to avoid identical combinations.
+  * **Sum to Zero (a + b + c = 0)**: This triggers a **"Fix One, Search Two"** strategy. By fixing
+  `a`, the problem transforms into finding two numbers that sum to `-a` (**Two Sum II**).
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time       | Space     | Best Used When... |
+| :--- |:-----------|:----------| :--- |
+| **Brute Force** | **O(N^3)** | **O(1)**  | Array is tiny and you want the simplest logic. |
+| **Sorting + Two Pointers** | **O(N^2)** | **O(1)*** | **Optimal.** Most efficient for both time and memory. |
+| **Sorting + HashSet** | **O(N^2)**   | **O(N)**    | You want to use a `Set` to handle deduplication automatically. |
+
+*\*Space complexity for sorting is typically **O(log N)** or **O(N)** depending on the implementation.*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **`nums.sort()` vs. `nums.sorted()`**: Use `nums.sort()` to modify the array in-place (O(1) extra 
+space). `nums.sorted()` creates a new `List<Int>`, adding **O(N)** space overhead.
+* **Return Type Boxing**: The required `List<List<Int>>` forces object boxing of every primitive `Int`. 
+For millions of results, this could trigger **GC Thrashing**.
+* **Range Check Overhead**: Using `i in 1..nums.lastIndex` is safe but slower than a simple `i > 0` 
+check due to the creation of a `Range` object.
+* **Early Exit**: Since the array is sorted, if `nums[i] > 0`, it is impossible for 
+`nums[i] + nums[j] + nums[k]` to equal 0. Break the loop early.
+
+### 4. Code Block
+```kotlin
+fun threeSum(nums: IntArray): List<List<Int>> {
+    // Highly Optimized Triple-Greedy Squeeze (Manual Deduplication)
+    // Time Complexity: O(N^2) | Space Complexity: O(1) (excluding output)
+    nums.sort()
+    val list = mutableListOf<List<Int>>()
+    
+    for (i in 0 until nums.size - 2) {
+        // Optimization: if anchor is positive, no triplet can sum to 0
+        if (nums[i] > 0) break
+        
+        // Skip duplicate anchor elements
+        if (i > 0 && nums[i] == nums[i - 1]) continue
+
+        val target = -nums[i]
+        var left = i + 1
+        var right = nums.lastIndex
+        
+        while (left < right) {
+            val sum = nums[left] + nums[right]
+            when {
+                sum < target -> left++
+                sum > target -> right--
+                else -> {
+                    list.add(listOf(nums[i], nums[left++], nums[right--]))
+                    // Triple-Skip: Avoid re-processing the same values for left/right
+                    while (left < right && nums[left] == nums[left - 1]) left++
+                    while (left < right && nums[right] == nums[right + 1]) right--
+                }
+            }
+        }
+    }
+    return list
+}
+```
+
+```kotlin
+fun threeSum(nums: IntArray): List<List<Int>> {
+    // Sort + Triple Greedy Approach
+    // Time Complexity: O(N^2) | Space Complexity: O(Log(N))
+    nums.sort()
+    val list = mutableListOf<List<Int>>()
+    var i = 0; var j: Int; var k = nums.lastIndex
+    while (i < k && nums[i] <= 0) {
+        if (i > 0 && nums[i] == nums[i - 1]) {
+            i++
+            continue
+        }
+        val sum = 0 - nums[i]
+        j = i + 1
+        k = nums.lastIndex
+        while (j < k) {
+            val complement = sum - nums[j]
+            when {
+                complement > nums[k] -> j++
+                complement < nums[k] -> k--
+                else -> {
+                    list.add(listOf(nums[i], nums[j], nums[k]))
+                    j++; k--
+                    while (j < k && nums[j] == nums[j - 1]) j++
+                    while (j < k && nums[k] == nums[k + 1]) k--
+                }
+          }
+        }
+        i++
+    }
+    return list
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+* **Deduplication Strategy**: Manual skipping is memory-efficient (**O(1)** extra space), whereas 
+using a `HashSet<List<Int>>` is "safer" to implement but uses **O(N)** extra space and is slower due 
+to hash calculations.
+* **Distributed Scale**: To process 10 billion numbers, use MapReduce. Sort the data globally, then 
+shard ranges across nodes. Each machine takes an anchor range and performs the search.
+* **Memory Locality**: The two-pointer squeeze is cache-friendly because it accesses memory 
+sequentially. However, allocating many small `ArrayList` objects for the output can fragment memory.
+
+
 ## Day 14 - LC 11 - Container With Most Water
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**

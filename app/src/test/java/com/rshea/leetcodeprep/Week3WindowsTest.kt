@@ -5,6 +5,47 @@ import kotlin.test.assertEquals
 
 class Week3WindowsTest {
 
+    // LeetCode 15. 3 Sum
+    @Test
+    fun testThreeSum_ValidCase1() {
+        val nums = intArrayOf(-1, 0, 1, 2, -1, -4)
+        val expectedResult = listOf(listOf(-1, -1, 2), listOf(-1, 0, 1))
+        val actualResult = Week3Windows.threeSum(nums)
+        assertEquals(expectedResult, actualResult, "The expected result should be found")
+    }
+
+    @Test
+    fun testThreeSum_ValidCase2() {
+        val nums = intArrayOf(0, 1, 1)
+        val expectedResult = emptyList<List<Int>>()
+        val actualResult = Week3Windows.threeSum(nums)
+        assertEquals(expectedResult, actualResult, "The expected result should be empty")
+    }
+
+    @Test
+    fun testThreeSum_ValidCase3() {
+        val nums = intArrayOf(0, 0, 0)
+        val expectedResult = listOf(listOf(0, 0, 0))
+        val actualResult = Week3Windows.threeSum(nums)
+        assertEquals(expectedResult, actualResult, "The expected result should be found")
+    }
+
+    @Test
+    fun testThreeSum_ValidCase4() {
+        val nums = intArrayOf(1,2,0,1,0,0,0,0)
+        val expectedResult = listOf(listOf(0,0,0))
+        val actualResult = Week3Windows.threeSum(nums)
+        assertEquals(expectedResult, actualResult, "The expected result should be found")
+    }
+
+    @Test
+    fun testThreeSum_ValidCase5() {
+        val nums = intArrayOf(-2,0,0,2,2)
+        val expectedResult = listOf(listOf(-2,0,2))
+        val actualResult = Week3Windows.threeSum(nums)
+        assertEquals(expectedResult, actualResult, "The expected result should be found")
+    }
+
     // LeetCode 11. Container With Most Water
     @Test
     fun testMaxArea_ValidCase1() {
