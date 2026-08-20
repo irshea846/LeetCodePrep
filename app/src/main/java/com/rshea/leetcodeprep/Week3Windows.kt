@@ -2,6 +2,72 @@ package com.rshea.leetcodeprep
 
 object Week3Windows {
 
+    // Day 15
+    // LeetCode 15. 3 Sum
+    fun threeSum(nums: IntArray): List<List<Int>> {
+        // Highly Optimized Triple-Greedy Squeeze (Manual Deduplication)
+        // Time Complexity: O(N^2) | Space Complexity: O(1) (excluding output)
+        //        nums.sort()
+        //        val list = mutableListOf<List<Int>>()
+        //
+        //        for (i in 0 until nums.size - 2) {
+        //            // Optimization: if anchor is positive, no triplet can sum to 0
+        //            if (nums[i] > 0) break
+        //
+        //            // Skip duplicate anchor elements
+        //            if (i > 0 && nums[i] == nums[i - 1]) continue
+        //
+        //            val target = -nums[i]
+        //            var left = i + 1
+        //            var right = nums.lastIndex
+        //
+        //            while (left < right) {
+        //                val sum = nums[left] + nums[right]
+        //                when {
+        //                    sum < target -> left++
+        //                    sum > target -> right--
+        //                    else -> {
+        //                        list.add(listOf(nums[i], nums[left++], nums[right--]))
+        //                        // Triple-Skip: Avoid re-processing the same values for left/right
+        //                        while (left < right && nums[left] == nums[left - 1]) left++
+        //                        while (left < right && nums[right] == nums[right + 1]) right--
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        return list
+
+        // Sort + Triple Greedy Approach
+        // Time Complexity: O(N^2) | Space Complexity: O(Log(N))
+        nums.sort()
+        val list = mutableListOf<List<Int>>()
+        var i = 0; var j: Int; var k = nums.lastIndex
+        while (i < k && nums[i] <= 0) {
+            if (i > 0 && nums[i] == nums[i - 1]) {
+                i++
+                continue
+            }
+            val sum = 0 - nums[i]
+            j = i + 1
+            k = nums.lastIndex
+            while (j < k) {
+                val complement = sum - nums[j]
+                when {
+                    complement > nums[k] -> j++
+                    complement < nums[k] -> k--
+                    else -> {
+                        list.add(listOf(nums[i], nums[j], nums[k]))
+                        j++; k--
+                        while (j < k && nums[j] == nums[j - 1]) j++
+                        while (j < k && nums[k] == nums[k + 1]) k--
+                    }
+                }
+            }
+            i++
+        }
+        return list
+    }
+
     // Day 14
     // LeetCode 11. Container With Most Water
     fun maxArea(height: IntArray): Int {
