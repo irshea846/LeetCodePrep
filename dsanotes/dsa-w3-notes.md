@@ -12,6 +12,155 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Two Pointers
 - [ ] Sliding Window
 
+## Day 16 - LC 219 - Contains Duplicate II
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Distance Constraint **|i - j| <= k**: This mathematical constraint implies that at any 
+  position **i**, we only need to "remember" the previous **k** elements. This is a classic 
+  **Fixed-Size Sliding Window** pattern.
+  * **Uniqueness Invariant**: Using a `HashSet` allows us to check for duplicates within the 
+  current window in **O(1)** time.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time                | Space              | Best Used When... |
+| :--- |:--------------------|:-------------------| :--- |
+| **Brute Force** | **O(N * Min(k,n))** | **O(1)**           | **K** is extremely small (e.g., 2). |
+| **HashMap (Last Seen)** | **O(N)**            | **O(N)**           | Array is small; simple "last seen index" logic. |
+| **HashSet (Sliding Window)** | **O(N)**            | **$O(Min(N, K))$** | **Optimal.** Memory-efficient for massive data. |
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **`set.add()` Semantic**: Always leverage the return value of `add()`. It returns `false` if 
+the element is already present, allowing you to "check and add" in a single atomic operation.
+*   **Window Boundary**: Be precise with `i - k`. When `i == k`, the window currently contains 
+indices **0** to **k** (which is **k+1** elements). Removing `nums[i - k]` correctly reduces the 
+window back to size **k** for the next iteration.
+
+
+### 4. Code Block
+```kotlin
+fun containsNearbyDuplicate(nums: IntArray, k: Int): Boolean {
+    // HashSet Sliding Window Approach
+    // Time Complexity: O(N) | Space Complexity: O(min(N, K))
+    val set = HashSet<Int>()
+    for (i in nums.indices) {
+        // If add() returns false, a duplicate exists within the last 'k' steps
+        if (!set.add(nums[i])) return true
+        
+        // Maintain window size by removing the oldest element
+        if (i >= k) set.remove(nums[i - k])
+    }
+    return false
+}
+```
+
+```kotlin
+fun containsNearbyDuplicate(nums: IntArray, k: Int): Boolean {
+    // Hash Map Approach
+    // Time Complexity: O(N) | Space Complexity: O(N)
+    val map = HashMap<Int, Int>()
+    for (i in nums.indices) {
+      if (map[nums[i]] != null) {
+        val pos = map[nums[i]]!!
+        if (i - pos <= k) return true
+      }
+      map[nums[i]] = i
+    }
+    return false
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+* **Memory Capping**: In a system processing a stream of data (e.g., detecting duplicate user 
+IDs in a real-time log), the HashSet approach is strictly superior because its memory usage is 
+**capped by K**. The HashMap approach would grow indefinitely (**O(N)**).
+* **Object Overhead**: The HashSet approach only stores the keys (the numbers), whereas a 
+HashMap stores both keys and values (indices). This reduces heap pressure and GC frequency.
+* **Large **K** Scenario**: If **K** is very large (close to **N**), the space complexity effectively 
+becomes **O(N)** for both, but the HashSet still has lower constant-factor overhead.
+
+
+## Day 16 - LC 121 - Best Time to Buy and Sell Stock
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Temporal Order (Buy before Sell)**: This constraint prevents simply finding the global min and
+  max. You must buy on an earlier day and sell on a later one.
+  * **Backward Greedy Tracking**: To find the max profit for a buy on Day **i**, you need the 
+  **highest price to its right**. This triggers a strategy of tracking the "running maximum" from 
+  right to left.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time       | Space    | Best Used When... |
+| :--- |:-----------|:---------| :--- |
+| **Brute Force** | **O(N^2)** | **O(1)** | Array is tiny and logic simplicity is the only goal. |
+| **One Pass (Greedy)** | **O(N)**   | **O(1)** | **Optimal.** Standard for any input size. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **`prices.lastIndex` vs `prices.last()`**: Use `lastIndex` for loop boundaries. Note that calling 
+`prices[prices.lastIndex]` on an empty array will throw an exception.
+* **Safety Checks**: Professional code should handle `prices.size < 2` cases where no transaction 
+is possible.
+
+### 4. Code Block
+```kotlin
+fun maxProfit(prices: IntArray): Int {
+    // Highly Optimized Backward Greedy Approach
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    if (prices.size < 2) return 0
+    
+    var curHighestPrice = prices.last()
+    var maxProfit = 0
+    
+    for (i in prices.lastIndex - 1 downTo 0) {
+        val currentPrice = prices[i]
+        if (currentPrice > curHighestPrice) {
+            // New "Best Sell" candidate found
+            curHighestPrice = currentPrice
+        } else {
+            // Check if current day is a better "Buy" candidate
+            val profit = curHighestPrice - currentPrice
+            if (profit > maxProfit) maxProfit = profit
+        }
+    }
+    return maxProfit
+}
+```
+```kotlin
+fun maxProfit(prices: IntArray): Int {
+    // Greedy Approach
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    if (prices.size < 2) return 0
+
+    var curHighestPrice = prices[prices.lastIndex]
+    var maxProfit = 0
+
+    for (i in prices.lastIndex - 1 downTo 0) {
+        if (prices[i] > curHighestPrice) {
+            curHighestPrice = prices[i]
+        } else {
+            val profit = curHighestPrice - prices[i]
+            if (profit > maxProfit) maxProfit = profit
+        }
+    }
+    return maxProfit
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Forward Tracking**: Tracking the `minPrice` from left-to-right is the standard approach. It 
+simulates time passing and is mandatory for **streaming data** where the future prices aren't known 
+yet.
+*   **Backward Tracking**: This approach is mathematically identical but showcases a 
+"post-processing" mindset. It can be faster if the data is stored in a way that makes tail-access 
+more efficient (e.g., a stack or a log-structured file).
+*   **Kadane’s Relationship**: This problem is essentially finding the maximum subarray sum of the 
+**daily differences**. Understanding this connection allows you to solve more complex variants (like
+LC 122 - Stock II or LC 123 - Stock III) using similar principles.
+
+
 ## Day 15 - LC 15 - 3 Sum
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**

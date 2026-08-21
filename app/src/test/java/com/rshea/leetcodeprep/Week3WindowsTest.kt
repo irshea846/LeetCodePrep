@@ -5,6 +5,77 @@ import kotlin.test.assertEquals
 
 class Week3WindowsTest {
 
+    // LeetCode 219. Contains Duplicate II
+    @Test
+    fun testContainsNearbyDuplicate_ValidCase1() {
+        val nums = intArrayOf(1, 2, 3, 1)
+        val k = 3
+        val expectedResult = true
+        val actualResult = Week3Windows.containsNearbyDuplicate(nums, k)
+        assertEquals(expectedResult, actualResult, "Duplicates distance within k distance")
+    }
+
+    @Test
+    fun testContainsNearbyDuplicate_ValidCase2() {
+        val nums = intArrayOf(1, 0, 1, 1)
+        val k = 1
+        val expectedResult = true
+        val actualResult = Week3Windows.containsNearbyDuplicate(nums, k)
+        assertEquals(expectedResult, actualResult, "Duplicates distance within k distance")
+    }
+
+    @Test
+    fun testContainsNearbyDuplicate_ValidCase3() {
+        val nums = intArrayOf(1, 2, 3, 1, 2, 3)
+        val k = 2
+        val expectedResult = false
+        val actualResult = Week3Windows.containsNearbyDuplicate(nums, k)
+        assertEquals(expectedResult, actualResult, "No duplicates within k distance")
+    }
+
+    @Test
+    fun testContainsNearbyDuplicate_ValidCase4() {
+        val nums = intArrayOf(1, 2, 1)
+        val k = 1
+        val expectedResult = false
+        val actualResult = Week3Windows.containsNearbyDuplicate(nums, k)
+        assertEquals(expectedResult, actualResult, "No duplicates within k distance")
+    }
+
+    // LeetCode 121. Best Time to Buy and Sell Stock
+    @Test
+    fun testMaxProfit_ValidCase1() {
+        val prices = intArrayOf(7, 1, 5, 3, 6, 4)
+        val expectedResult = 5
+        val actualResult = Week3Windows.maxProfit(prices)
+        assertEquals(expectedResult, actualResult, "The maximum profit should be found")
+    }
+
+    @Test
+    fun testMaxProfit_ValidCase2() {
+        val prices = intArrayOf(7, 6, 4, 3, 1)
+        val expectedResult = 0
+        val actualResult = Week3Windows.maxProfit(prices)
+        assertEquals(expectedResult, actualResult, "The maximum profit should be found")
+    }
+
+    @Test
+    fun testMaxProfit_ValidCase3() {
+        val prices = intArrayOf(2, 4, 1)
+        val expectedResult = 2
+        val actualResult = Week3Windows.maxProfit(prices)
+        assertEquals(expectedResult, actualResult, "The maximum profit should be found")
+
+    }
+
+    @Test
+    fun testMaxProfit_ValidCase4() {
+        val prices = intArrayOf(2, 1, 4)
+        val expectedResult = 3
+        val actualResult = Week3Windows.maxProfit(prices)
+        assertEquals(expectedResult, actualResult, "The maximum profit should be found")
+    }
+
     // LeetCode 15. 3 Sum
     @Test
     fun testThreeSum_ValidCase1() {

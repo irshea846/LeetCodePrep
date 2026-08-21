@@ -1,6 +1,57 @@
 package com.rshea.leetcodeprep
 
+import kotlin.math.max
+import kotlin.math.min
+
 object Week3Windows {
+
+    // Day 16
+    // LeetCode 219. Contains Duplicate II
+    fun containsNearbyDuplicate(nums: IntArray, k: Int): Boolean {
+        // 1. HashSet Sliding Window Approach
+        // Time Complexity: O(N) | Space Complexity: O(Min(n,k))
+        val set = HashSet<Int>()
+        for (i in nums.indices) {
+            if (!set.add(nums[i])) return true
+            if (i >= k) set.remove(nums[i - k])
+        }
+        return false
+
+
+        // 2. Hash Map Approach
+        // Time Complexity: O(N) | Space Complexity: O(N)
+        //        val map = HashMap<Int, Int>()
+        //        for (i in nums.indices) {
+        //            if (map[nums[i]] != null) {
+        //                val pos = map[nums[i]]!!
+        //                if (i - pos <= k) return true
+        //            }
+        //            map[nums[i]] = i
+        //        }
+        //        return false
+    }
+
+
+    // Day 16
+    // LeetCode 121. Best Time to Buy and Sell Stock
+    fun maxProfit(prices: IntArray): Int {
+        // Greedy Approach
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        if (prices.size < 2) return 0
+
+        var curHighestPrice = prices[prices.lastIndex]
+        var maxProfit = 0
+
+        for (i in prices.lastIndex - 1 downTo 0) {
+            if (prices[i] > curHighestPrice) {
+                curHighestPrice = prices[i]
+            } else {
+                val profit = curHighestPrice - prices[i]
+                if (profit > maxProfit) maxProfit = profit
+            }
+        }
+        return maxProfit
+    }
 
     // Day 15
     // LeetCode 15. 3 Sum
