@@ -5,6 +5,87 @@ import kotlin.test.assertEquals
 
 class Week3WindowsTest {
 
+    // LeetCode 3. Longest Substring Without Repeating Characters
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase1() {
+        val s = "abcabcbb"
+        val expectedResult = 3
+        val actualResult = Week3Windows.lengthOfLongestSubstring(s)
+        assertEquals(expectedResult, actualResult, "The length of the longest substring should be found")
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase2() {
+        val s = "bbbbb"
+        val expectedResult = 1
+        val actualResult = Week3Windows.lengthOfLongestSubstring(s)
+        assertEquals(
+            expectedResult,
+            actualResult,
+            "The length of the longest substring should be found"
+        )
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase3() {
+        val s = "pwwkew"
+        val expectedResult = 3
+        val actualResult = Week3Windows.lengthOfLongestSubstring(s)
+        assertEquals(
+            expectedResult,
+            actualResult,
+            "The length of the longest substring should be found"
+        )
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase4() {
+        val s = "STUG"
+        val expectedResult = 4
+        val actualResult = Week3Windows.lengthOfLongestSubstring(s)
+        assertEquals(
+            expectedResult,
+            actualResult,
+            "The length of the longest substring should be found"
+        )
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase5() {
+        val s = "ccbbcc"
+        val expectedResult = 2
+        val actualResult = Week3Windows.lengthOfLongestSubstring(s)
+        assertEquals(
+            expectedResult,
+            actualResult,
+            "The length of the longest substring should be found"
+        )
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase6() {
+        val s = "bccddadcb"
+        val expectedResult = 4
+        val actualResult = Week3Windows.lengthOfLongestSubstring(s)
+        assertEquals(
+            expectedResult,
+            actualResult,
+            "The length of the longest substring should be found"
+        )
+    }
+
+    @Test
+    fun testLengthOfLongestSubstring_ValidCase7() {
+        val s = "Mi~"
+        val expectedResult = 3
+        val actualResult = Week3Windows.lengthOfLongestSubstring(s)
+        assertEquals(
+            expectedResult,
+            actualResult,
+            "The length of the longest substring should be found"
+        )
+    }
+
     // LeetCode 219. Contains Duplicate II
     @Test
     fun testContainsNearbyDuplicate_ValidCase1() {

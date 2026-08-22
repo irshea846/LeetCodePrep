@@ -12,6 +12,68 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Two Pointers
 - [ ] Sliding Window
 
+## Day 17 - LC 3 - Longest Substring Without Repeating Characters
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Substring Requirement**: The problem asks for a contiguous range, which is the primary signal 
+  for a **Sliding Window**.
+  * **Uniqueness Invariant**: Each character in the window must be unique. This triggers the need 
+  for a "last seen" index tracker.
+  * **Optimal Shifting**: To achieve true **O(N)** efficiency, we use an **Index Jumping** strategy. 
+  Instead of shrinking the left pointer one by one, we jump it directly to the index after the 
+  duplicate's last known position.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time       | Space    | Best Used When... |
+| :--- |:-----------|:---------| :--- |
+| **Brute Force** | **O(N^3)** | **O(M)** | Only for extremely small inputs. |
+| **Sliding Window (Shrink)** | **O(2N)**  | **O(M)** | Beginner-friendly; uses a `while` loop to shrink. |
+| **Sliding Window (Jump)** | **O(N)**   | **O(M)** | **Optimal.** Single pass with zero redundant checks. |
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **`.toInt()` vs `.code`**: While newer Kotlin uses `.code`, LeetCode's environment often 
+requires **`.toInt()`** to get the ASCII value of a `Char`.
+*   **Lazy vs. Eager Max**: Calculating `maxLen` only when a duplicate is found (Lazy) is slightly 
+faster than calculating it every iteration (Eager), but requires a final check at the return statement.
+*   **Charset Assumptions**: `IntArray(128)` is enough for standard ASCII, but **`256`** is safer 
+for extended sets to avoid `IndexOutOfBounds`.
+
+### 4. Code Block
+```kotlin
+fun lengthOfLongestSubstring(s: String): Int {
+    // Greedy Sliding Window Approach (Index Jumping with Lazy Update)
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    val lastSeen = IntArray(256) { -1 }
+    var i = 0
+    var longestSubstringLen = 0
+    
+    for (j in s.indices) {
+        val charCode = s[j].code
+        
+        // If char was seen within the current window, measure and jump
+        if (lastSeen[charCode] >= i) {
+            longestSubstringLen = maxOf(longestSubstringLen, j - i)
+            i = lastSeen[charCode] + 1
+        }
+        lastSeen[charCode] = j
+    }
+    
+    // Final check for the last window in the string
+    return maxOf(longestSubstringLen, s.length - i)
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Fixed Array vs. HashMap**: `IntArray` is significantly faster on the JVM due to zero object 
+boxing and contiguous memory access. `HashMap` is only necessary if the input contains full Unicode 
+(emojis/international text) where the range exceeds 256.
+*   **CPU Write Optimization**: By using the "Lazy" update strategy, you minimize CPU writes to the 
+`maxLen` variable, which can be a meaningful optimization in high-throughput systems processing 
+gigabytes of text data.
+
+
 ## Day 16 - LC 219 - Contains Duplicate II
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
