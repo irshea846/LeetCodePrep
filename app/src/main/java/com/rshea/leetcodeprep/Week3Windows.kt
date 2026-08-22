@@ -1,9 +1,27 @@
 package com.rshea.leetcodeprep
 
 import kotlin.math.max
-import kotlin.math.min
 
 object Week3Windows {
+
+    // Day 17
+    // LeetCode 3. Longest Substring Without Repeating Characters
+    fun lengthOfLongestSubstring(s: String): Int {
+        // Greedy Sliding Window Approach
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        val ascii = IntArray(256) { -1 }
+        var i = 0
+        var longestSubstringLen = 0
+        for (j in s.indices) {
+            val c = s[j].code
+            if (ascii[c] >= i) {
+                longestSubstringLen = max(longestSubstringLen, j - i)
+                i = ascii[c] + 1
+            }
+            ascii[c] = j
+        }
+        return max(longestSubstringLen, s.length - i)
+    }
 
     // Day 16
     // LeetCode 219. Contains Duplicate II
