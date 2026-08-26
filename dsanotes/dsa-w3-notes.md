@@ -73,6 +73,7 @@ boxing and contiguous memory access. `HashMap` is only necessary if the input co
 `maxLen` variable, which can be a meaningful optimization in high-throughput systems processing 
 gigabytes of text data.
 
+---
 
 ## Day 16 - LC 219 - Contains Duplicate II
 ### 1. Core Pattern Identifier
@@ -142,6 +143,7 @@ HashMap stores both keys and values (indices). This reduces heap pressure and GC
 * **Large **K** Scenario**: If **K** is very large (close to **N**), the space complexity effectively 
 becomes **O(N)** for both, but the HashSet still has lower constant-factor overhead.
 
+---
 
 ## Day 16 - LC 121 - Best Time to Buy and Sell Stock
 ### 1. Core Pattern Identifier
@@ -222,6 +224,7 @@ more efficient (e.g., a stack or a log-structured file).
 **daily differences**. Understanding this connection allows you to solve more complex variants (like
 LC 122 - Stock II or LC 123 - Stock III) using similar principles.
 
+---
 
 ## Day 15 - LC 15 - 3 Sum
 ### 1. Core Pattern Identifier
@@ -335,6 +338,7 @@ shard ranges across nodes. Each machine takes an anchor range and performs the s
 * **Memory Locality**: The two-pointer squeeze is cache-friendly because it accesses memory 
 sequentially. However, allocating many small `ArrayList` objects for the output can fragment memory.
 
+---
 
 ## Day 14 - LC 11 - Container With Most Water
 ### 1. Core Pattern Identifier
@@ -435,6 +439,7 @@ toward the middle. However, on massive datasets (GBs of heights), reading from b
 * **Parallelization**: Unlike sorting, the Two-Pointer convergence is hard to parallelize because 
 the next move depends on the current result.
 
+---
 
 ## Day 14 - LC 167 - Two Sum II - Input Array Is Sorted
 ### 1. Core Pattern Identifier
@@ -505,6 +510,7 @@ on very large arrays.
 convergence requires buffering the whole stream. Binary Search might be more feasible if you can 
 only "peek" into specific indexed offsets of a remote file.
 
+---
 
 ## Day 13 - LC 680 - Valid Palindrome II
 ### 1. Core Pattern Identifier
@@ -633,6 +639,8 @@ private fun isValidPalindrome(str: String, i: Int, j: Int, k: Int): Boolean {
 * *"While the Greedy Iterative approach is optimal for **`K = 1`**, the Recursive approach is a more
 robust design for varying tolerances. At system scale, distributed alignment and memory locality 
 (cache misses) become the primary performance bottlenecks, not the algorithmic complexity."*
+
+---
 
 ## Day 13 - LC 125 - Valid Palindrome
 ### 1. Core Pattern Identifier

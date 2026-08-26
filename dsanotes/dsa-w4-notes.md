@@ -12,6 +12,81 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Monotonic Stack
 - [ ] Linked Lists
 
+## Day 19 - LC 155 - Min Stack
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **$O(1)$ Minimum Access**: The problem requires finding the minimum element in constant time. 
+  A standard linear scan (**O(N)**) is forbidden.
+  * **Temporal State Persistence**: The "minimum" of the stack changes as elements are popped. We 
+  must "remember" what the minimum was before the current top element was pushed.
+  * **Mirrored Stack Strategy**: This triggers the use of an **Auxiliary Stack**. While one stack 
+  holds the data, the second stack holds the "minimum at this point in time," allowing us to 
+  backtrack to previous minimums in **O(1)**.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | `push`   | `pop`    | `getMin`   | Space | Best Used When... |
+| :--- |:---------|:---------|:-----------| :--- | :--- |
+| **Standard Stack** | **O(1)** | **O(1)** | **O(N)**   | **O(1)** | You rarely need the minimum. |
+| **Two Stacks (Optimal)** | **O(1)** | **O(1)** | **O(1)**   | **O(N)** | **Optimal.** Standard for high-frequency min-tracking. |
+| **Node with Min** | **O(1)**   | **O(1)**   | **O(1)**   | **O(N)** | Implementing a custom Stack with Linked List. |
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **The `st.min()` Trap**: Avoid using `collection.min()` or `minOrNull()`. These are linear 
+operations (**O(N)**) that scan the entire collection, violating the **O(1)** requirement.
+*   **Boxing Overhead**: `ArrayDeque<Int>` boxes every primitive `Int` into a `java.lang.Integer` 
+object. For extreme performance, a custom primitive array with a `top` pointer would be used.
+*   **Duplicate Minimums**: When pushing to the `minStack`, use the **`<=`** operator. If you use `<`, 
+popping a duplicate of the minimum will leave the `minStack` out of sync.
+
+### 4. Code Block
+
+```kotlin
+class MinStack {
+    // Auxiliary Stack Strategy
+    // Time Complexity: O(1) for all operations | Space Complexity: O(N)
+    private val st = ArrayDeque<Int>()
+    private val minSt = ArrayDeque<Int>()
+
+    fun push(value: Int) {
+        st.addLast(value)
+        // Record the new minimum. Use <= to handle duplicate mins.
+        if (minSt.isEmpty() || value <= minSt.last()) {
+            minSt.addLast(value)
+        }
+    }
+
+    fun pop() {
+        if (st.isEmpty()) return
+        // If the element we are removing is the current minimum, 
+        // remove it from the minStack as well.
+        // EXPLICIT UNBOXING: Capture the popped element. 
+        // Comparing it directly to minSt.last() ensures zero reference ambiguity.
+        val poppedValue = st.removeLast()
+        if (poppedValue == minSt.last()) {
+            minSt.removeLast()
+        }
+    }
+
+    fun top(): Int = st.last()
+
+    fun getMin(): Int = minSt.last()
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Space Optimization (Sparse MinStack)**: Instead of pushing to the `minStack` every time, we 
+only push when a *new* minimum is found. This saves space when the input is largely increasing.
+*   **One Stack (Value Encoding)**: You can store the difference between the value and the min in a 
+single stack (`value - min`). This achieves **O(1)** min without an extra stack but is prone to 
+**Integer Overflow** and is much harder to maintain/read.
+*   **Custom Node (Linked List)**: Each node in a linked-list implementation of a stack can store a 
+`min` field: `Node(val: Int, min: Int, next: Node?)`. This is cleaner for object-oriented designs 
+but has higher per-element pointer overhead.
+
+---
+
 ## Day 18 - LC 20 - Valid Parentheses
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
@@ -157,5 +232,3 @@ into the Deque), which is ideal for performance-critical embedded or mobile syst
 *   **Memory Safety**: In a system processing untrusted input, you should cap the maximum size of 
 the stack. A malicious string like `((((...` (10 million long) could cause an `OutOfMemoryError` by 
 filling the heap with `Char` objects.
-
----
