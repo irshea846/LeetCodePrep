@@ -2,6 +2,39 @@ package com.rshea.leetcodeprep
 
 object Week4Stacks {
 
+    // Day 19
+    // LeetCode 155. Min Stack
+    class MinStack {
+        val st = ArrayDeque<Int>()
+        var minSt = ArrayDeque<Int>()
+
+        fun push(value: Int) {
+            st.addLast(value)
+            if (minSt.isEmpty() || value <= minSt.last()) {
+                minSt.addLast(value)
+            }
+        }
+
+        fun pop() {
+            if (st.isEmpty()) return
+            // EXPLICIT UNBOXING: Capture the popped element.
+            // Comparing it directly to minSt.last() ensures zero reference ambiguity.
+            val poppedValue = st.removeLast()
+            if (poppedValue == minSt.last()) {
+                minSt.removeLast()
+            }
+        }
+
+        fun top(): Int {
+            return st.last()
+        }
+
+        fun getMin(): Int {
+            return minSt.last()
+        }
+
+    }
+
 
     // Day 18
     // LeetCode 20. Valid Parentheses

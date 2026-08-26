@@ -4,6 +4,75 @@ import org.junit.Test
 import kotlin.test.assertEquals
 class Week4StacksTest {
 
+    // Day 19
+    // LeetCode 155. Min Stack
+    @Test
+    fun testMinStack_ValidCase1() {
+        val minStack = Week4Stacks.MinStack()
+        minStack.push(-2)
+        minStack.push(0)
+        minStack.push(-3)
+        assertEquals(-3, minStack.getMin())
+    }
+
+    @Test
+    fun testMinStack_ValidCase2() {
+        val minStack = Week4Stacks.MinStack()
+
+        minStack.push(0)
+        minStack.push(1)
+        minStack.push(0)
+        assertEquals(0, minStack.getMin())
+
+        minStack.pop()
+        assertEquals(0, minStack.getMin())
+        minStack.pop()
+        assertEquals(0, minStack.getMin())
+        minStack.pop()
+
+        minStack.push(-2)
+        minStack.push(-1)
+        minStack.push(-2)
+        assertEquals(-2, minStack.getMin())
+
+        minStack.pop()
+        assertEquals(-1, minStack.top())
+        assertEquals(-2, minStack.getMin())
+
+        minStack.pop()
+        assertEquals(-2, minStack.getMin())
+
+        minStack.pop()
+
+    }
+
+    @Test
+    fun testMinStack_ValidCase3() {
+        val minStack = Week4Stacks.MinStack()
+        minStack.push(2147483646)
+        minStack.push(2147483646)
+        minStack.push(2147483647)
+        assertEquals(2147483647, minStack.top())
+
+        minStack.pop()
+        assertEquals(2147483646, minStack.getMin())
+
+        minStack.pop()
+        assertEquals(2147483646, minStack.getMin())
+        minStack.pop()
+        minStack.push(2147483647)
+        assertEquals(2147483647, minStack.top())
+        assertEquals(2147483647, minStack.getMin())
+
+        minStack.push(-2147483648)
+        assertEquals(-2147483648, minStack.top())
+        assertEquals(-2147483648, minStack.getMin())
+
+        minStack.pop()
+        assertEquals(2147483647, minStack.getMin())
+
+    }
+
     // Day 18
     // LeetCode 20. Valid Parentheses
     @Test
