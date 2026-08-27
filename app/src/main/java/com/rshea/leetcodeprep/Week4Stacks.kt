@@ -2,6 +2,24 @@ package com.rshea.leetcodeprep
 
 object Week4Stacks {
 
+    // Day 20
+    // LeetCode 739. Daily Temperatures
+    fun dailyTemperatures(temperatures: IntArray): IntArray {
+        val mono = IntArray(temperatures.size)
+        val waitingDays = IntArray(temperatures.size)
+        var top = -1
+
+        for (i in temperatures.indices) {
+            while (top >= 0 && temperatures[i] > temperatures[mono[top]]) {
+                waitingDays[mono[top]] = i - mono[top]
+                top--
+            }
+            mono[++top] = i
+        }
+
+        return waitingDays
+    }
+
     // Day 19
     // LeetCode 155. Min Stack
     class MinStack {
