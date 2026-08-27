@@ -4,6 +4,32 @@ import org.junit.Test
 import kotlin.test.assertEquals
 class Week4StacksTest {
 
+    // Day 20
+    // LeetCode 739. Daily Temperatures
+    @Test
+    fun testDailyTemperatures_ValidCase1() {
+        val temperatures = intArrayOf(73, 74, 75, 71, 69, 72, 76, 73)
+        val expected = intArrayOf(1, 1, 4, 2, 1, 1, 0, 0)
+        val result = Week4Stacks.dailyTemperatures(temperatures)
+        assertEquals(expected.toList(), result.toList())
+    }
+
+    @Test
+    fun testDailyTemperatures_ValidCase2() {
+        val temperatures = intArrayOf(30, 40, 50, 60)
+        val expected = intArrayOf(1, 1, 1, 0)
+        val result = Week4Stacks.dailyTemperatures(temperatures)
+        assertEquals(expected.toList(), result.toList())
+    }
+
+    @Test
+    fun testDailyTemperatures_ValidCase3() {
+        val temperatures = intArrayOf(30, 60, 90)
+        val expected = intArrayOf(1, 1, 0)
+        val result = Week4Stacks.dailyTemperatures(temperatures)
+        assertEquals(expected.toList(), result.toList())
+    }
+
     // Day 19
     // LeetCode 155. Min Stack
     @Test

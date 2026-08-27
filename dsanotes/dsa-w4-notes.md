@@ -12,10 +12,69 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Monotonic Stack
 - [ ] Linked Lists
 
+## Day 20 - 739 - Daily Temperatures
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **"Next Warmer Day" Search**: The problem requires finding the distance to the next larger value
+  in the future. This is the canonical signal for a **Monotonic Stack**.
+  * **Strictly Decreasing Invariant**: We maintain a stack of indices where temperatures are in 
+  strictly decreasing order. When we see a warmer temperature, we know it is the "next greater element" 
+  for all indices currently on the stack that are colder.
+  * **Index-Based Distance**: Storing indices on the stack (rather than raw values) allows us to 
+  calculate the distance (`currentIdx - previousIdx`) in **O(1)** time.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time | Space | Performance | Best Used When... |
+| :--- |:-----------|:---------| :--- | :--- |
+| **Brute Force** | **O(N^2)** | **O(1)** | Low | **N** is tiny. |
+| **Monotonic Stack** | **O(N)** | **O(N)** | **Peak** | **Optimal.** standard for "Next Greater Element" problems. |
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **Manual Stack Pointer**: Using a primitive array (`IntArray`) with a pointer (`i`) as a stack 
+is faster than `ArrayDeque` or `Stack` because it avoids object boxing and dynamic resizing. 
+However, it requires careful manual index management (`mono[i--] = -1`).
+*   **Zero-Initialization**: Kotlin's `IntArray` defaults to zeros. Since the problem requires `0` 
+when no warmer day exists, we only need to write to the `waitingDays` array when a match is found.
+
+### 4. Code Block
+```kotlin
+fun dailyTemperatures(temperatures: IntArray): IntArray {
+    // Manual Stack Pointer Approach (Optimized)
+    val n = temperatures.size
+    val stack = IntArray(n) // Our manual stack
+    val result = IntArray(n)
+    var top = -1 // Pointer to the top of the stack
+
+    for (currIdx in temperatures.indices) {
+        // While stack is not empty and current temp is warmer than top of stack
+        while (top >= 0 && temperatures[currIdx] > temperatures[stack[top]]) {
+            val prevIdx = stack[top--]
+            result[prevIdx] = currIdx - prevIdx
+        }
+        // Push current index onto the stack
+        stack[++top] = currIdx
+    }
+    return result
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Array-based vs. Collection-based Stack**:
+    *   **Collection (ArrayDeque)**: cleaner, safer, and dynamic.
+    *   **Array (Primitive)**: Faster (no boxing), but fixed size. In a performance-critical system 
+    processing millions of "ticks," the primitive array saves significant Garbage Collection cycles.
+*   **In-Place Space Optimization**: By iterating backwards, it is possible to use the result array 
+itself to "jump" to the next warmer day without an explicit stack (**O(1)** extra space). This trades 
+code complexity for memory efficiency.
+
+---
+
 ## Day 19 - LC 155 - Min Stack
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
-  * **$O(1)$ Minimum Access**: The problem requires finding the minimum element in constant time. 
+  * **O(1)** Minimum Access**: The problem requires finding the minimum element in constant time. 
   A standard linear scan (**O(N)**) is forbidden.
   * **Temporal State Persistence**: The "minimum" of the stack changes as elements are popped. We 
   must "remember" what the minimum was before the current top element was pushed.
