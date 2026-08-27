@@ -42,6 +42,7 @@ when no warmer day exists, we only need to write to the `waitingDays` array when
 ```kotlin
 fun dailyTemperatures(temperatures: IntArray): IntArray {
     // Manual Stack Pointer Approach (Optimized)
+    // Time Complexity: O(N) | Space Complexity: O(N)
     val n = temperatures.size
     val stack = IntArray(n) // Our manual stack
     val result = IntArray(n)
@@ -60,6 +61,32 @@ fun dailyTemperatures(temperatures: IntArray): IntArray {
 }
 ```
 
+```kotlin
+fun dailyTemperatures(temperatures: IntArray): IntArray {
+    // Backward Jumping Approach (Optimized)
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    val n = temperatures.size
+    val result = IntArray(n)
+
+    // Start from the second-to-last day (last day is always 0)
+    for (i in n - 2 downTo 0) {
+        var j = i + 1
+
+        // Use the result array to "jump" over colder days.
+        // If temperatures[j] is colder than temperatures[i], 
+        // we skip directly to the next warmer day for j.
+        while (temperatures[i] >= temperatures[j] && result[j] > 0) {
+            j += result[j]
+        }
+
+        // If we finally found a warmer day, store the distance
+        if (temperatures[j] > temperatures[i]) {
+            result[i] = j - i
+        }
+    }
+    return result
+}
+```
 ### 5. Alternative Trade-offs (For System Design Dialogues)
 *   **Array-based vs. Collection-based Stack**:
     *   **Collection (ArrayDeque)**: cleaner, safer, and dynamic.
