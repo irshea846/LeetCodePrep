@@ -4,6 +4,51 @@ import org.junit.Test
 import kotlin.test.assertEquals
 class Week4StacksTest {
 
+    // Day 21
+    // LeetCode 206. Reverse Linked List
+    @Test
+    fun testReverseList_ValidCase1() {
+        var head: Week4Stacks.ListNode? = null
+        head = Week4Stacks.ListNode(1)
+        head.next = Week4Stacks.ListNode(2)
+        head.next!!.next = Week4Stacks.ListNode(3)
+        head.next!!.next!!.next = Week4Stacks.ListNode(4)
+        head.next!!.next!!.next!!.next = Week4Stacks.ListNode(5)
+
+        val reversedHead = Week4Stacks.reverseList((head))
+
+        assertEquals(5, reversedHead!!.`val`)
+        assertEquals(4, reversedHead.next!!.`val`)
+        assertEquals(3, reversedHead.next!!.next!!.`val`)
+        assertEquals(2, reversedHead.next!!.next!!.next!!.`val`)
+        assertEquals(1, reversedHead.next!!.next!!.next!!.next!!.`val`)
+        assertEquals(null, reversedHead.next!!.next!!.next!!.next!!.next)
+    }
+
+    @Test
+    fun testReverseList_ValidCase2() {
+        var head: Week4Stacks.ListNode? = null
+        head = Week4Stacks.ListNode(2)
+        head.next = Week4Stacks.ListNode(1)
+
+        val reversedHead = Week4Stacks.reverseList((head))
+
+        assertEquals(1, reversedHead!!.`val`)
+        assertEquals(2, reversedHead.next!!.`val`)
+        assertEquals(null, reversedHead.next!!.next)
+    }
+
+    @Test
+    fun testReverseList_ValidCase3() {
+        val head: Week4Stacks.ListNode? = null
+
+        val reversedHead = Week4Stacks.reverseList((head))
+
+        assertEquals(null, reversedHead)
+    }
+
+
+
     // Day 20
     // LeetCode 739. Daily Temperatures
     @Test

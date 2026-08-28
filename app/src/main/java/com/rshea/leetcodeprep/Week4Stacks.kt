@@ -2,6 +2,53 @@ package com.rshea.leetcodeprep
 
 object Week4Stacks {
 
+    // Day 21
+    // LeetCode 206. Reverse Linked List
+    class ListNode(var `val`: Int) {
+        var next: ListNode? = null
+    }
+
+    fun reverseList(head: ListNode?): ListNode? {
+        // Iterative Approach
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        //        var prev: ListNode? = null
+        //        var curr = head
+        //
+        //        while (curr != null) {
+        //            val node = curr
+        //            curr = curr.next
+        //            node.next = prev
+        //            prev = node
+        //        }
+        //
+        //        return prev
+
+        // Recursive Approach
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        val tail: ListNode? = null
+        return getReverseList(head, tail)
+    }
+
+    tailrec fun getReverseList(h: ListNode?, t: ListNode?): ListNode? {
+        val head: ListNode? = h
+        var tail: ListNode? = t
+        return if (head == null) {
+            tail
+        } else {
+            val next = head.next
+            if (tail == null) {
+                tail = head
+                tail?.next = null
+            } else {
+                val node = head
+                node.next = tail
+                tail = node
+            }
+            getReverseList(next, tail)
+        }
+    }
+
+
     // Day 20
     // LeetCode 739. Daily Temperatures
     fun dailyTemperatures(temperatures: IntArray): IntArray {
