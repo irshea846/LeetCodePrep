@@ -12,6 +12,87 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Monotonic Stack
 - [ ] Linked Lists
 
+## Day 21 - LC 206 - Reverse Linked List
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **In-Place Reversal**: The problem requires reversing pointer directions without allocating new 
+  nodes. This is the canonical **Linked List Pointer Manipulation** pattern.
+  * **Link Destruction Preemption**: To reverse a link (`node.next = prev`), you must first save the
+  "true" next node in a temporary pointer, otherwise you lose the reference to the rest of the list.
+  * **Loop-to-Head Convergence**: By maintaining a `prev` (previous node) and a sliding iterator,
+  the list is reversed incrementally until the iterator reaches `null`.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- |:-----------|:---------| :--- | :--- |
+ **Iterative** | **O(N)** | **O(1)** | **Peak** | **Optimal.** Standard for production. |
+ **`tailrec` Recursive** | **O(N)** | **O(1)** | **Peak** | **Expert Kotlin.** Elegant syntax with loop efficiency. |
+ **Standard Recursive** | **O(N)** | **O(N)** | Moderate | Risky for long lists on JVM stack. |
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **Immutable Shadowing**: Using `val node = next` inside the loop is a smart Kotlin move. 
+It creates a local, immutable copy of the mutable reference. This satisfies the compiler's 
+null-safety requirements and ensures thread-safe pointer swapping.
+*   **The `tailrec` requirement**: For a recursive function to be **O(1)** space, the recursive call 
+**must** be the absolute last operation. Any logic after the call (like `1 + recurse()`) forces 
+the compiler to keep the stack frame, resulting in **O(N)** space.
+
+### 4. Code Block
+```kotlin
+fun reverseList(head: ListNode?): ListNode? {
+    // 1. Optimized Iterative Approach
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    var prev: ListNode? = null
+    var curr = head
+
+    while (curr != null) {
+        val next = curr.next
+        curr.next = prev
+        prev = curr
+        curr = next
+    }
+
+    return prev
+}
+```
+
+```kotlin
+fun reverseList(head: ListNode?): ListNode? {
+    // 2. Expert Kotlin 'tailrec' Approach
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    return reverseRecursive(head, null)
+}
+
+tailrec fun reverseRecursive(curr: ListNode?, reversed: ListNode?): ListNode? {
+    if (curr == null) return reversed
+    
+    val next = curr.next
+    curr.next = reversed
+    
+    // Tail Position: Compiler optimizes this into a loop
+    return reverseRecursive(next, curr)
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Space vs. Recursion Depth**: Standard recursion on the JVM consumes ~1KB per stack frame. 
+A list with 10,000 nodes will likely throw a `StackOverflowError`. The iterative or `tailrec` 
+approaches are mandatory for **memory-constrained environments** like Android.
+*   **Immutability & Thread Safety**: In-place reversal is a **destructive operation**. In a 
+multithreaded system where the list represents shared state (e.g., an undo buffer), it is better 
+to copy all values and create a new reversed list. This ensures data integrity for concurrent readers.
+*   **Hardware Cache Locality**: Linked lists are notoriously cache-unfriendly. If the system needs 
+high-frequency future reads, it might be better to extract values into a contiguous **Array**, 
+reverse them, and create new nodes. This trades **O(N)** space for significantly faster sequential access.
+*   **Data Integrity & Safety**: In-place pointer manipulation is bug-prone (e.g., creating cycles). 
+In mission-critical systems where node objects are "managed" (e.g., by a database ORM), extracting 
+values into a new list is often preferred to avoid side effects or corrupted entity states in other 
+layers of the application.
+
+---
+
 ## Day 20 - 739 - Daily Temperatures
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
