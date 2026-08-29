@@ -4,6 +4,38 @@ import org.junit.Test
 import kotlin.test.assertEquals
 class Week4StacksTest {
 
+    // Day 22
+    // LeetCode 141. Linked List Cycle
+    @Test
+    fun testHasCycle_ValidCase1() {
+        var head: Week4Stacks.ListNode? = null
+        head = Week4Stacks.ListNode(3)
+        val one = Week4Stacks.ListNode(2)
+        head.next = one
+        head.next!!.next = Week4Stacks.ListNode(0)
+        head.next!!.next!!.next = Week4Stacks.ListNode(-4)
+        head.next!!.next!!.next!!.next = one
+        val result = Week4Stacks.hasCycle(head)
+        assertEquals(true, result)
+    }
+
+    @Test
+    fun testHasCycle_ValidCase2() {
+        var head: Week4Stacks.ListNode? = null
+        head = Week4Stacks.ListNode(1)
+        head.next = Week4Stacks.ListNode(2)
+        head.next!!.next = head
+        val result = Week4Stacks.hasCycle(head)
+        assertEquals(true, result)
+    }
+
+    @Test
+    fun testHasCycle_ValidCase3() {
+        val head = Week4Stacks.ListNode(1)
+        val result = Week4Stacks.hasCycle(head)
+        assertEquals(false, result)
+    }
+
     // Day 21
     // LeetCode 206. Reverse Linked List
     @Test
@@ -46,8 +78,6 @@ class Week4StacksTest {
 
         assertEquals(null, reversedHead)
     }
-
-
 
     // Day 20
     // LeetCode 739. Daily Temperatures
