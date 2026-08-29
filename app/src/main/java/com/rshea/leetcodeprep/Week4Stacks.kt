@@ -1,15 +1,29 @@
 package com.rshea.leetcodeprep
 
 object Week4Stacks {
-
-    // Day 21
-    // LeetCode 206. Reverse Linked List
     class ListNode(var `val`: Int) {
         var next: ListNode? = null
     }
 
+    // Day 22
+    // LeetCode 141. Linked List Cycle
+    fun hasCycle(head: ListNode?): Boolean {
+        var tortoise = head
+        var hare = head
+
+        while (tortoise != null) {
+            tortoise = tortoise.next
+            hare = hare?.next?.next
+            if (tortoise != null && hare != null && tortoise == hare) return true
+        }
+
+        return false
+    }
+
+    // Day 21
+    // LeetCode 206. Reverse Linked List
     fun reverseList(head: ListNode?): ListNode? {
-        // Iterative Approach
+        // 1. Optimized Iterative Approach
         // Time Complexity: O(N) | Space Complexity: O(1)
         //        var prev: ListNode? = null
         //        var curr = head
@@ -25,27 +39,18 @@ object Week4Stacks {
 
         // Recursive Approach
         // Time Complexity: O(N) | Space Complexity: O(1)
-        val tail: ListNode? = null
-        return getReverseList(head, tail)
+        return getReverseList(head, null)
     }
 
-    tailrec fun getReverseList(h: ListNode?, t: ListNode?): ListNode? {
-        val head: ListNode? = h
-        var tail: ListNode? = t
-        return if (head == null) {
-            tail
-        } else {
-            val next = head.next
-            if (tail == null) {
-                tail = head
-                tail?.next = null
-            } else {
-                val node = head
-                node.next = tail
-                tail = node
-            }
-            getReverseList(next, tail)
-        }
+    tailrec fun getReverseList(head: ListNode?, tail: ListNode?): ListNode? {
+        // 2. Expert Kotlin 'tailrec' Approach
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        if (head == null) return tail
+
+        val next = head.next
+        head.next = tail
+
+        return getReverseList(next, head)
     }
 
 

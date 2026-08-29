@@ -12,6 +12,58 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Monotonic Stack
 - [ ] Linked Lists
 
+## Day 22 - LC 141 - Linked List Cycle
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * ****O(1)** Space Cycle Detection**: Standard cycle detection (using a `HashSet`) requires **O(N)** 
+  space. To solve it in constant space, we must use the **Two Pointers (Fast & Slow)** pattern, also
+  known as **Floyd's Cycle-Finding Algorithm**.
+  * **The "Hare & Tortoise" Convergence**: In a closed loop, a fast-moving pointer will eventually 
+  "lap" a slow-moving pointer. If the fast pointer reaches `null`, the list is linear.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time     | Space | Performance | Best Used When... |
+| :--- |:---------|:---------| :--- | :--- |
+| **HashSet Tracking** | **O(N)**  | **O(N)** | Moderate | You need to find the node where the cycle starts. |
+| **Fast & Slow Pointers** | **O(N)** | **O(1)** | **Peak** | **Optimal.** standard for simple cycle detection. |
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **Fast Pointer Guard**: Always check `hare != null && hare.next != null` in the loop condition. 
+This ensures you can safely jump two nodes (`.next.next`) and provides the fastest exit for linear lists.
+*   **Reference Equality**: In Kotlin, `slow == fast` checks reference equality for `ListNode` 
+(unless `equals` is overridden), which is exactly what you want for cycle detection.
+
+### 4. Code Block
+```kotlin
+fun hasCycle(head: ListNode?): Boolean {
+    // Highly Optimized Floyd's Cycle-Finding Algorithm
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    var slow = head
+    var fast = head
+
+    while (fast != null && fast.next != null) {
+        slow = slow?.next
+        fast = fast.next?.next
+        
+        if (slow != null && slow == fast) return true
+    }
+
+    return false
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Cycle Start Detection**: If the requirement changes to finding the **entry point** of the cycle 
+(LC 142), the HashSet approach is much easier to implement, though still **O(N)** space. Floyd's 
+algorithm can also do this by resetting one pointer to the head after they meet, but the 
+mathematical proof is harder to explain in a rush.
+*   **Destructive Detection**: You could potentially "mark" nodes as visited by pointing them to a 
+single sentinel node, but this **destroys the list**, which is usually forbidden in production systems.
+
+---
+
 ## Day 21 - LC 206 - Reverse Linked List
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
