@@ -10,6 +10,37 @@ object Week5Queues {
         var right: TreeNode? = null
     }
 
+    // Day 24 - LC 239. Sliding Window Maximum
+    fun maxSlidingWindow(nums: IntArray, k: Int): IntArray {
+        val result = IntArray(nums.size - k + 1)
+        val q = ArrayDeque<Int>()
+        for (i in 0 until k) {
+            while (q.isNotEmpty() && nums[i] > nums[q.last()]) {
+                q.removeLast()
+            }
+            q.addLast(i)
+        }
+
+        for (i in k until nums.size) {
+            val idx = i - k
+
+            result[idx] = nums[q.first()]
+
+            if (idx == q.first()) q.removeFirst()
+
+            while (q.isNotEmpty() && nums[i] > nums[q.last()]) {
+                q.removeLast()
+            }
+
+            q.add(i)
+        }
+
+        result[result.lastIndex] = nums[q.first()]
+
+        return result
+    }
+
+
     // Day 23 - LC 102. Binary Tree Level Order Traversal
     fun levelOrder(root: TreeNode?): List<List<Int>> {
         if (root == null) return emptyList()
