@@ -10,6 +10,80 @@ object Week5Queues {
         var right: TreeNode? = null
     }
 
+    // Day 25 - LC 207. Course Schedule
+    fun canFinishDFS(numCourses: Int, prerequisites: Array<IntArray>): Boolean {
+        // State representation: 0 = UNVISITED, 1 = VISITING, 2 = SAFE
+        val state = IntArray(numCourses)
+        val connectedNodes = Array(numCourses) { mutableListOf<Int>() }
+        for (preq in prerequisites) {
+            val source = preq[1]
+            val destination = preq[0]
+            connectedNodes[source].add(destination)
+        }
+
+        fun dsf(startNode: Int): Boolean {
+            if (state[startNode] == 1) return false
+            if (state[startNode] == 2) return true
+
+            state[startNode] = 1
+            for (node in connectedNodes[startNode]) {
+                if (!dsf(node)) {
+                    return false
+                }
+            }
+            state[startNode] = 2
+            return true
+        }
+
+        for (i in 0 until numCourses) {
+            if (state[i] == 0) {
+                if (!dsf(i)) {
+                    return false
+                }
+            }
+        }
+
+        return true
+    }
+
+
+    fun canFinishBFS(numCourses: Int, prerequisites: Array<IntArray>): Boolean {
+        val adjacentList = Array<MutableList<Int>>(numCourses) { mutableListOf() }
+        val inDegree = IntArray(numCourses)
+
+        for (preq in prerequisites) {
+            val destination = preq[0]
+            val source = preq[1]
+
+            adjacentList[source].add(destination)
+            inDegree[destination]++
+        }
+
+        val q = ArrayDeque<Int>(numCourses)
+        for (i in inDegree.indices) {
+            if (inDegree[i] == 0) {
+                q.addLast(i)
+            }
+        }
+
+        val topologicalOrder = IntArray(numCourses) // In case we need to return the order
+        var index = 0
+        while (q.isNotEmpty()) {
+            val course = q.removeFirst()
+            val neighbors = adjacentList[course]
+
+            if (neighbors.isNotEmpty()) {
+                for (neighbor in neighbors) {
+                    if (--inDegree[neighbor] == 0) {
+                        q.addLast(neighbor)
+                    }
+                }
+            }
+            topologicalOrder[index++] = course
+        }
+        return index == numCourses
+    }
+
     // Day 24 - LC 239. Sliding Window Maximum
     fun maxSlidingWindow(nums: IntArray, k: Int): IntArray {
         val result = IntArray(nums.size - k + 1)

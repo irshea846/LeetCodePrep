@@ -12,6 +12,119 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Binary Search Trees (BST)
 - [ ] Trie (Prefix Tree)
 
+## Day 25 - LC 207. Course Schedule
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Dependency Resolution**: The problem defines a set of "dependencies" (prerequisites) that must
+  be satisfied before taking a course. This is the canonical signal for **Directed Acyclic Graph (DAG)** 
+  validation.
+  * **Cycle Detection**: If course A depends on B and B depends on A, neither can be finished. Thus,
+  the problem reduces to: **"Does this directed graph contain a cycle?"**
+  * **Topological Sort**: Both DFS (3-state) and BFS (Kahn's Algorithm) are standard techniques to 
+  verify if a graph can be topologically sorted.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time | Space | Performance | Best Used When... |
+| :--- |:-----------|:---------| :--- | :--- |
+| **DFS (3-State)** | **O(V + E)** | **O(V + E)** | **Peak** | You need a recursive, concise implementation. |
+| **BFS (Kahn's)** | **O(V + E)** | **O(V + E)** | **Peak** | You want an iterative solution or need the actual order. |
+
+*\*V = numCourses, E = prerequisites.size*
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **Adjacency List Construction**: Avoid `Array<MutableList<Int>>(V) { mutableListOf() }` if 
+constraints are massive; consider primitive arrays if memory is tight. However, for most LeetCode 
+tasks, `ArrayList` is fine.
+*   **State Representation**: For DFS, using an `IntArray` (0=Unvisited, 1=Visiting, 2=Visited) is 
+faster and more memory-efficient than a `Set` of visited nodes.
+*   **Recursive Depth**: While $O(V)$ depth is usually fine on JVM for typical **V=2000**, extremely 
+deep graphs might trigger `StackOverflowError`. BFS is safer for very deep graphs.
+
+### 4. Code Block
+```kotlin
+fun canFinishDFS(numCourses: Int, prerequisites: Array<IntArray>): Boolean {
+    // State representation: 0 = UNVISITED, 1 = VISITING (part of current path), 2 = SAFE (visited & no cycle)
+    val state = IntArray(numCourses)
+    val adj = Array(numCourses) { mutableListOf<Int>() }
+    
+    // Build Adjacency List: prerequisites[0] depends on prerequisites[1] (src -> dest)
+    for (pre in prerequisites) {
+        adj[pre[1]].add(pre[0])
+    }
+
+    // Helper: returns true if a cycle is detected
+    fun hasCycle(u: Int): Boolean {
+        if (state[u] == 1) return true // Hit a node currently being visited -> CYCLE!
+        if (state[u] == 2) return false // Already fully processed -> SAFE
+
+        state[u] = 1 // Mark as VISITING
+        for (v in adj[u]) {
+            if (hasCycle(v)) return true
+        }
+        state[u] = 2 // Mark as SAFE
+        return false
+    }
+
+    for (i in 0 until numCourses) {
+        if (state[i] == 0) {
+            if (hasCycle(i)) return false
+        }
+    }
+    return true
+}
+```
+
+```kotlin
+fun canFinishBFS(numCourses: Int, prerequisites: Array<IntArray>): Boolean {
+    // Kahn's Algorithm (BFS-based Topological Sort)
+    val adj = Array(numCourses) { mutableListOf<Int>() }
+    val inDegree = IntArray(numCourses)
+
+    for (pre in prerequisites) {
+        val course = pre[0]
+        val prereq = pre[1]
+        adj[prereq].add(course)
+        inDegree[course]++
+    }
+
+    // Queue for nodes with 0 in-degree (no dependencies)
+    val queue = ArrayDeque<Int>()
+    for (i in 0 until numCourses) {
+        if (inDegree[i] == 0) queue.addLast(i)
+    }
+
+    var processedCount = 0
+    while (queue.isNotEmpty()) {
+        val u = queue.removeFirst()
+        processedCount++
+
+        for (v in adj[u]) {
+            if (--inDegree[v] == 0) {
+                queue.addLast(v)
+            }
+        }
+    }
+
+    // If we processed all nodes, no cycle exists
+    return processedCount == numCourses
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Memory Efficiency**: In a massive graph where **V** is large but **E** is sparse, we could use
+a `Map<Int, MutableList<Int>>` to store only active nodes. However, for a fixed **V**, `Array` is 
+always faster.
+*   **Parallelization**: Cycle detection is inherently sequential. However, Kahn's algorithm (BFS) 
+allows for some level of parallel processing: multiple nodes with 0 in-degree can be processed by 
+different threads simultaneously, as long as the in-degree updates are atomic.
+*   **Large-Scale Persistence**: For graphs that don't fit in memory (e.g., package managers like 
+NPM or Maven), you would use a graph database (Neo4j) or process the edges in batches using external
+sort and merge.
+
+---
+
 ## Day 24 - LC 239. Sliding Window Maximum
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**

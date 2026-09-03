@@ -5,6 +5,71 @@ import kotlin.test.assertEquals
 
 class Week5QueuesTest {
 
+    // Day 25 - LC 207. Course Schedule
+    @Test
+    fun testCanFinish_ValidCase1() {
+        val numCourses = 2
+        val prerequisites = arrayOf(intArrayOf(1, 0))
+        val dfsResult = Week5Queues.canFinishDFS(numCourses, prerequisites)
+        val bfsResult = Week5Queues.canFinishBFS(numCourses, prerequisites)
+        assertEquals(true, dfsResult)
+        assertEquals(true, bfsResult)
+    }
+
+    @Test
+    fun testCanFinish_ValidCase2() {
+        val numCourses = 2
+        val prerequisites = arrayOf(intArrayOf(1, 0), intArrayOf(0, 1))
+        val dfsResult = Week5Queues.canFinishDFS(numCourses, prerequisites)
+        val bfsResult = Week5Queues.canFinishBFS(numCourses, prerequisites)
+        assertEquals(false, dfsResult)
+        assertEquals(false, bfsResult)
+    }
+
+    @Test
+    fun testCanFinish_ValidCase3() {
+        val numCourses = 5
+        val prerequisites = arrayOf(intArrayOf(2, 3), intArrayOf(4, 1), intArrayOf(3, 0), intArrayOf(1, 2))
+        val dfsResult = Week5Queues.canFinishDFS(numCourses, prerequisites)
+        val bfsResult = Week5Queues.canFinishBFS(numCourses, prerequisites)
+        assertEquals(true, dfsResult)
+        assertEquals(true, bfsResult)
+    }
+
+    @Test
+    fun testCanFinish_ValidCase4() {
+        val numCourses = 20
+        val prerequisites = arrayOf(intArrayOf(0, 10), intArrayOf(3, 18), intArrayOf(5, 5),
+                intArrayOf(6, 11), intArrayOf(11, 14), intArrayOf(13, 1), intArrayOf(15, 1),
+                intArrayOf(17,4))
+        val dfsResult = Week5Queues.canFinishDFS(numCourses, prerequisites)
+        val bfsResult = Week5Queues.canFinishBFS(numCourses, prerequisites)
+        assertEquals(false, dfsResult)
+        assertEquals(false, bfsResult)
+    }
+
+    @Test
+    fun testCanFinish_ValidCase5() {
+        val numCourses = 5
+        val prerequisites = arrayOf(intArrayOf(1, 4), intArrayOf(2, 4), intArrayOf(3, 1),
+            intArrayOf(3, 2))
+        val dfsResult = Week5Queues.canFinishDFS(numCourses, prerequisites)
+        val bfsResult = Week5Queues.canFinishBFS(numCourses, prerequisites)
+        assertEquals(true, dfsResult)
+        assertEquals(true, bfsResult)
+    }
+
+    @Test
+    fun testCanFinish_ValidCase6() {
+        val numCourses = 8
+        val prerequisites = arrayOf(intArrayOf(1, 0), intArrayOf(2, 6), intArrayOf(1, 7),
+            intArrayOf(5, 1), intArrayOf(6, 4), intArrayOf(7, 0), intArrayOf(0, 5))
+        val dfsResult = Week5Queues.canFinishDFS(numCourses, prerequisites)
+        val bfsResult = Week5Queues.canFinishBFS(numCourses, prerequisites)
+        assertEquals(false, dfsResult)
+        assertEquals(false, bfsResult)
+    }
+
     // Day 24 - LC 239. Sliding Window Maximum
     @Test
     fun testMaxSlidingWindow_ValidCase1() {
