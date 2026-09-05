@@ -10,6 +10,60 @@ object Week5Queues {
         var right: TreeNode? = null
     }
 
+    class ListNode(var `val`: Int) {
+        var next: ListNode? = null
+    }
+
+    // Day 26 - LC 21. Merge Two Sorted Lists
+    fun mergeTwoListsRecursion(list1: ListNode?, list2: ListNode?): ListNode? {
+        if (list1 == null || list2 == null) return list1 ?: list2
+
+        if (list1.`val` <= list2.`val`) {
+            list1.next = mergeTwoListsRecursion(list1.next, list2)
+            return list1
+        } else {
+            list2.next = mergeTwoListsRecursion(list1, list2.next)
+            return list2
+        }
+    }
+
+    fun mergeTwoListsIteration(list1: ListNode?, list2: ListNode?): ListNode? {
+        var l1 = list1
+        var l2 = list2
+        var head: ListNode? = null
+        var next: ListNode? = null
+
+        var node: ListNode? = null
+        while (l1 != null && l2 != null) {
+            if (l1.`val` <= l2.`val`) {
+                node = l1
+                l1 = l1.next
+                node.next = null
+            } else {
+                node = l2
+                l2 = l2.next
+                node.next = null
+            }
+
+            head = head ?: node
+
+            if (next != null) {
+                next.next = node
+                next = node
+            } else {
+                next = head
+            }
+        }
+
+        if (next != null) {
+            next.next = l1 ?: l2
+        } else {
+            next = l1 ?: l2
+        }
+
+        return head ?: next
+    }
+
     // Day 25 - LC 207. Course Schedule
     fun canFinishDFS(numCourses: Int, prerequisites: Array<IntArray>): Boolean {
         // State representation: 0 = UNVISITED, 1 = VISITING, 2 = SAFE

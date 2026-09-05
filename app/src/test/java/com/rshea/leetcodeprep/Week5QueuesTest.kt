@@ -5,6 +5,43 @@ import kotlin.test.assertEquals
 
 class Week5QueuesTest {
 
+    // Day 26 - LC 21. Merge Two Sorted Lists
+    @Test
+    fun testMergeTwoLists_ValidCase1() {
+        val list1 = Week5Queues.ListNode(1)
+        list1.next = Week5Queues.ListNode(2)
+        list1.next!!.next = Week5Queues.ListNode(4)
+        val list2 = Week5Queues.ListNode(1)
+        list2.next = Week5Queues.ListNode(3)
+        list2.next!!.next = Week5Queues.ListNode(4)
+        val recursionResult = Week5Queues.mergeTwoListsRecursion(list1, list2)
+        val iterationResult = Week5Queues.mergeTwoListsIteration(list1, list2)
+        assertEquals(list1, recursionResult)
+        assertEquals(list1, iterationResult)
+    }
+
+    @Test
+    fun testMergeTwoLists_ValidCase2() {
+        val list1 = null
+        val list2 = null
+        val expected = null
+        val recursionResult = Week5Queues.mergeTwoListsRecursion(list1, list2)
+        val iterationResult = Week5Queues.mergeTwoListsIteration(list1, list2)
+        assertEquals(expected, recursionResult)
+        assertEquals(expected, iterationResult)
+    }
+
+    @Test
+    fun testMergeTwoLists_ValidCase3() {
+        val list1 = null
+        val list2 = Week5Queues.ListNode(0)
+        val expected = Week5Queues.ListNode(0)
+        val recursionResult = Week5Queues.mergeTwoListsRecursion(list1, list2)
+        val iterationResult = Week5Queues.mergeTwoListsIteration(list1, list2)
+        assertEquals(list2, recursionResult)
+        assertEquals(list2, iterationResult)
+    }
+
     // Day 25 - LC 207. Course Schedule
     @Test
     fun testCanFinish_ValidCase1() {

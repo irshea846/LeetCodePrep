@@ -7,10 +7,96 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 # ===============================================================
 
 ## Topics Covered
-- [ ] Binary Search (Advanced)
+
 - [ ] Binary Trees (Traversal & Construction)
-- [ ] Binary Search Trees (BST)
-- [ ] Trie (Prefix Tree)
+- [ ] Linked Lists
+- [ ] Monotonic Stack
+- [ ] Queues / Deque
+
+## Day 26 - LC 21. Merge Two Sorted Lists
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Maintaining Sorted Order**: Both input lists are already sorted. This is the canonical signal 
+  for a **Linear Merge (Two-Pointer Scan)**.
+  * **Dummy Head Pattern**: To avoid complex null-checks when initializing the merged list's head, 
+  we use a **Sentinel (Dummy) Node**. This allows us to treat every addition to the list identically.
+  * **Link Modification**: The goal is to merge "in-place" by re-pointing `next` references rather 
+  than creating new `ListNode` objects.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time | Space | Performance | Best Used When... |
+| :--- | :--- | :--- | :--- | :--- |
+| **Iterative** | **O(N + M)** | **O(1)** | **Peak** | Production systems; large lists; $O(1)$ space requirement. |
+| **Recursive** | **O(N + M)** | **O(N + M)** | High | You need concise, elegant code and the lists are small. |
+
+*\*N, M = lengths of the two lists.*
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **The `val` Conflict**: Accessing the node value requires ``node.`val` `` because `val` is a 
+reserved keyword in Kotlin.
+*   **Elvis Merge Base Case**: Using `return list1 ?: list2` is a concise Kotlin way to handle cases 
+where one list is null.
+*   **Non-null Assertion (`!!`)**: In the iterative version, `tail = tail.next!!` is safe because we
+just assigned `tail.next` to a non-null node in the previous line.
+*   **Senior Tip**: In interviews, if you find yourself writing if (head == null) { head = node } 
+else { ... } inside a linked list loop, immediately switch to the Dummy Head pattern. It shows the 
+interviewer you have mastered "Pointer Maintenance."
+
+### 4. Code Block
+```kotlin
+fun mergeTwoListsRecursion(list1: ListNode?, list2: ListNode?): ListNode? {
+    // 1. Base case: if either list is empty, return the other one
+    if (list1 == null || list2 == null) return list1 ?: list2
+
+    // 2. Recursive step: point the smaller value to the result of the rest of the merge
+    if (list1.`val` <= list2.`val`) {
+        list1.next = mergeTwoListsRecursion(list1.next, list2)
+        return list1
+    } else {
+        list2.next = mergeTwoListsRecursion(list1, list2.next)
+        return list2
+    }
+}
+```
+
+```kotlin
+fun mergeTwoListsIteration(list1: ListNode?, list2: ListNode?): ListNode? {
+    // 1. Sentinel Dummy Head (eliminates special cases for the first node)
+    val dummy = ListNode(0)
+    var tail = dummy
+    var l1 = list1
+    var l2 = list2
+
+    while (l1 != null && l2 != null) {
+        if (l1.`val` <= l2.`val`) {
+            tail.next = l1
+            l1 = l1.next
+        } else {
+            tail.next = l2
+            l2 = l2.next
+        }
+        tail = tail.next!!
+    }
+
+    // 2. Attach the remaining non-empty list
+    tail.next = l1 ?: l2
+
+    return dummy.next
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Recursive Stack Depth**: The recursive solution is elegant but consumes **O(N+M)** stack space. 
+On a standard JVM, lists exceeding ~10,000 nodes could trigger a `StackOverflowError`.
+*   **In-Place vs. Deep Copy**: Both algorithms here are "In-Place" (they modify the original nodes). 
+If the input lists must remain unchanged (e.g., in a persistent history log), you would need to 
+create a **Deep Copy** of the nodes, costing **O(N+M)** additional space.
+*   **Merge Multi-way**: If asked to merge **K** sorted lists, a min-priority queue (Heap) is used 
+to track the heads, improving complexity from **O(N x K^2)** to **O(N x K x Log(K))**.
+
+---
 
 ## Day 25 - LC 207. Course Schedule
 ### 1. Core Pattern Identifier
