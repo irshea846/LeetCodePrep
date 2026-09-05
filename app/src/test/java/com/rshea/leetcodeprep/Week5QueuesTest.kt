@@ -5,6 +5,78 @@ import kotlin.test.assertEquals
 
 class Week5QueuesTest {
 
+    // Day 27 - LC 142. Linked List Cycle II
+    @Test
+    fun testDetectCycle_ValidCase1() {
+        val node1 = Week5Queues.ListNode(3)
+        val node2 = Week5Queues.ListNode(2)
+        val node3 = Week5Queues.ListNode(0)
+        val node4 = Week5Queues.ListNode(-4)
+        node1.next = node2
+        node2.next = node3
+        node3.next = node4
+        node4.next = node2
+        val recursionResult = Week5Queues.detectCycleRecursion(node1)
+        val iterationResult = Week5Queues.detectCycleIteration(node1)
+        val result = Week5Queues.detectCycle(node1)
+        assertEquals(node2, recursionResult)
+        assertEquals(node2, iterationResult)
+        assertEquals(node2, result)
+    }
+
+    @Test
+    fun testDetectCycle_ValidCase2() {
+        val node1 = Week5Queues.ListNode(1)
+        val node2 = Week5Queues.ListNode(2)
+        node1.next = node2
+        node2.next = node1
+        val recursionResult = Week5Queues.detectCycleRecursion(node1)
+        val iterationResult = Week5Queues.detectCycleIteration(node1)
+        val result = Week5Queues.detectCycle(node1)
+        assertEquals(node1, recursionResult)
+        assertEquals(node1, iterationResult)
+        assertEquals(node1, result)
+    }
+
+    @Test
+    fun testDetectCycle_ValidCase3() {
+        val node1 = Week5Queues.ListNode(1)
+        val recursionResult = Week5Queues.detectCycleRecursion(node1)
+        val iterationResult = Week5Queues.detectCycleIteration(node1)
+        val result = Week5Queues.detectCycle(node1)
+        assertEquals(null, recursionResult)
+        assertEquals(null, iterationResult)
+        assertEquals(null, result)
+    }
+
+    @Test
+    fun testDetectCycle_ValidCase4() {
+        val node1 = Week5Queues.ListNode(1)
+        val node2 = Week5Queues.ListNode(2)
+        val node3 = Week5Queues.ListNode(3)
+        val node4 = Week5Queues.ListNode(4)
+        val node5 = Week5Queues.ListNode(5)
+        val node6 = Week5Queues.ListNode(6)
+        val node7 = Week5Queues.ListNode(7)
+        val node8 = Week5Queues.ListNode(8)
+        val node9 = Week5Queues.ListNode(9)
+        node1.next = node2
+        node2.next = node3
+        node3.next = node4
+        node4.next = node5
+        node5.next = node6
+        node6.next = node7
+        node7.next = node8
+        node8.next = node9
+        node9.next = node3
+        val recursionResult = Week5Queues.detectCycleRecursion(node1)
+        val iterationResult = Week5Queues.detectCycleIteration(node1)
+        val result = Week5Queues.detectCycle(node1)
+        assertEquals(node3, recursionResult)
+        assertEquals(node3, iterationResult)
+        assertEquals(node3, result)
+    }
+
     // Day 26 - LC 21. Merge Two Sorted Lists
     @Test
     fun testMergeTwoLists_ValidCase1() {

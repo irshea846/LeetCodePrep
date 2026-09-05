@@ -14,6 +14,69 @@ object Week5Queues {
         var next: ListNode? = null
     }
 
+    // Day 27 - LC 142. Linked List Cycle II
+
+    // Peer Review: detectCycleRecursion (The "HashSet" Version)
+    //  • Risk: State Leaks. Using a publicSet outside the function means if you call this function
+    //    twice on different lists, the second call will see nodes from the first list.
+    //    This would cause a bug.
+    //  • Risk: Stack Overflow. On the JVM, a list with 10,000 nodes will crash this function.
+    //  • Verdict: Avoid recursion for linked lists unless the problem specifically asks for it.
+    val publicSet = HashSet<ListNode>()
+    fun detectCycleRecursion(head: ListNode?): ListNode? {
+        if (head == null) return null
+        if (publicSet.contains(head)) return head
+        publicSet.add(head)
+        return detectCycleRecursion(head.next)
+    }
+
+    //Peer Review: detectCycleIteration (The "HashSet" Version)
+    //  • Syntax Bug: You initialized the set as privateSet but tried to add to nodesSeen.
+    //  • Performance: $O(N)$ Time | $O(N)$ Space. This is a great "Plan B" if you forget the math
+    //    for Floyd's, but it's less impressive to interviewers because of the memory cost.
+    fun detectCycleIteration(head: ListNode?): ListNode? {
+        val privateSet = HashSet<ListNode>()
+        var next = head
+        while (next != null) {
+            if (privateSet.contains(next)) return next
+            privateSet.add(next)
+            next = next.next
+        }
+        return next
+    }
+
+    //Peer Review: detectCycle (The Optimized Version)
+    //    • Performance: Optimal $O(N)$ Time | $O(1)$ Space. This is the gold standard for interviews.
+    //    • Logic: Your Phase 1 and Phase 2 implementations are perfectly synchronized.
+    //    • Syntax: Your use of fast.next!!.next is safe because of the loop guard.
+    //    • Verdict: This is the version you should lead with. It demonstrates mathematical depth and
+    //    memory awareness.
+    fun detectCycle(head: ListNode?): ListNode? {
+        // Highly Optimized Two-Phase Floyd's Algorithm
+        // Time Complexity: O(N) | Space Complexity: O(1)
+        var slow = head
+        var fast = head
+
+        // Phase 1: Detect Cycle
+        while (fast != null && fast.next != null) {
+            slow = slow?.next
+            fast = fast.next!!.next
+
+            if (slow == fast) {
+                // Phase 2: Find Entry Point
+                // Reset entry pointer to head; move both at 1x speed
+                var entry = head
+                while (entry != slow) {
+                    entry = entry?.next
+                    slow = slow?.next
+                }
+                return entry
+            }
+        }
+
+        return null
+    }
+
     // Day 26 - LC 21. Merge Two Sorted Lists
     fun mergeTwoListsRecursion(list1: ListNode?, list2: ListNode?): ListNode? {
         if (list1 == null || list2 == null) return list1 ?: list2

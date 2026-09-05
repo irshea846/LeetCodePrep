@@ -13,6 +13,93 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Monotonic Stack
 - [ ] Queues / Deque
 
+## Day 27 - LC 142. Linked List Cycle II
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Identify Entry Point**: Unlike simple cycle detection (Yes/No), we must identify the exact 
+  node where the loop starts.
+  * ****O(1)** Space Requirement**: This constraint forbids using a `HashSet` to store visited nodes, 
+  triggering **Floyd's Cycle-Finding Algorithm**.
+  * **Two-Phase Convergence**: Phase 1 detects the cycle. Phase 2 leverages the mathematical equidistance 
+  between the head and the meeting point to find the entry.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time | Space | Performance | Best Used When...                                             |
+| :--- | :--- | :--- | :--- |:--------------------------------------------------------------|
+| **Floyd's (Two-Pointer)** | **O(N)** | **O(1)** | **Peak** | **Optimal.** standard for high-performance cycle resolution.  |
+| **HashSet (Iterative)** | O(N) | O(N) | Moderate | Memory is abundant and you need a quick, safe implementation. |
+| **HashSet (Recursive)** | O(N) | O(N) | Low | **Forbidden** for production due to **O(N)** stack risk.      |
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **External State Leak**: Avoid using a `HashSet` defined outside the function scope 
+(e.g., a member variable). This makes the function non-thread-safe and prone to bugs when reused 
+across different lists.
+*   **Reference Equality**: Kotlin's `==` on `ListNode` objects (not `val`) correctly checks if two 
+references point to the same memory address.
+
+### 4. Code Block
+```kotlin
+fun detectCycle(head: ListNode?): ListNode? {
+    // 1. Optimized Two-Phase Floyd's Algorithm
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    var slow = head
+    var fast = head
+
+    // Phase 1: Detect Cycle
+    while (fast != null && fast.next != null) {
+        slow = slow?.next
+        fast = fast.next!!.next
+        
+        if (slow == fast) {
+            // Phase 2: Find Entry Point
+            // Move 'slow' back to head; move both at 1x speed. 
+            // They are guaranteed to meet at the entry.
+            var entry = head
+            while (entry != slow) {
+                entry = entry?.next
+                slow = slow?.next
+            }
+            return entry
+        }
+    }
+    return null
+}
+```
+
+```kotlin
+fun detectCycleHashSet(head: ListNode?): ListNode? {
+    // 2. HashSet Iterative Approach
+    // Time Complexity: O(N) | Space Complexity: O(N)
+    val visitedNodes = HashSet<ListNode>()
+    var curr = head
+    
+    while (curr != null) {
+        if (visitedNodes.contains(curr)) return curr
+        visitedNodes.add(curr)
+        curr = curr.next
+    }
+    return null
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **The Proof of Equidistance**:
+    *   Let **L** be the distance from head to entry.
+    *   Let **C** be the cycle length.
+    *   Let **k** be the distance from entry to meeting point.
+    *   **SlowDist = L + k**.
+    *   **FastDist = L + k + nC** (where **n** is number of laps).
+    *   Since **Fast = 2 x Slow**: **L + k + nC = 2(L + k) \implies L = nC - k**.
+    *   This proof is the "Senior" way to justify why resetting a pointer to the head and moving 
+    both at **1x** speed works.
+*   **Destructive Marking**: In low-level systems (like a C/C++ memory manager), one could XOR the 
+next pointer or set a bit flag in the address. This is **O(1)** space but creates **thread-safety and 
+data corruption** risks, so it's rarely used in modern Android apps.
+
+---
+
 ## Day 26 - LC 21. Merge Two Sorted Lists
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
@@ -28,7 +115,7 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 
 | Approach | Time | Space | Performance | Best Used When... |
 | :--- | :--- | :--- | :--- | :--- |
-| **Iterative** | **O(N + M)** | **O(1)** | **Peak** | Production systems; large lists; $O(1)$ space requirement. |
+| **Iterative** | **O(N + M)** | **O(1)** | **Peak** | Production systems; large lists; **O(1)** space requirement. |
 | **Recursive** | **O(N + M)** | **O(N + M)** | High | You need concise, elegant code and the lists are small. |
 
 *\*N, M = lengths of the two lists.*
@@ -125,7 +212,7 @@ constraints are massive; consider primitive arrays if memory is tight. However, 
 tasks, `ArrayList` is fine.
 *   **State Representation**: For DFS, using an `IntArray` (0=Unvisited, 1=Visiting, 2=Visited) is 
 faster and more memory-efficient than a `Set` of visited nodes.
-*   **Recursive Depth**: While $O(V)$ depth is usually fine on JVM for typical **V=2000**, extremely 
+*   **Recursive Depth**: While **O(V)** depth is usually fine on JVM for typical **V=2000**, extremely 
 deep graphs might trigger `StackOverflowError`. BFS is safer for very deep graphs.
 
 ### 4. Code Block
