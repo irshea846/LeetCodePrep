@@ -12,6 +12,117 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Binary Tree Traversal
 - [ ] Queue / Deque
 
+## Day 29 - LC 61. Rotate List
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Relative Shift**: The problem asks to move the end of the list to the front **k** times. This 
+  is equivalent to finding a new "break point" in the list.
+  * **k > Length**: The constraint that **k** can be larger than the list length triggers the need 
+  for the **Modulo Operator** (**k % L**) to find the effective rotation count.
+  * **Link Re-pointing**: To keep space at **O(1)**, we must manipulate existing pointers. The 
+  **Circular Ring pattern** is the most efficient way to handle the wrap-around.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time     | Space    | Performance | Best Used When... |
+| :--- |:---------|:---------| :--- | :--- |
+| **Circular Ring** | **O(N)** | **O(1)** | **Peak** | **Optimal.** standard for list rotation. |
+| **Array/List Backup** | **O(N)** | **O(N)** | Low | Quick implementation; memory is not a concern. |
+
+*\*N = number of nodes in the list.*
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **The Modulo Edge Case**: Always check if `length` is 0 before performing `k % length` to avoid 
+`ArithmeticException`.
+*   **Non-null Assertions**: When traversing after a null check, `node!!.next` is safe but `node?.next` 
+is more idiomatic. Using `repeat(n)` for traversal is cleaner than manual `while` counters.
+*   **Early Returns**: Handling `head == null` or `k == 0` early flattens the logic and avoids 
+unnecessary length calculations.
+
+### 4. Code Block
+```kotlin
+fun rotateRight(head: ListNode?, k: Int): ListNode? {
+    // Optimized Circular Ring Approach
+    // Time Complexity: O(N) | Space Complexity: O(1)
+    if (head == null || head.next == null || k == 0) return head
+
+    // 1. Find length and actual tail
+    var length = 1
+    var tail = head
+    while (tail.next != null) {
+        length++
+        tail = tail.next!!
+    }
+
+    // 2. Effective rotation (handles k >= length)
+    val effectiveK = k % length
+    if (effectiveK == 0) return head
+
+    // 3. Connect tail to head to form a ring
+    tail.next = head
+
+    // 4. Find new tail: (length - effectiveK) steps from head
+    var newTail = head
+    repeat(length - effectiveK - 1) {
+        newTail = newTail?.next
+    }
+
+    // 5. Set new head and break the ring
+    val newHead = newTail?.next
+    newTail?.next = null
+
+    return newHead
+}
+```
+
+```kotlin
+fun rotateRightOriginal(head: ListNode?, k: Int): ListNode? {
+    var nodes = 0
+    var ptr = head
+    var moves = k
+
+    while (ptr != null && ptr.next != null) {
+        nodes++
+        ptr = ptr.next
+    }
+    nodes++
+    val tail = ptr
+    ptr = head
+
+    if (nodes == moves || nodes == 0) return head
+    moves = if (nodes < moves) nodes - (moves % nodes) - 1
+    else nodes - moves - 1
+    nodes = 0
+    while (ptr != null && nodes++ < moves) {
+        ptr = ptr.next
+    }
+
+    tail?.next = head
+    val temp = ptr
+    ptr = ptr?.next
+    temp?.next = null
+
+    return ptr
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Ring vs. Disconnected Traversal**:
+    *   **Ring**: Easier to reason about as you only calculate the "New Tail" position.
+    *   **Disconnected**: Requires tracking two separate pointers (like the "Remove Nth Node from 
+    End" pattern) to find the break point without forming a cycle.
+
+*   **Immutability**: In some functional systems, you are not allowed to modify `ListNode`. In that 
+case, you would copy the nodes into a new structure (like an `ArrayList`), rotate the list indices, 
+and rebuild the linked list. This would cost **O(N)** space.
+
+*   **Data Integrity**: Forming a circular list, even temporarily, can be dangerous if the code crashes 
+before the ring is broken (it creates an infinite loop for other readers). In mission-critical 
+multithreaded apps, the "Two-Pointer" (disconnected) approach is safer.
+
+---
+
 ## Day28 - LC 150. Evaluate Reverse Polish Notation
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
