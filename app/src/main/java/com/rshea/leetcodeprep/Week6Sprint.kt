@@ -3,9 +3,46 @@ package com.rshea.leetcodeprep
 import androidx.core.text.isDigitsOnly
 
 object Week6Sprint {
+    class TreeNode(var `val`: Int) {
+        var left: TreeNode? = null
+        var right: TreeNode? = null
+    }
+
+    class ListNode(var `val`: Int) {
+        var next: ListNode? = null
+    }
+
+    // Day29 - LC 61. Rotate List
+    fun rotateRight(head: ListNode?, k: Int): ListNode? {
+        var nodes = 0
+        var ptr = head
+        var moves = k
+
+        while (ptr != null && ptr.next != null) {
+            nodes++
+            ptr = ptr.next
+        }
+        nodes++
+        val tail = ptr
+        ptr = head
+
+        if (nodes == moves || nodes == 0) return head
+        moves = if (nodes < moves) nodes - (moves % nodes) - 1
+        else nodes - moves - 1
+        nodes = 0
+        while (ptr != null && nodes++ < moves) {
+            ptr = ptr.next
+        }
+
+        tail?.next = head
+        val temp = ptr
+        ptr = ptr?.next
+        temp?.next = null
+
+        return ptr
+    }
 
     // Day28 - LC 150. Evaluate Reverse Polish Notation
-
     fun evalRPNZeroBoxing(tokens: Array<String>): Int {
         // True Zero Allocation / Zero Boxing Approach
         // Uses a primitive IntArray as a stack to avoid Integer object creation (Boxing)
