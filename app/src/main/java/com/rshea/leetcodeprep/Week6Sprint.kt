@@ -1,7 +1,5 @@
 package com.rshea.leetcodeprep
 
-import androidx.core.text.isDigitsOnly
-
 object Week6Sprint {
     class TreeNode(var `val`: Int) {
         var left: TreeNode? = null
@@ -10,6 +8,69 @@ object Week6Sprint {
 
     class ListNode(var `val`: Int) {
         var next: ListNode? = null
+    }
+
+    // Day30 - LC 103. Binary Tree Zigzag Level Order Traversal
+    fun zigzagLevelOrderDFS(root: TreeNode?): List<List<Int>> {
+        val result = mutableListOf<ArrayDeque<Int>>()
+        dfs(root, 0, result)
+        return result
+    }
+
+    private fun dfs(node: TreeNode?, level: Int, result: MutableList<ArrayDeque<Int>>) {
+        if (node == null) return
+
+        // Dynamic Growth: Only allocate levels as needed
+        if (level == result.size) {
+            result.add(ArrayDeque())
+        }
+
+        // Zero-Reversal Zigzag: use addLast for L->R, addFirst for R->L
+        if (level % 2 == 0) {
+            result[level].addLast(node.`val`)
+        } else {
+            result[level].addFirst(node.`val`)
+        }
+
+        dfs(node.left, level + 1, result)
+        dfs(node.right, level + 1, result)
+    }
+
+    fun zigzagLevelOrderBFS(root: TreeNode?): List<List<Int>> {
+        // Supreme Approach: Standard BFS + Deque-based Sublist
+        // Achieves zero reversals and peak CPU performance through monotonic traversal
+        if (root == null) return emptyList()
+
+        val result = mutableListOf<List<Int>>()
+        val queue = ArrayDeque<TreeNode>(1024) // Initial capacity for performance
+        queue.addLast(root)
+        var leftToRight = true
+
+        while (queue.isNotEmpty()) {
+            val levelSize = queue.size
+            // Use ArrayDeque for the sublist to allow O(1) addFirst/addLast
+            // Note: ArrayDeque implements List<Int>, making it zero-copy compatible with the result
+            val sublist = ArrayDeque<Int>(levelSize)
+
+            repeat(levelSize) {
+                val node = queue.removeFirst()
+
+                // Handle zigzag by choosing insertion end in the sublist
+                if (leftToRight) {
+                    sublist.addLast(node.`val`)
+                } else {
+                    sublist.addFirst(node.`val`)
+                }
+
+                // Traversal is ALWAYS standard Left-to-Right (Monotonic)
+                node.left?.let { queue.addLast(it) }
+                node.right?.let { queue.addLast(it) }
+            }
+
+            result.add(sublist)
+            leftToRight = !leftToRight
+        }
+        return result
     }
 
     // Day29 - LC 61. Rotate List

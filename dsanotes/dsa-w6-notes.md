@@ -12,6 +12,123 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Binary Tree Traversal
 - [ ] Queue / Deque
 
+## Day 30 - LC 103. Binary Tree Zigzag Level Order Traversal
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Standardized Traversal**: To maximize performance, we maintain a **Monotonic BFS Traversal** 
+  (always Left-to-Right). This is superior to the "Two-Stack" approach because it keeps the code 
+  predictable for the CPU branch predictor.
+  * **Zigzag via Sublist**: The alternating order is handled entirely within the **result sublist** 
+  rather than by changing the tree traversal logic.
+  * **Zero-Reversal Constraint**: By using a **Deque** for the level result, we can perform `addFirst` 
+  or `addLast` in $O(1)$ time, achieving a zigzag effect without ever calling `list.reverse()`.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time | Space | Performance | Best Used When... |
+| :--- |:---------|:---------| :--- |:-----------------------------------------------------------|
+| **BFS + Reversal** | O(N) | O(W) | Moderate | Simplicity is preferred over absolute speed; K is small. |
+| **Two-Stack / Deque** | O(N) | O(W) | High | Traditional textbook implementation. |
+| **Standard BFS + Deque Sublist** | **O(N)** | **O(W)** | **Peak** | **The Professional Choice.** Optimal for hardware and maintenance. |
+
+*\*N = nodes, W = max width.*
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **The `ArrayDeque` Secret**: In Kotlin 1.4+, `ArrayDeque` implements `MutableList<T>`. This 
+allows you to add it directly to your `List<List<Int>>` result without any expensive conversions or
+memory copies.
+*   **Monotonic vs. Oscillating Traversal**: Traditional "Two-Stack" solutions "ping-pong" between 
+ends of deques. A pure BFS traversal is more cache-friendly and easier to debug.
+*   **Initial Capacity**: Initializing the queue with `1024` nodes (or similar) prevents redundant 
+internal array copies during the BFS growth.
+
+### 4. Code Block
+```kotlin
+fun zigzagLevelOrderDFS(root: TreeNode?): List<List<Int>> {
+    val result = mutableListOf<ArrayDeque<Int>>()
+    dfs(root, 0, result)
+    return result
+}
+
+private fun dfs(node: TreeNode?, level: Int, result: MutableList<ArrayDeque<Int>>) {
+    if (node == null) return
+
+    // Dynamic Growth: Only allocate levels as needed
+    if (level == result.size) {
+        result.add(ArrayDeque())
+    }
+
+    // Zero-Reversal Zigzag: use addLast for L->R, addFirst for R->L
+    if (level % 2 == 0) {
+        result[level].addLast(node.`val`)
+    } else {
+        result[level].addFirst(node.`val`)
+    }
+
+    dfs(node.left, level + 1, result)
+    dfs(node.right, level + 1, result)
+}
+```
+
+```kotlin
+fun zigzagLevelOrderBFS(root: TreeNode?): List<List<Int>> {
+    // Supreme Approach: Standard BFS + Deque-based Sublist
+    // Achieves zero reversals and peak CPU performance through monotonic traversal
+    if (root == null) return emptyList()
+
+    val result = mutableListOf<List<Int>>()
+    val queue = ArrayDeque<TreeNode>(1024) // Initial capacity for performance
+    queue.addLast(root)
+    var leftToRight = true
+
+    while (queue.isNotEmpty()) {
+        val levelSize = queue.size
+        // Use ArrayDeque for the sublist to allow O(1) addFirst/addLast
+        // Note: ArrayDeque implements List<Int>, making it zero-copy compatible with the result
+        val sublist = ArrayDeque<Int>(levelSize)
+
+        repeat(levelSize) {
+            val node = queue.removeFirst()
+            
+            // Handle zigzag by choosing insertion end in the sublist
+            if (leftToRight) {
+                sublist.addLast(node.`val`)
+            } else {
+                sublist.addFirst(node.`val`)
+            }
+
+            // Traversal is ALWAYS standard Left-to-Right (Monotonic)
+            node.left?.let { queue.addLast(it) }
+            node.right?.let { queue.addLast(it) }
+        }
+
+        result.add(sublist) 
+        leftToRight = !leftToRight
+    }
+    return result
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Standardizing on BFS**: By maintaining a monotonic traversal, we reduce the mental overhead of
+the algorithm. In production, code that is easier to reason about is often more valuable than 
+micro-optimizations, especially when both achieve the same Big-O.
+*   **The "Zero-Copy" Deque**: Because Kotlin's `ArrayDeque` implements `List`, we avoid the **O(K)** 
+overhead of converting a queue to a list at the end of every level. This is a language-specific 
+optimization that beats standard Java implementations.
+*   **Hardware CPU Optimization**: Monotonic traversal patterns are easier for the CPU to prefetch 
+and predict. Oscillating between two stacks (the traditional approach) can cause branch mispredictions 
+and cache thrashing on very large trees.
+*   **Memory Pressure**: For extremely wide trees, storing entire levels in deques can trigger 
+**O(W)** memory issues. If memory is more constrained than time, a **DFS** approach that passes the 
+level index can be used, though it is less intuitive for grouping results.
+*   **The DFS Static Allocation Trap**: Avoid pre-allocating a large fixed number of levels 
+(e.g., 2000) with a large fixed capacity (e.g., 1024). This wastes massive heap memory. Always grow 
+your result collections dynamically based on the actual height of the tree.
+
+---
+
 ## Day 29 - LC 61. Rotate List
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
