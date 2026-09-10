@@ -5,6 +5,59 @@ import kotlin.test.assertEquals
 
 class Week6SprintTest {
 
+    // Day30 - LC 103. Binary Tree Zigzag Level Order Traversal
+    @Test
+    fun testZigzagLevelOrder_ValidCase1() {
+        val root = Week6Sprint.TreeNode(3)
+        val left = Week6Sprint.TreeNode(9)
+        val right = Week6Sprint.TreeNode(20)
+        right.left = Week6Sprint.TreeNode(15)
+        right.right = Week6Sprint.TreeNode(7)
+        root.left = left
+        root.right = right
+        val expected = listOf(listOf(3), listOf(20, 9), listOf(15, 7))
+        val dfsResult = Week6Sprint.zigzagLevelOrderDFS(root)
+        val bfsResult = Week6Sprint.zigzagLevelOrderBFS(root)
+        assertEquals(expected, dfsResult)
+        assertEquals(expected, bfsResult)
+    }
+
+    @Test
+    fun testZigzagLevelOrder_ValidCase2() {
+        val root = Week6Sprint.TreeNode(1)
+        val expected = listOf(listOf(1))
+        val dfsResult = Week6Sprint.zigzagLevelOrderDFS(root)
+        val bfsResult = Week6Sprint.zigzagLevelOrderBFS(root)
+        assertEquals(expected, dfsResult)
+        assertEquals(expected, bfsResult)
+    }
+
+    @Test
+    fun testZigzagLevelOrder_ValidCase3() {
+        val root = null
+        val expected = emptyList<List<Int>>()
+        val dfsResult = Week6Sprint.zigzagLevelOrderDFS(root)
+        val bfsResult = Week6Sprint.zigzagLevelOrderBFS(root)
+        assertEquals(expected, dfsResult)
+        assertEquals(expected, bfsResult)
+    }
+
+    @Test
+    fun testZigzagLevelOrder_ValidCase4() {
+        val root = Week6Sprint.TreeNode(1)
+        val left = Week6Sprint.TreeNode(2)
+        val right = Week6Sprint.TreeNode(3)
+        left.left = Week6Sprint.TreeNode(4)
+        right.right = Week6Sprint.TreeNode(5)
+        root.left = left
+        root.right = right
+        val expected = listOf(listOf(1), listOf(3, 2), listOf(4, 5))
+        val dfsResult = Week6Sprint.zigzagLevelOrderDFS(root)
+        val bfsResult = Week6Sprint.zigzagLevelOrderBFS(root)
+        assertEquals(expected, dfsResult)
+        assertEquals(expected, bfsResult)
+    }
+
     // Day29 - LC 61. Rotate List
     @Test
     fun testRotateRight_ValidCase1() {
