@@ -12,6 +12,191 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Binary Tree Traversal
 - [ ] Queue / Deque
 
+## Day 31 - LC 547. Number of Provinces
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Connectivity in Disjoint Sets**: The problem asks to count "provinces" (connected components). 
+  This is the hallmark for **Graph Traversal (DFS/BFS)** or **Disjoint Set Union (DSU)**.
+
+  * **Symmetric Adjacency Matrix**: The input `isConnected[i][j]` defines edges between cities. 
+  Since it's an adjacency matrix, traversal is **O(N^2)**.
+  
+  * **Global Component Counting**: DSU is particularly elegant here because we start with **N** 
+  provinces and decrement the count every time a successful `union` operation merges two previously 
+  separate sets.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time | Space | Performance | Best Used When... |
+| :--- |:-----------|:---------| :--- | :--- |
+| **DFS / BFS** | **O(N^2)** | **O(N)** | High | Matrix is static; implementation speed is prioritized. |
+| **Union-Find (DSU)** | **O(N^2 \cdot \alpha(N))** | **O(N)** | **Peak** | **Dynamic connectivity** (edges added over time). |
+
+*\*N = number of cities.*
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **Matrix Symmetry**: Don't check the whole matrix. `for (j in i + 1 until n)` avoids redundant 
+checks and potential $O(N^2)$ work on the diagonal.
+*   **Typo Alert**: Ensure `dfs` naming is standard. Avoid naming conflicts or typos like `DisjoinSetUnion` 
+vs `DisjointSetUnion` which cause compilation failures.
+*   **Path Compression**: In DSU, always use `parent[i] = find(parent[i])`. Without this, the tree 
+height can become **O(N)**, degrading performance to **O(N^2)** for Union operations.
+*   **BFS/DFS redundant starts**: Always wrap your traversal call in `if (!visited[i])`. Calling 
+BFS/DFS on an already visited node won't break the logic, but it adds unnecessary **O(N)** scans to 
+your total execution time.
+
+### 4. Code Block
+```kotlin
+fun findCircleNum(isConnected: Array<IntArray>): Int {
+    // DSU Simplified version
+    val n = isConnected.size
+    val parent = IntArray(n) { it }
+    var provinces = n
+
+    fun find(i: Int): Int {
+        if (parent[i] == i) return i
+        parent[i] = find(parent[i]) // Path compression
+        return parent[i]
+    }
+
+    fun union(i: Int, j: Int) {
+        val rootI = find(i)
+        val rootJ = find(j)
+        if (rootI != rootJ) {
+            parent[rootI] = rootJ // Simple union (Rank/Size is optional for N=200)
+            provinces--
+        }
+    }
+
+    for (i in 0 until n) {
+        for (j in i + 1 until n) {
+            if (isConnected[i][j] == 1) union(i, j)
+        }
+    }
+
+    return provinces
+}
+```
+
+```kotlin
+fun findCircleNumDSU(isConnected: Array<IntArray>): Int {
+    // Union-Find Approach
+    // Time Complexity: O(N^2 x A(N)) | Space Complexity: O(N)
+    val cities = isConnected.size
+    val dsu = DisjointSetUnion(cities)
+    var provinces = cities
+
+    for (i in 0 until cities) {
+        for (j in i + 1 until cities) {
+            if (isConnected[i][j] == 1) {
+                if (dsu.union(i, j)) {
+                    provinces--
+                }
+            }
+        }
+    }
+
+    return provinces
+}
+
+class DisjointSetUnion(n: Int) {
+    val parent = IntArray(n) { it }
+    val rank = IntArray(n) { 1 }
+
+    fun find(i: Int): Int {
+        if (parent[i] == i) return i
+        parent[i] = find(parent[i])
+        return parent[i]
+    }
+
+    fun union(i: Int, j: Int): Boolean {
+        val rootI = find(i)
+        val rootJ = find(j)
+
+        if (rootI != rootJ) {
+            when {
+                rank[rootI] > rank[rootJ] -> parent[rootJ] = rootI
+                rank[rootI] < rank[rootJ] -> parent[rootI] = rootJ
+                else -> {
+                    parent[rootJ] = rootI
+                    rank[rootI]++
+                }
+            }
+            return true
+        }
+        return false
+    }
+}
+```
+
+```kotlin
+fun findCircleNum(isConnected: Array<IntArray>): Int {
+    // DFS Approach
+    // Time Complexity: O(N^2) | Space Complexity: O(N)
+    val cities = isConnected.size
+    val visited = BooleanArray(cities)
+
+    var provinces = 0
+    for (i in 0 until cities) {
+        if (visited[i]) continue
+        dfs(i, isConnected, visited)
+        provinces++
+    }
+    return provinces
+}
+
+fun dfs(city: Int, neighbors: Array<IntArray>, visited: BooleanArray) {
+    visited[city] = true
+    for (i in neighbors[city].indices) {
+        if (!visited[i] && 1 == neighbors[city][i]) {
+            dfs(i, neighbors, visited)
+        }
+    }
+}
+```
+
+```kotlin
+fun findCircleNum(isConnected: Array<IntArray>): Int {
+    // BFS Approach
+    // Time Complexity: O(N^2) | Space Complexity: O(N)
+    val n = isConnected.size
+    val visited = BooleanArray(n)
+    var provinces = 0
+
+    for (city in 0 until n) {
+        if (!visited[city]) {
+            provinces++
+            // Inline BFS for tighter scoping
+            val queue = ArrayDeque<Int>(n)
+            queue.addLast(city)
+            visited[city] = true
+            while (queue.isNotEmpty()) {
+                val i = queue.removeFirst()
+                for (j in 0 until n) {
+                    if (isConnected[i][j] == 1 && !visited[j]) {
+                        visited[j] = true
+                        queue.addLast(j)
+                    }
+                }
+            }
+        }
+    }
+    return provinces
+}
+```
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **DFS vs. DSU**: 
+    *   **DFS** is recursive and has a stack depth risk for extremely large graphs (not an issue for 
+    **N = 200** here). It is faster for one-time connectivity checks.
+    *   **DSU** is iterative and handles "Online" queries. If cities and connections were being added 
+    one-by-one in a live stream, DSU could maintain the province count in near-constant time per update.
+*   **Space Optimization**: For a massive, sparse graph (not a matrix), the adjacency list would 
+save significant space. In a distributed system (e.g., social networks), we use DSU with a 
+"Distributed Lock" or "Consul" to manage connected components across servers.
+
+---
+
 ## Day 30 - LC 103. Binary Tree Zigzag Level Order Traversal
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**

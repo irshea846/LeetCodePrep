@@ -5,6 +5,105 @@ import kotlin.test.assertEquals
 
 class Week6SprintTest {
 
+    // Day 31 - LC 547. Number of Provinces
+    @Test
+    fun testFindCircleNum_ValidCase1() {
+        val isConnected = arrayOf(
+            intArrayOf(1, 1, 0),
+            intArrayOf(1, 1, 0),
+            intArrayOf(0, 0, 1)
+        )
+        val expectedResult = 2
+        val dsuResult = Week6Sprint.findCircleNumDSU(isConnected)
+        val dfsResult = Week6Sprint.findCircleNumDFS(isConnected)
+        val bfsResult = Week6Sprint.findCircleNumBFS(isConnected)
+        assertEquals(expectedResult, dsuResult)
+        assertEquals(expectedResult, dfsResult)
+        assertEquals(expectedResult, bfsResult)
+    }
+
+    @Test
+    fun testFindCircleNum_ValidCase2() {
+        val isConnected = arrayOf(
+            intArrayOf(1, 0, 0),
+            intArrayOf(0, 1, 0),
+            intArrayOf(0, 0, 1)
+        )
+        val expectedResult = 3
+        val dsuResult = Week6Sprint.findCircleNumDSU(isConnected)
+        val dfsResult = Week6Sprint.findCircleNumDFS(isConnected)
+        val bfsResult = Week6Sprint.findCircleNumBFS(isConnected)
+        assertEquals(expectedResult, dsuResult)
+        assertEquals(expectedResult, dfsResult)
+        assertEquals(expectedResult, bfsResult)
+    }
+
+    @Test
+    fun testFindCircleNum_ValidCase3() {
+        val isConnected = arrayOf(
+            intArrayOf(1,1,0,0),
+            intArrayOf(1,1,1,0),
+            intArrayOf(0,1,1,1),
+            intArrayOf(0,0,1,1)
+        )
+        val expectedResult = 1
+        val dsuResult = Week6Sprint.findCircleNumDSU(isConnected)
+        val dfsResult = Week6Sprint.findCircleNumDFS(isConnected)
+        val bfsResult = Week6Sprint.findCircleNumBFS(isConnected)
+        assertEquals(expectedResult, dsuResult)
+        assertEquals(expectedResult, dfsResult)
+        assertEquals(expectedResult, bfsResult)
+    }
+
+    @Test
+    fun testFindCircleNum_ValidCase4() {
+        val isConnected = arrayOf(
+            intArrayOf(1,1,0,0,0,0,0,1,0,0,0,0,0,0,0),
+            intArrayOf(1,1,0,0,0,0,0,0,0,0,0,0,0,0,0),
+            intArrayOf(0,0,1,0,0,0,0,0,0,0,0,0,0,0,0),
+            intArrayOf(0,0,0,1,0,1,1,0,0,0,0,0,0,0,0),
+            intArrayOf(0,0,0,0,1,0,0,0,0,1,1,0,0,0,0),
+            intArrayOf(0,0,0,1,0,1,0,0,0,0,1,0,0,0,0),
+            intArrayOf(0,0,0,1,0,0,1,0,1,0,0,0,0,1,0),
+            intArrayOf(1,0,0,0,0,0,0,1,1,0,0,0,0,0,0),
+            intArrayOf(0,0,0,0,0,0,1,1,1,0,0,0,0,1,0),
+            intArrayOf(0,0,0,0,1,0,0,0,0,1,0,1,0,0,1),
+            intArrayOf(0,0,0,0,1,1,0,0,0,0,1,1,0,0,0),
+            intArrayOf(0,0,0,0,0,0,0,0,0,1,1,1,0,0,0),
+            intArrayOf(0,0,0,0,0,0,0,0,0,0,0,0,1,0,0),
+            intArrayOf(0,0,0,0,0,0,1,0,1,0,0,0,0,1,0),
+            intArrayOf(0,0,0,0,0,0,0,0,0,1,0,0,0,0,1)
+        )
+        val expectedResult = 3
+        val dsuResult = Week6Sprint.findCircleNumDSU(isConnected)
+        val dfsResult = Week6Sprint.findCircleNumDFS(isConnected)
+        val bfsResult = Week6Sprint.findCircleNumBFS(isConnected)
+        assertEquals(expectedResult, dsuResult)
+        assertEquals(expectedResult, dfsResult)
+        assertEquals(expectedResult, bfsResult)
+    }
+
+    @Test
+    fun testFindCircleNum_ValidCase5() {
+        val isConnected = arrayOf(
+            intArrayOf(1,0,0,0,1,0,0,0,0,0,0,0,0,0,0), intArrayOf(0,1,0,0,0,1,0,0,0,0,0,0,0,0,0),
+            intArrayOf(0,0,1,0,0,0,0,0,0,0,0,0,0,0,0), intArrayOf(0,0,0,1,0,0,0,0,0,0,0,0,0,0,0),
+            intArrayOf(1,0,0,0,1,0,0,0,0,0,0,0,1,0,0), intArrayOf(0,1,0,0,0,1,0,0,0,0,0,0,1,0,0),
+            intArrayOf(0,0,0,0,0,0,1,0,0,0,0,1,0,0,0), intArrayOf(0,0,0,0,0,0,0,1,0,0,0,1,1,0,0),
+            intArrayOf(0,0,0,0,0,0,0,0,1,0,0,0,0,0,0), intArrayOf(0,0,0,0,0,0,0,0,0,1,0,0,0,0,0),
+            intArrayOf(0,0,0,0,0,0,0,0,0,0,1,1,0,0,0), intArrayOf(0,0,0,0,0,0,1,1,0,0,1,1,0,0,1),
+            intArrayOf(0,0,0,0,1,1,0,1,0,0,0,0,1,0,0), intArrayOf(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0),
+            intArrayOf(0,0,0,0,0,0,0,0,0,0,0,1,0,0,1)
+        )
+        val expectedResult = 6
+        val dsuResult = Week6Sprint.findCircleNumDSU(isConnected)
+        val dfsResult = Week6Sprint.findCircleNumDFS(isConnected)
+        val bfsResult = Week6Sprint.findCircleNumBFS(isConnected)
+        assertEquals(expectedResult, dsuResult)
+        assertEquals(expectedResult, dfsResult)
+        assertEquals(expectedResult, bfsResult)
+    }
+
     // Day30 - LC 103. Binary Tree Zigzag Level Order Traversal
     @Test
     fun testZigzagLevelOrder_ValidCase1() {
