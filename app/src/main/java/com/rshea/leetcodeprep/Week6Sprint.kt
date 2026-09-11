@@ -10,7 +10,110 @@ object Week6Sprint {
         var next: ListNode? = null
     }
 
-    // Day30 - LC 103. Binary Tree Zigzag Level Order Traversal
+    // Day 31 - LC 547. Number of Provinces
+    fun findCircleNumDSU(isConnected: Array<IntArray>): Int {
+        val cities = isConnected.size
+        val dsu = DisjoinSetUnion(cities)
+        var provinces = cities
+
+        for (i in 0 until cities) {
+            for (j in i + 1 until cities) {
+                if (isConnected[i][j] == 1) {
+                    if (dsu.union(i, j)) {
+                        provinces--
+                    }
+                }
+            }
+        }
+
+        return provinces
+    }
+
+    class DisjoinSetUnion(n: Int) {
+        val parent = IntArray(n) { it }
+        val rank = IntArray(n) { 1 }
+
+        fun find(i: Int): Int {
+            if (parent[i] == i) return i
+            parent[i] = find(parent[i])
+            return parent[i]
+        }
+
+        fun union(i: Int, j: Int): Boolean {
+            val rootI = find(i)
+            val rootJ = find(j)
+
+            if (rootI != rootJ) {
+                when {
+                    rank[rootI] > rank[rootJ] -> parent[rootJ] = rootI
+                    rank[rootI] < rank[rootJ] -> parent[rootI] = rootJ
+                    else -> {
+                        parent[rootJ] = rootI
+                        rank[rootI]++
+                    }
+                }
+                return true
+            }
+            return false
+        }
+    }
+
+    fun findCircleNumDFS(isConnected: Array<IntArray>): Int {
+        val cities = isConnected.size
+        val visited = BooleanArray(cities)
+
+        var provinces = 0
+        for (i in isConnected.indices) {
+            if (visited[i]) continue
+            dfs(i, isConnected, visited)
+            provinces++
+        }
+        return provinces
+    }
+
+    fun dfs(city: Int, neighbors: Array<IntArray>, visited: BooleanArray) {
+        if (visited[city]) return
+        visited[city] = true
+        for (i in neighbors[city].indices) {
+            if (1 == neighbors[city][i] && !visited[i]) {
+                dfs(i, neighbors, visited)
+            }
+        }
+    }
+
+    fun findCircleNumBFS(isConnected: Array<IntArray>): Int {
+        val n = isConnected.size
+        val visited = BooleanArray(n)
+        var provinces = 0
+
+        for (city in 0 until n) {
+            if (!visited[city]) {
+                provinces++
+                bfs(city, isConnected, visited)
+            }
+        }
+        return provinces
+    }
+
+    fun bfs(node: Int, isConnected: Array<IntArray>, visited: BooleanArray) {
+        val n = isConnected.size
+        val dq = ArrayDeque<Int>(n)
+        dq.addLast(node)
+        visited[node] = true
+        while (dq.isNotEmpty()) {
+            val i = dq.removeFirst()
+            for (j in 0 until n) {
+                if (isConnected[i][j] == 1) {
+                    if (!visited[j]) {
+                        visited[j] = true
+                        dq.addLast(j)
+                    }
+                }
+            }
+        }
+    }
+
+    // Day 30 - LC 103. Binary Tree Zigzag Level Order Traversal
     fun zigzagLevelOrderDFS(root: TreeNode?): List<List<Int>> {
         val result = mutableListOf<ArrayDeque<Int>>()
         dfs(root, 0, result)
@@ -73,7 +176,7 @@ object Week6Sprint {
         return result
     }
 
-    // Day29 - LC 61. Rotate List
+    // Day 29 - LC 61. Rotate List
     fun rotateRight(head: ListNode?, k: Int): ListNode? {
         var nodes = 0
         var ptr = head
@@ -103,7 +206,7 @@ object Week6Sprint {
         return ptr
     }
 
-    // Day28 - LC 150. Evaluate Reverse Polish Notation
+    // Day 28 - LC 150. Evaluate Reverse Polish Notation
     fun evalRPNZeroBoxing(tokens: Array<String>): Int {
         // True Zero Allocation / Zero Boxing Approach
         // Uses a primitive IntArray as a stack to avoid Integer object creation (Boxing)
