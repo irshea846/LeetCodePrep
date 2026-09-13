@@ -5,6 +5,34 @@ import kotlin.test.assertEquals
 
 class Week6SprintTest {
 
+    // Day 32 - LC 622. Design Circular Queue
+    @Test
+    fun testMyCircularQueue_ValidCase1() {
+        val obj = Week6Sprint.MyOptimizedCircularQueue(3) //.MyStaticMemoCircularQueue(3)
+        assertEquals(true, obj.enQueue(1))
+        assertEquals(true,obj.enQueue(2))
+        assertEquals(true,obj.enQueue(3))
+        assertEquals(false,obj.enQueue(4))
+        assertEquals(3,obj.Rear())
+        assertEquals(true,obj.isFull())
+        assertEquals(true,obj.deQueue())
+        assertEquals(true,obj.enQueue(4))
+        assertEquals(4,obj.Rear())
+    }
+
+    @Test
+    fun testMyCircularQueue_ValidCase2() {
+        val obj = Week6Sprint.MyOptimizedCircularQueue(3) //.MyStaticMemoCircularQueue(3)
+        assertEquals(-1, obj.Rear())
+        assertEquals(true, obj.enQueue(2))
+        assertEquals(true, obj.enQueue(3))
+        assertEquals(true, obj.enQueue(4))
+        assertEquals(4, obj.Rear())
+        assertEquals(true, obj.isFull())
+        assertEquals(true, obj.deQueue())
+        assertEquals(true, obj.enQueue(4))
+    }
+
     // Day 31 - LC 547. Number of Provinces
     @Test
     fun testFindCircleNum_ValidCase1() {

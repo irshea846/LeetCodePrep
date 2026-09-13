@@ -10,6 +10,124 @@ object Week6Sprint {
         var next: ListNode? = null
     }
 
+    // Day 32 - LC 622. Design Circular Queue
+    class MyOptimizedCircularQueue(private val k: Int) {
+        // Optimized Circular Buffer Approach
+        // Time Complexity: O(1) for all operations | Space Complexity: O(K)
+        private val buffer = IntArray(k)
+        private var head = 0
+        private var tail = -1
+        private var size = 0
+
+        fun enQueue(value: Int): Boolean {
+            if (isFull()) return false
+            tail = (tail + 1) % k
+            buffer[tail] = value
+            size++
+            return true
+        }
+
+        fun deQueue(): Boolean {
+            if (isEmpty()) return false
+            head = (head + 1) % k
+            size--
+            return true
+        }
+
+        fun Front(): Int = if (isEmpty()) -1 else buffer[head]
+
+        fun Rear(): Int = if (isEmpty()) -1 else buffer[tail]
+
+        fun isEmpty(): Boolean = size == 0
+
+        fun isFull(): Boolean = size == k
+    }
+
+    class MyDynamicMemoCircularQueue(val k: Int) {
+        private val capacity = k
+        private val buffer = IntArray(capacity) { -1 }
+        private var size = 0
+        private var head = 0
+        private var tail = 0
+
+        fun enQueue(value: Int): Boolean {
+            if (isFull()) {
+                return false
+            }
+            buffer[head] = value
+            size++
+            if (++head == capacity) head = 0
+            return true
+        }
+
+        fun deQueue(): Boolean {
+            if (isEmpty()) {
+                return false
+            }
+            buffer[tail] = -1
+            size--
+            if (++tail == capacity) tail = 0
+            return true
+        }
+
+        fun Front(): Int {
+            return if (isEmpty()) -1 else buffer[tail]
+        }
+
+        fun Rear(): Int {
+            return if (isEmpty()) -1 else if(head == 0) buffer[k - 1] else buffer[head - 1]
+        }
+
+        fun isEmpty(): Boolean {
+            return 0 == size
+        }
+
+        fun isFull(): Boolean {
+            return k == size
+        }
+
+    }
+
+
+    class MyStaticMemoCircularQueue(val k: Int) {
+        val capacity = 2000
+        val buffer = IntArray(capacity) { -1 }
+        var start = 0
+        var current = 0
+
+        fun enQueue(value: Int): Boolean {
+            if (isFull()) return false
+            buffer[current++] = value
+            if (current == capacity) current = 0
+            return true
+        }
+
+        fun deQueue(): Boolean {
+            if (isEmpty()) return false
+            buffer[start++] = -1
+            if (start == capacity) start = 0
+            return true
+        }
+
+        fun Front(): Int {
+            return if (isEmpty()) -1 else buffer[start]
+        }
+
+        fun Rear(): Int {
+            return if (isEmpty()) -1 else buffer[current - 1]
+        }
+
+        fun isEmpty(): Boolean {
+            return current == start
+        }
+
+        fun isFull(): Boolean {
+            val diff = if (current < start) current + capacity - start else current - start
+            return k == diff
+        }
+
+    }
+
     // Day 31 - LC 547. Number of Provinces
     fun findCircleNumDSU(isConnected: Array<IntArray>): Int {
         val cities = isConnected.size

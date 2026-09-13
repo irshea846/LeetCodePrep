@@ -12,6 +12,78 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Binary Tree Traversal
 - [ ] Queue / Deque
 
+## Day 32 - LC 622. Design Circular Queue
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Fixed-size FIFO**: The "Circular" requirement implies a fixed buffer where the tail wraps back
+  to the head to reuse space.
+  * ****O(1)** Operations**: All operations (enQueue, deQueue, Front, Rear) must be constant time.
+  * **Memory Reuse**: Unlike a standard Linked List or dynamic array, we must not allocate new memory 
+  during operations.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time | Space | Performance | Best Used When... |
+| :--- | :--- | :--- | :--- | :--- |
+| **Array Buffer** | **O(1)** | **O(K)** | **Peak** | **Memory constraints** are tight; no dynamic allocation allowed. |
+| **Linked List** | O(1) | O(K) | Moderate | Memory is flexible; focus on implementation simplicity. |
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **Modulo Negative Result**: In Kotlin, `-1 % 5` is `-1`. When calculating `Rear` without a `tail` 
+pointer, use `(current - 1 + k) % k` to ensure a positive index.
+*   **Hardcoded Constraints**: Avoid using fixed sizes like `2000`. Use the provided `k` to ensure 
+the buffer is appropriately sized and memory-efficient.
+*   **Size vs. Pointers**: Tracking `size` explicitly is much safer than calculating it from `head` 
+and `tail` pointers, which often leads to "off-by-one" errors or confusion between "Empty" and "Full" states.
+
+### 4. Code Block
+```kotlin
+class MyCircularQueue(private val k: Int) {
+    // Optimized Circular Buffer Approach
+    // Time Complexity: O(1) for all operations | Space Complexity: O(K)
+    private val buffer = IntArray(k)
+    private var head = 0
+    private var tail = -1
+    private var size = 0
+
+    fun enQueue(value: Int): Boolean {
+        if (isFull()) return false
+        tail = (tail + 1) % k
+        buffer[tail] = value
+        size++
+        return true
+    }
+
+    fun deQueue(): Boolean {
+        if (isEmpty()) return false
+        head = (head + 1) % k
+        size--
+        return true
+    }
+
+    fun Front(): Int = if (isEmpty()) -1 else buffer[head]
+
+    fun Rear(): Int = if (isEmpty()) -1 else buffer[tail]
+
+    fun isEmpty(): Boolean = size == 0
+
+    fun isFull(): Boolean = size == k
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Array vs. Linked List**: 
+    *   **Array**: Better cache locality and zero per-node overhead. Ideal for fixed-size requirements.
+    *   **Linked List**: Handles dynamic sizing better but requires more memory for `next` pointers 
+    and risks memory fragmentation.
+*   **Thread Safety**: In a multi-threaded system (e.g., a "Producer-Consumer" buffer), this class 
+would need `synchronized` blocks or an `AtomicInteger` for the `size` variable to prevent race conditions.
+*   **Atomic Updates**: For high-performance logging or event streams, using a **Lock-Free Ring 
+Buffer** (using CAS operations) would be superior to this basic implementation.
+
+---
+
 ## Day 31 - LC 547. Number of Provinces
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
