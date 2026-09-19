@@ -10,6 +10,103 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Greedy Sliding Window Algorithms
 - [ ] Min Heap (Priority Queue)
 
+## Day 35 - LC 739. Daily Temperatures
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Strict, Ordered Sequence**: This is the canonical use case for a **Monotonic Stack** to keep 
+  the element in non-decreasing or non-increasing order.
+  * **Monotonic Stack Invariant**: Since we need to find how many days to wait for the next warmer 
+  temperature, pushing the indices of the decreasing temperatures on the stack is the key until a 
+  warmer temperature is hit and then popping up the index of the cooler temperatures from stack 
+  subtracted by the current index `i - monoStack[top--]` is the method to get the number of days to 
+  wait. Until `temperatures[monoStack[top]] >= temperatures[i]`, we need to push i on the top of the 
+  stack. We always need to keep this logic consistant.
+  * **Forward Scanning vs Backward Scanning**: We know monotonic stack can store in either increasing 
+  or decreasing way. We use increasing sequence for forward scanning and decreasing sequence for 
+  backward scanning.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time | Space | Performance | Best Used When... |
+| :--- |:-----------|:---------| :--- | :--- |
+| **Brute Force** | **O(N^2)** | **O(1)** | Low | **N** is tiny. |
+| **Monotonic Stack** | **O(N)** | **O(N)** | **Peak** | **Optimal.** standard for "Next Greater Element" problems. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Manual Stack Pointer**: Using a primitive array (`IntArray`) with a pointer (`top`) as a stack. 
+the `top` is increment by 1 when pushing and decrement by 1 when popping. It will be faster than 
+`ArrayDeque` or `Stack` because it avoids object boxing and dynamic resizing. We also know the length 
+of result `IntArray` should be the same as `temperatures` array, so the size of stack can be directly 
+used as `temperatures.size`. 
+* **Zero-Initialization**: Kotlin's `IntArray` defaults to zeros. Since the problem requires `0` for
+those cooler days with no warmer temperature, we can take this advantage of default value to skip 
+checking any index still in the stack.
+* **Strictly Warmer Constraint**: When comparing temperatures in the `while` loop, use the **`>`** 
+operator (e.g., `temperatures[i] > temperatures[monoStack[top]]`). If you use `>=`, days with the 
+**same** temperature will incorrectly resolve each other, violating the requirement for the next 
+*strictly* warmer day.
+* **Forward vs Backward Result**: `i - monoStack[top]` is the waiting days in forward scanning, while 
+`monoStack[top] - i` in backward scanning.
+
+### 4. Code Block
+```kotlin
+fun dailyTemperaturesBackward(temperatures: IntArray): IntArray {
+    // Backward Scanning Approach (Standard Monotonic Stack)
+    // Time Complexity: O(N) | Space Complexity: O(N)
+    val n = temperatures.size
+    val monoStack = IntArray(n)
+    val result = IntArray(n)
+    var top = -1
+    
+    for (i in n - 1 downTo 0) {
+        // While current is >= stack top, the stack top is not "warmer". Pop it.
+        while (top >= 0 && temperatures[i] >= temperatures[monoStack[top]]) {
+            top--
+        }
+        
+        // If stack is not empty, top index is the nearest warmer day in the future
+        if (top >= 0) {
+            result[i] = monoStack[top] - i
+        }
+        
+        // Push current index onto the stack
+        monoStack[++top] = i
+    }
+    return result
+}
+```
+
+```kotlin
+fun dailyTemperatures(temperatures: IntArray): IntArray {
+    val n = temperatures.size
+    val monoStack = IntArray(n)
+    val result = IntArray(n)
+    var top = -1
+    for (i in 0 until n) {
+        while (top >= 0 && temperatures[i] > temperatures[monoStack[top]]) {
+            result[monoStack[top]] = i - monoStack[top]
+            top--
+        }
+        monoStack[++top] = i
+    }
+    return result
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+* **Array-based vs. Collection-based Stack**: Use Array-based stack is easier to implement, faster 
+to retrieve element and avoid the overhead of object boxing and unboxing. Collection-based stack needs 
+more boilerplate code to check if it is full to push or empty to pop elements. Even though they have 
+the same runtime complexity **O(N)**, Array-based stack is more memory-efficient.
+* **In-Place Space Optimization**: Instead of pushing to the `minStack` every time, we can push when 
+a new minimum is found. This saves space when the input is largely increasing.
+* **One Stack (Value Encoding)**: You can store the difference between the value and the min in a 
+single stack (`value - min`). This achieves **O(1)** min without an extra stack but is prone to 
+**Integer Overflow** and is much harder to maintain/read.
+
+---
+
 ## Day 34 - LC 23. Merge k Sorted Lists
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
@@ -23,11 +120,11 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 ### 2. Complexity Boundaries
 * Comparison Matrix
 
-| Approach | Time | Space | Performance | Best Used When... |
-| :--- |:-----------|:---------| :--- | :--- |
-| **PQ (Total Nodes)** | $O(N \log N)$ | $O(N)$ | Moderate | Implementation speed is prioritized over efficiency. |
-| **PQ (K-Bounded)** | **$O(N \log k)$** | **$O(k)$** | **Peak** | **Optimal.** standard for large-scale external merges. |
-| **Divide & Conquer** | $O(N \log k)$ | $O(1)$ | High | You want to avoid the heap object overhead entirely. |
+| Approach | Time             | Space    | Performance | Best Used When... |
+| :--- |:-----------------|:---------| :--- | :--- |
+| **PQ (Total Nodes)** | **O(N x Log N)** | **O(N)** | Moderate | Implementation speed is prioritized over efficiency. |
+| **PQ (K-Bounded)** | **O(N x Log k)**  | **O(k)** | **Peak** | **Optimal.** standard for large-scale external merges. |
+| **Divide & Conquer** | **O(N x Log k)**  | **O(1)**   | High | You want to avoid the heap object overhead entirely. |
 
 *\*N = total nodes, k = number of lists.*
 

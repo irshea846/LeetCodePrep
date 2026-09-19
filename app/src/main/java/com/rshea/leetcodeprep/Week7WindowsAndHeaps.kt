@@ -9,6 +9,43 @@ object Week7WindowsAndHeaps {
         var next: ListNode? = null
     }
 
+    // Day 35 - LC 739. Daily Temperatures
+    fun dailyTemperaturesBackward(temperatures: IntArray): IntArray {
+        val n = temperatures.size
+        val monoStack = IntArray(n)
+        val result = IntArray(n)
+        var top = -1
+        for (i in temperatures.size - 1 downTo 0) {
+            while (top >= 0) {
+                val j = monoStack[top]
+                if (temperatures[i] < temperatures[j]) {
+                    result[i] = j - i
+                    break
+                }
+                top--
+            }
+            monoStack[++top] = i
+        }
+
+        return result
+    }
+
+    fun dailyTemperatures(temperatures: IntArray): IntArray {
+        val n = temperatures.size
+        val monoStack = IntArray(n)
+        val result = IntArray(n)
+        var top = -1
+        for (i in temperatures.indices) {
+            while (top >= 0 && temperatures[i] > temperatures[monoStack[top]]) {
+                result[monoStack[top]] = i - monoStack[top]
+                top--
+            }
+            monoStack[++top] = i
+        }
+        return result
+    }
+
+
     // Day 34 - LC 23. Merge k Sorted Lists
     fun mergeKListsDivideAndConquer(lists: Array<ListNode?>): ListNode? {
         // 1. Divide & Conquer Strategy (Merge Sort Style)
