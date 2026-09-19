@@ -5,6 +5,38 @@ import kotlin.test.assertEquals
 
 class Week7WindowsAndHeapsTest {
 
+    // Day 35 - LC 739. Daily Temperatures
+    @Test
+    fun testDailyTemperatures_ValidCase1() {
+        val temperatures = intArrayOf(73, 74, 75, 71, 69, 72, 76, 73)
+        val expectedResult = intArrayOf(1, 1, 4, 2, 1, 1, 0, 0)
+        val actualResult = Week7WindowsAndHeaps.dailyTemperatures(temperatures)
+        val actualResultBackward = Week7WindowsAndHeaps.dailyTemperaturesBackward(temperatures)
+        assertEquals(expectedResult.contentToString(), actualResult.contentToString())
+        assertEquals(expectedResult.contentToString(), actualResultBackward.contentToString())
+    }
+
+    @Test
+    fun testDailyTemperatures_ValidCase2() {
+        val temperatures = intArrayOf(30, 40, 50, 60)
+        val expectedResult = intArrayOf(1, 1, 1, 0)
+        val actualResult = Week7WindowsAndHeaps.dailyTemperatures(temperatures)
+        val actualResultBackward = Week7WindowsAndHeaps.dailyTemperaturesBackward(temperatures)
+        assertEquals(expectedResult.contentToString(), actualResult.contentToString())
+        assertEquals(expectedResult.contentToString(), actualResultBackward.contentToString())
+    }
+
+    @Test
+    fun testDailyTemperatures_ValidCase3() {
+        val temperatures = intArrayOf(30, 60, 90)
+        val expectedResult = intArrayOf(1, 1, 0)
+        val actualResult = Week7WindowsAndHeaps.dailyTemperatures(temperatures)
+        val actualResultBackward = Week7WindowsAndHeaps.dailyTemperaturesBackward(temperatures)
+        assertEquals(expectedResult.contentToString(), actualResult.contentToString())
+        assertEquals(expectedResult.contentToString(), actualResultBackward.contentToString())
+    }
+
+
     // Day 34 - LC 23. Merge k Sorted Lists
     @Test
     fun testMergeKListsDivideAndConquer_ValidCase1() {
