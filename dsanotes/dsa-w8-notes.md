@@ -12,6 +12,143 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Divide & Conquer
 - [ ] Recursion & Backtracking Fundamentals
 
+## Day 37 - LC 46. Permutations
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Exhaustive Ordering (N!)**: The goal is to generate all possible orderings of the input set. 
+  Since order matters, and we use every element, this identifies as a **Permutation** problem within 
+  the **Backtracking** paradigm.
+  * **Availability Management**: Unlike combinations where we move a "start" pointer forward, 
+  permutations require visiting all indices in every step. This triggers the need for a **"Visited" 
+  tracker** (BooleanArray) to ensure each element is used exactly once per path.
+  * **Path Reconstruction**: Using a **Deque** (Stack behavior) allows for efficient **O(1)** 
+  addition and removal of elements as we traverse the decision tree.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+| Approach | Time          | Space | Performance | Best Used When... |
+| :--- |:--------------| :--- | :--- | :--- |
+| **Backtracking (Used Array)** | **O(N x N!)** | **O(N)** | **Peak** | Input elements are distinct; clear logic. |
+| **Backtracking (Swapping)** | **O(N x N!)** | **O(1)** | High | You want to avoid the auxiliary $O(N)$ used array. |
+
+*\*Time includes $O(N)$ for copying each permutation. Space excludes output list.*
+
+### 3. Native Kotlin Syntax Pitfalls
+*   **The `toList()` Snapshot**: Just like subsets, adding the `dq` directly would result in empty 
+lists. `dq.toList()` is the idiomatic way to create a shallow copy of the current state.
+*   **`ArrayDeque` Efficiency**: In Kotlin, `ArrayDeque` is the modern, non-synchronized replacement 
+for `Stack`. Using `addLast` and `removeLast` provides consistent **O(1)** path management.
+*   **Capturing Scope**: Defining `backtrack` as a **nested function** allows it to capture `nums`, 
+`used`, and `list` without passing them as arguments, keeping the recursive call stack lighter.
+
+### 4. Code Block
+```kotlin
+fun permute(nums: IntArray): List<List<Int>> {
+    // If you want to keep the explicit used array and path approach (e.g. when lexicographical 
+    // order is desired), here is the cleaned up idiomatic version:
+    val list = mutableListOf<List<Int>>()
+    val used = BooleanArray(nums.size)
+    val path = ArrayList<Int>(nums.size)
+
+    fun backtrack() {
+        if (path.size == nums.size) {
+            list.add(ArrayList(path))
+            return
+        }
+
+        for (i in nums.indices) {
+            if (used[i]) continue
+            used[i] = true
+            path.add(nums[i])
+            backtrack()
+            path.removeLast()
+            used[i] = false
+        }
+    }
+
+    backtrack()
+    return list
+}
+```
+```kotlin
+fun permuteDQ(nums: IntArray): List<List<Int>> {
+    // If you want to keep the explicit used array and path approach (e.g. when lexicographical 
+    // order is desired), here is the cleaned up idiomatic version:
+    // Highly Optimized Backtracking Approach
+    // Time Complexity: O(N * N!) | Space Complexity: O(N * N!)
+    val list = mutableListOf<List<Int>>()
+    val used = BooleanArray(nums.size)
+    val dq = ArrayDeque<Int>(nums.size)
+
+    fun backtrack() {
+        if (dq.size == nums.size) {
+            list.add(dq.toList())
+            return
+        }
+
+        for (i in nums.indices) {
+            if (used[i]) continue
+            dq.addLast(nums[i])
+            used[i] = true
+            backtrack()
+            dq.removeLast()
+            used[i] = false
+        }
+
+    }
+
+    backtrack()
+    return list
+}
+```
+
+```kotlin
+fun permuteInPlace(nums: IntArray): List<List<Int>> {
+    // Swapped order (non-lexicographical)
+    // Space-Optimized Backtracking (Swapping Approach)
+    // Time Complexity: O(N * N!) | Space Complexity: O(1) auxiliary
+    val list = mutableListOf<List<Int>>()
+
+    fun swap(i: Int, j: Int) {
+        val temp = nums[i]
+        nums[i] = nums[j]
+        nums[j] = temp
+    }
+
+    fun backtrack(start: Int) {
+        if (start == nums.size) {
+            // Snapshot current state
+            list.add(nums.toList())
+            return
+        }
+
+        for (i in start until nums.size) {
+            swap(start, i)      // Choose
+            backtrack(start + 1) // Explore
+            swap(start, i)      // Un-choose (Backtrack)
+        }
+    }
+
+    backtrack(0)
+    return list
+}
+```
+
+### 5. Alternative Trade-offs (For System Design Dialogues)
+*   **Used Array vs. Swapping**: 
+    *   The **Used Array** (your approach) is more intuitive and easier to adapt to problems with 
+    duplicates (LC 47).
+    *   The **Swapping** approach (in-place `swap(nums, i, j)`) avoids the **O(N)** extra space of the 
+    boolean array, which might be critical in extremely memory-constrained environments.
+*   **Heap's Algorithm**: A non-backtracking, iterative alternative for generating permutations. It 
+is often faster for raw generation but harder to implement with additional constraints (like pruning).
+*   **Recursive Limit**: For **N > 10**, the number of permutations **N!** becomes massive 
+**10! ≈ 3.6M**, making the **O(N!)** space for the output the actual bottleneck rather than the 
+recursion depth.
+
+---
+
 ## Day 36 - LC 78. Subsets
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**

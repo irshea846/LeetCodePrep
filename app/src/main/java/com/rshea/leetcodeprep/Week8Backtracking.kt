@@ -2,6 +2,84 @@ package com.rshea.leetcodeprep
 
 object Week8Backtracking {
 
+    // Day 37 - LC 46. Permutations
+    fun permute(nums: IntArray): List<List<Int>> {
+        val list = mutableListOf<List<Int>>()
+        val used = BooleanArray(nums.size)
+
+        fun backtrack(sublist: MutableList<Int>) {
+            if (sublist.size == nums.size) {
+                list.add(ArrayList(sublist))
+                return
+            }
+
+            for (i in nums.indices) {
+                if (used[i]) continue
+                used[i] = true
+                sublist.add(nums[i])
+                backtrack(sublist)
+                used[i] = false
+                sublist.removeAt(sublist.size - 1)
+            }
+        }
+
+        backtrack(mutableListOf())
+        return list
+    }
+
+    fun permuteDQ(nums: IntArray): List<List<Int>> {
+        val list = mutableListOf<List<Int>>()
+        val used = BooleanArray(nums.size)
+        val dq = ArrayDeque<Int>(nums.size)
+
+        fun backtrack() {
+            if (dq.size == nums.size) {
+                list.add(dq.toList())
+                return
+            }
+
+            for (i in nums.indices) {
+                if (used[i]) continue
+                dq.addLast(nums[i])
+                used[i] = true
+                backtrack()
+                dq.removeLast()
+                used[i] = false
+            }
+
+        }
+
+        backtrack()
+        return list
+    }
+
+    fun permuteInPlace(nums: IntArray): List<List<Int>> {
+        val list = mutableListOf<List<Int>>()
+
+        fun swap(i: Int, j:Int) {
+            val temp = nums[i]
+            nums[i] = nums[j]
+            nums[j] = temp
+        }
+
+        fun backtrack(start: Int) {
+            if (start == nums.size) {
+                list.add(nums.toList())
+                return
+            }
+
+            for (i in start until nums.size) {
+                swap(start, i)
+                backtrack(start + 1)
+                swap(start, i)
+            }
+        }
+
+        backtrack(0)
+        return list
+    }
+
+
     // Day 36 - LC 78. Subsets
     fun subsets(nums: IntArray): List<List<Int>> {
         // Highly Optimized Backtracking Approach
