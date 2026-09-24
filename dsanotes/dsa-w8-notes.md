@@ -12,6 +12,217 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Divide & Conquer
 - [ ] Recursion & Backtracking Fundamentals
 
+## Day 38 - LC 148. Sort List
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * ****O(N x Log N)** Time Constraint**: Sorting a singly linked list efficiently requires a 
+  comparison-based algorithm operating in **O(N x Log N)** time.
+  * **Min-Heap (PriorityQueue) Shortcut**: Storing all list nodes in a Min-Heap automatically sorts 
+  them by node value in **O(N x Log N)** time, providing a quick implementation at the cost of 
+  **O(N)** extra memory and heavy JVM Garbage Collection **(GC)** pressure.
+  * **Divide & Conquer (Merge Sort)**: The canonical **O(1)** auxiliary space approach for linked lists. 
+  Unlike arrays where Merge Sort requires **O(N)** auxiliary array space for merging, linked lists allow 
+  **O(1)** pointer reassignments without element shifting, making **Merge Sort** optimal.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When...                                                            |
+ :--- | :--- | :--- | :--- |:-----------------------------------------------------------------------------|
+ **Bottom-Up Iterative Merge Sort** | **O(N log N)** | **O(1)** | **Staff Level (Optimal)** | Production systems; strict **O(1)** auxiliary space; prevents JVM `StackOverflowError`. |
+ **Top-Down Merge Sort** | **O(N log N)** | **O(log N)** | **Peak (Canonical)** | Standard interview choice; clean recursive divide-and-conquer.               |
+ **PriorityQueue (Min-Heap)** | **O(N log N)** | **O(N)** | Moderate | Rapid prototyping / small list sizes where auxiliary memory is acceptable. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Comparator Subtraction Integer Overflow**: Direct subtraction `{ a, b -> a.`val` - b.`val` }` 
+causes integer overflow if node values span negative and positive extremes (e.g., `Int.MIN_VALUE`). 
+Always use **`compareBy { it.`val` }`** or `a.`val`.compareTo(b.`val`)`.
+* **Stale Pointer Cleanup**: When rebuilding a linked list from heap nodes, setting `tail.next = null` 
+after the polling loop is crucial to prevent dangling references or cycle creation.
+* **Escaped Keyword Identifier (`` `val` ``)**: Because `val` is a reserved keyword in Kotlin, 
+accessing the `val` property on `ListNode` requires backticks (`` `val` ``).
+
+### 4. Code Block
+```kotlin
+// Approach 1: PriorityQueue (Min-Heap)
+// Time Complexity: O(N log N) | Space Complexity: O(N)
+fun sortListPQ(head: ListNode?): ListNode? {
+    if (head?.next == null) return head
+
+    // Use compareBy to avoid integer overflow from subtraction { a, b -> a.val - b.val }
+    val pq = PriorityQueue<ListNode>(compareBy { it.`val` })
+    var listNode = head
+    while (listNode != null) {
+        pq.add(listNode)
+        listNode = listNode.next
+    }
+
+    val dummy = ListNode(0)
+    var tail = dummy
+    while (pq.isNotEmpty()) {
+        val node = pq.poll()!!
+        tail.next = node
+        tail = node
+    }
+    tail.next = null
+
+    return dummy.next
+}
+```
+```kotlin
+// Approach 2: Divide & Conquer (Top-Down Merge Sort)
+// Time Complexity: O(N log N) | Space Complexity: O(log N) auxiliary (recursion stack)
+fun sortList(head: ListNode?): ListNode? {
+    if (head?.next == null) return head
+
+    // 1. Split list into two halves via Slow & Fast pointers
+    var prev: ListNode? = null
+    var slow = head
+    var fast = head
+
+    while (fast != null && fast.next != null) {
+        prev = slow
+        slow = slow?.next
+        fast = fast.next?.next
+    }
+    prev?.next = null // Terminate left half
+
+    // 2. Recursively sort both halves
+    val l1 = sortList(head)
+    val l2 = sortList(slow)
+
+    // 3. Merge sorted halves
+    return merge(l1, l2)
+}
+
+private fun merge(list1: ListNode?, list2: ListNode?): ListNode? {
+    val dummy = ListNode(0)
+    var tail = dummy
+    var l1 = list1
+    var l2 = list2
+
+    while (l1 != null && l2 != null) {
+        if (l1.`val` <= l2.`val`) {
+            tail.next = l1
+            l1 = l1.next
+        } else {
+            tail.next = l2
+            l2 = l2.next
+        }
+        tail = tail.next!!
+    }
+
+    tail.next = l1 ?: l2
+    return dummy.next
+}
+```
+```kotlin
+// Approach 3: Bottom-Up Iterative Merge Sort (Staff/Principal Level Optimal)
+// Time Complexity: O(N log N) | Space Complexity: O(1) strictly constant space
+fun sortListIterative(head: ListNode?): ListNode? {
+    if (head?.next == null) return head
+
+    // Compute total length
+    var length = 0
+    var curr = head
+    while (curr != null) {
+        length++
+        curr = curr.next
+    }
+
+    val dummy = ListNode(0)
+    dummy.next = head
+
+    // Step sizes: 1, 2, 4, 8, ... up to length
+    var step = 1
+    while (step < length) {
+        var prev = dummy
+        var curr = dummy.next
+
+        while (curr != null) {
+            // Split left sublist of length 'step'
+            val left = curr
+            val right = split(left, step)
+            curr = split(right, step) // Remaining list for next iteration
+
+            // Merge left and right halves, attaching to prev
+            prev.next = mergeIterative(left, right)
+
+            // Advance prev pointer to the end of merged sublist
+            while (prev.next != null) {
+                prev = prev.next!!
+            }
+        }
+        step = step shl 1
+    }
+
+    return dummy.next
+}
+
+// Splits list after 'step' nodes; returns head of remainder list
+private fun split(head: ListNode?, step: Int): ListNode? {
+    var curr = head
+    for (i in 1 until step) {
+        if (curr == null) break
+        curr = curr.next
+    }
+    if (curr == null) return null
+
+    val nextHead = curr.next
+    curr.next = null // Sever list
+    return nextHead
+}
+
+private fun mergeIterative(l1: ListNode?, l2: ListNode?): ListNode? {
+    val dummy = ListNode(0)
+    var tail = dummy
+    var p1 = l1
+    var p2 = l2
+
+    while (p1 != null && p2 != null) {
+        if (p1.`val` <= p2.`val`) {
+            tail.next = p1
+            p1 = p1.next
+        } else {
+            tail.next = p2
+            p2 = p2.next
+        }
+        tail = tail.next!!
+    }
+    tail.next = p1 ?: p2
+    return dummy.next
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Merge Sort vs. QuickSort vs. Timsort for Linked Lists**:
+  * **QuickSort**: Requires **O(1)** random access (`arr[pivot]`), which degrades to **O(N)** on linked 
+  lists. Choosing a good pivot on linked lists is expensive, leading to **O(N^2)** worst-case time complexity.
+  * **Merge Sort**: Optimal for linked lists because splitting via fast/slow pointers takes **O(N)** 
+  and merging takes **O(1)** auxiliary space without memory relocation.
+  * **Timsort (`java.util.Arrays.sort`)**: Operates on contiguous memory. If converted to an array first, 
+  it runs in **O(N x Log N)** time with spatial locality benefit, but introduces **O(N)** allocation and 
+  value copying overhead.
+* **JVM Cache Locality & Hardware Prefetching**:
+  * Linked list nodes are scattered across the JVM heap (`ListNode` object header = 16 bytes + 
+  payload/references = ~24–32 bytes per node), causing frequent CPU **L1/L2 cache misses**.
+  * Array-based sorting operates on contiguous memory blocks, leveraging CPU cache lines and SIMD 
+  instructions. In real-world micro-benchmarks with **N < 10,000**, copying a linked list to an `IntArray`, 
+  sorting with Dual-Pivot Quicksort / Timsort, and writing back values can often beat pure 
+  pointer-manipulation Merge Sort due to cache locality!
+* **Stack Depth vs. Iterative Safety**:
+  * Top-down recursion uses **O(N x Log N)** call stack frames. For **N = 10^6**, stack depth is **∼20**,
+  which easily fits in default JVM stack size (`-Xss1m`). However, for extremely constrained embedded 
+  JVMs or deeper recursion structures, **Bottom-Up Iterative Merge Sort** guarantees no 
+  `StackOverflowError` with strict **O(1)** space.
+* **Concurrency & In-Place Pointer Side Effects**:
+  * Pointer manipulation mutates the list structure directly. If the input list is shared across 
+  coroutines or threads without synchronization, this causes structural race conditions. In multi-threaded 
+  Kotlin/Java services, creating a new sorted list or using immutable structures is safer despite 
+  GC allocation cost.
+
+---
+
 ## Day 37 - LC 46. Permutations
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
@@ -32,7 +243,7 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 | **Backtracking (Used Array)** | **O(N x N!)** | **O(N)** | **Peak** | Input elements are distinct; clear logic. |
 | **Backtracking (Swapping)** | **O(N x N!)** | **O(1)** | High | You want to avoid the auxiliary $O(N)$ used array. |
 
-*\*Time includes $O(N)$ for copying each permutation. Space excludes output list.*
+*\*Time includes **O(N)** for copying each permutation. Space excludes output list.*
 
 ### 3. Native Kotlin Syntax Pitfalls
 *   **The `toList()` Snapshot**: Just like subsets, adding the `dq` directly would result in empty 
