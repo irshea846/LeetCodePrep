@@ -1,6 +1,33 @@
 package com.rshea.leetcodeprep
 
+import java.util.PriorityQueue
+
 object Week8Backtracking {
+
+    // Day 38 - LC 148. Sort List
+    class ListNode(var `val`: Int) {
+        var next: ListNode? = null
+    }
+
+    fun sortList(head: ListNode?): ListNode? {
+        val pq = PriorityQueue<ListNode> { a, b -> a.`val` - b.`val` }
+        var listNode = head
+        while (listNode != null) {
+            pq.add(listNode)
+            listNode = listNode.next
+        }
+
+        val dummy = ListNode(0)
+        var tail = dummy
+        while (pq.isNotEmpty()) {
+            val node = pq.poll()!!
+            tail.next = node
+            tail = node
+        }
+        tail.next = null
+
+        return dummy.next
+    }
 
     // Day 37 - LC 46. Permutations
     fun permute(nums: IntArray): List<List<Int>> {

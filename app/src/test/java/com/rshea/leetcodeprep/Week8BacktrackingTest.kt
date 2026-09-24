@@ -6,6 +6,58 @@ import kotlin.test.assertEquals
 
 class Week8BacktrackingTest {
 
+    // Day 38 - LC 148. Sort List
+    @Test
+    fun testSortList_ValidCase1() {
+        val node1 = Week8Backtracking.ListNode(4)
+        val node2 = Week8Backtracking.ListNode(2)
+        val node3 = Week8Backtracking.ListNode(1)
+        val node4 = Week8Backtracking.ListNode(3)
+        node1.next = node2; node2.next = node3; node3.next = node4
+        val actualResult = Week8Backtracking.sortList(node1)
+        var head = actualResult
+
+        assertEquals(head, node3)
+        head = head?.next
+        assertEquals(head, node2)
+        head = head?.next
+        assertEquals(head, node4)
+        head = head?.next
+        assertEquals(head, node1)
+        head = head?.next
+        assertEquals(head, null)
+    }
+
+    @Test
+    fun testSortList_ValidCase2() {
+        val node1 = Week8Backtracking.ListNode(-1)
+        val node2 = Week8Backtracking.ListNode(5)
+        val node3 = Week8Backtracking.ListNode(3)
+        val node4 = Week8Backtracking.ListNode(4)
+        val node5 = Week8Backtracking.ListNode(0)
+        node1.next = node2; node2.next = node3; node3.next = node4; node4.next = node5
+        val actualResult = Week8Backtracking.sortList(node1)
+        var head = actualResult
+        assertEquals(head, node1)
+        head = head?.next
+        assertEquals(head, node5)
+        head = head?.next
+        assertEquals(head, node3)
+        head = head?.next
+        assertEquals(head, node4)
+        head = head?.next
+        assertEquals(head, node2)
+        head = head?.next
+        assertEquals(head, null)
+    }
+
+    @Test
+    fun testSortList_ValidCase3() {
+        val node1 = null
+        val actualResult = Week8Backtracking.sortList(node1)
+        assertEquals(actualResult, null)
+    }
+
     // Day 37 - LC 46. Permutations
     @Test
     fun testPermute_ValidCase1() {
