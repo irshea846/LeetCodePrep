@@ -6,6 +6,32 @@ import kotlin.test.assertEquals
 
 class Week8BacktrackingTest {
 
+    // Day 39 - LC 90. Subsets II
+    @Test
+    fun testSubsetsWithDup_ValidCase1() {
+        val nums = intArrayOf(1, 2, 2)
+        val expected = listOf(emptyList(), listOf(1), listOf(1, 2), listOf(1, 2, 2), listOf(2), listOf(2, 2))
+        val actual = Week8Backtracking.subsetsWithDup(nums)
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun testSubsetsWithDup_ValidCase2() {
+        val nums = intArrayOf(0)
+        val expected = listOf(emptyList(), listOf(0))
+        val actual = Week8Backtracking.subsetsWithDup(nums)
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun testSubsetsWithDup_ValidCase3() {
+        val nums = intArrayOf(4, 4, 4, 1, 4)
+        val expected = listOf(emptyList(), listOf(1), listOf(1, 4), listOf(1, 4, 4), listOf(1, 4, 4, 4), listOf(1, 4, 4, 4, 4), listOf(4), listOf(4, 4), listOf(4, 4, 4), listOf(4, 4, 4, 4))
+        val actual = Week8Backtracking.subsetsWithDup(nums)
+        assertEquals(expected, actual)
+    }
+
+
     // Day 38 - LC 148. Sort List
     @Test
     fun testSortList_ValidCase1() {
