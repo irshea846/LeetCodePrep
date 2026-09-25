@@ -4,6 +4,28 @@ import java.util.PriorityQueue
 
 object Week8Backtracking {
 
+    // Day 39 - LC 90. Subsets II
+    fun subsetsWithDup(nums: IntArray): List<List<Int>> {
+        val list = mutableListOf<List<Int>>()
+        val path = ArrayList<Int>(nums.size)
+        nums.sort()
+
+        fun backtrack(start: Int) {
+            list.add(ArrayList(path))
+
+            for (i in start until nums.size) {
+                if (i > start && nums[i] == nums[i - 1]) continue
+                path.add(nums[i])
+                backtrack(i + 1)
+                path.removeAt(path.lastIndex)
+            }
+        }
+
+        backtrack(0)
+        return list
+    }
+
+
     // Day 38 - LC 148. Sort List
     class ListNode(var `val`: Int) {
         var next: ListNode? = null

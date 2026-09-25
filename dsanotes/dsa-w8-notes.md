@@ -12,6 +12,101 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Divide & Conquer
 - [ ] Recursion & Backtracking Fundamentals
 
+## Day 39 - LC 90. Subsets II
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Duplicate Candidates in Input Array**: Input contains duplicate numbers (`[1, 2, 2]`), but 
+  output subsets must not contain duplicate combinations.
+  * **Lexicographical Grouping via Sorting**: Sorting the input array (`nums.sort()`) groups identical 
+  elements together, enabling **O(1) duplicate detection** during backtracking exploration.
+  * **Decision Tree Level Pruning (`i > start && nums[i] == nums[i - 1]`)**: In combinations/subsets, 
+  duplicates are pruned *at the same decision depth* (`i > start`). Choosing `nums[i]` when `nums[i]
+  == nums[i - 1]` at index `i > start` would spawn an identical subtree to the one already explored 
+  by `nums[i - 1]`.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **Level Pruning (i > start)** | **O(N x 2^N)** | **O(N)** | **Staff Level (Optimal)** | Idiomatic combination backtracking; no auxiliary boolean array. |
+ **Visited Array (used[i])** | **O(N x 2^N)** | **O(N)** | Good | Works for permutations; adds unnecessary $O(N)$ boolean array allocation for subsets. |
+
+*\*Time includes **O(N)** cost of copying each subset into results. Auxiliary space excludes the output list.*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Used Array Redundancy**: The `used: BooleanArray` pattern is essential for **Permutations** 
+(where elements can be selected out of order), but redundant for **Subsets/Combinations** (where 
+elements move monotonically forward).
+* **`removeLast()` Efficiency**: Use `path.removeLast()` or `removeAt(path.lastIndex)` instead of 
+`removeAt(sublist.size - 1)` for clean **O(1)** stack pop semantics.
+* **Input Mutation Overhead**: `nums.sort()` mutates the input array in-place. If API contract 
+prohibits mutating inputs, sort a copy (`nums.clone().apply { sort() }`).
+
+### 4. Code Block
+```kotlin
+// Approach 1: Level Pruning (Canonical & Staff Level Optimal)
+// Time Complexity: O(N * 2^N) | Auxiliary Space Complexity: O(N) stack
+fun subsetsWithDup(nums: IntArray): List<List<Int>> {
+    val list = mutableListOf<List<Int>>()
+    val path = ArrayList<Int>(nums.size)
+    nums.sort() // Group identical elements together
+
+    fun backtrack(start: Int) {
+        list.add(ArrayList(path)) // Snapshot current state
+
+        for (i in start until nums.size) {
+            // Prune duplicate branches at the current decision level
+            if (i > start && nums[i] == nums[i - 1]) continue
+            path.add(nums[i])
+            backtrack(i + 1)
+            path.removeAt(path.lastIndex)
+        }
+    }
+
+    backtrack(0)
+    return list
+}
+```
+```kotlin
+// Approach 2: Used Array (Permutations Style)
+// Time Complexity: O(N * 2^N) | Auxiliary Space Complexity: O(N) array + stack
+fun subsetsWithDupUsedArray(nums: IntArray): List<List<Int>> {
+    val list = mutableListOf<List<Int>>()
+    val used = BooleanArray(nums.size)
+    nums.sort()
+
+    fun backtrack(idx: Int, sublist: MutableList<Int>) {
+        list.add(ArrayList(sublist))
+
+        for (i in idx until nums.size) {
+            if (i > 0 && nums[i] == nums[i - 1] && !used[i - 1]) continue
+            used[i] = true
+            sublist.add(nums[i])
+            backtrack(i + 1, sublist)
+            used[i] = false
+            sublist.removeAt(sublist.size - 1)
+        }
+    }
+
+    backtrack(0, mutableListOf())
+    return list
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Subsets II vs. Permutations II Pruning Condition**:
+  * **Subsets II**: We advance sequentially (`i + 1`). Duplicates are skipped when `i > start && 
+  nums[i] == nums[i - 1]`.
+  * **Permutations II**: We can pick any unvisited index (`used[i] == false`). Duplicates are skipped 
+  when `i > 0 && nums[i] == nums[i - 1] && !used[i - 1]`.
+* **Bitmask / Frequency Map Alternative**:
+  * An alternative approach counts element frequencies (e.g. `Map<Int, Int>`) and chooses to include 
+  `0..count` instances of each distinct element. This eliminates sorting overhead if input values are 
+  bounded.
+
+---
+
 ## Day 38 - LC 148. Sort List
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
