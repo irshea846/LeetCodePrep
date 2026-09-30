@@ -1,0 +1,109 @@
+package com.rshea.leetcodeprep
+
+object Week9Graphs {
+
+    // Day 41 - LC 200. Number of Islands
+    fun numIslands(grid: Array<CharArray>): Int {
+        if (grid.isEmpty() || grid[0].isEmpty()) return 0
+
+        val rows = grid.size
+        val cols = grid[0].size
+        var islands = 0
+
+        fun dfs(r: Int, c: Int) {
+            if ((r !in 0 until rows) || (c !in 0 until cols) || (grid[r][c] == '0')) {
+                return
+            }
+
+            grid[r][c] = '0' // Sink visited land
+            dfs(r + 1, c)
+            dfs(r - 1, c)
+            dfs(r, c + 1)
+            dfs(r, c - 1)
+        }
+
+        for (r in 0 until rows) {
+            for (c in 0 until cols) {
+                if (grid[r][c] == '1') {
+                    islands++
+                    dfs(r, c)
+                }
+            }
+        }
+
+        return islands
+    }
+
+    // Approach 2: Queue-Based BFS (Bounded Space)
+    fun numIslandsBFS(grid: Array<CharArray>): Int {
+        if (grid.isEmpty() || grid[0].isEmpty()) return 0
+
+        val rows = grid.size
+        val cols = grid[0].size
+        var islands = 0
+        val dirs = arrayOf(intArrayOf(1, 0), intArrayOf(-1, 0), intArrayOf(0, 1), intArrayOf(0, -1))
+
+        for (r in 0 until rows) {
+            for (c in 0 until cols) {
+                if (grid[r][c] == '1') {
+                    islands++
+                    grid[r][c] = '0'
+                    val queue = ArrayDeque<IntArray>()
+                    queue.addLast(intArrayOf(r, c))
+
+                    while (queue.isNotEmpty()) {
+                        val (currR, currC) = queue.removeFirst()
+                        for (dir in dirs) {
+                            val nr = currR + dir[0]
+                            val nc = currC + dir[1]
+                            if (nr in 0 until rows && nc in 0 until cols && grid[nr][nc] == '1') {
+                                grid[nr][nc] = '0'
+                                queue.addLast(intArrayOf(nr, nc))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return islands
+    }
+
+    // Approach 3: Queue-Based BFS (Bit Packing Technique - Zero Heap Allocation)
+    fun numIslandsBitPacking(grid: Array<CharArray>): Int {
+        if (grid.isEmpty() || grid[0].isEmpty()) return 0
+
+        val neighbors = arrayOf(intArrayOf(1, 0), intArrayOf(-1, 0), intArrayOf(0, 1), intArrayOf(0, -1))
+        var islands = 0
+        val m = grid.size
+        val n = grid[0].size
+        val capacity = kotlin.math.min(m, n)
+        val dq = ArrayDeque<Int>(capacity)
+
+        for (i in 0 until m) {
+            for (j in 0 until n) {
+                if (grid[i][j] == '0') continue
+                grid[i][j] = '0'
+                islands++
+                dq.addLast((i shl 16) or j)
+
+                while (dq.isNotEmpty()) {
+                    val encode = dq.removeFirst()
+                    val x = encode ushr 16
+                    val y = encode and 0xFFFF
+
+                    for (neighbor in neighbors) {
+                        val adjx = x + neighbor[0]
+                        val adjy = y + neighbor[1]
+                        if (adjx !in 0 until m || adjy !in 0 until n || grid[adjx][adjy] == '0') {
+                            continue
+                        }
+                        grid[adjx][adjy] = '0'
+                        dq.addLast((adjx shl 16) or adjy)
+                    }
+                }
+            }
+        }
+        return islands
+    }
+}
