@@ -2,6 +2,68 @@ package com.rshea.leetcodeprep
 
 object Week9Graphs {
 
+    // Day 42 - LC 207. Course Schedule
+    fun canFinishDFS(numCourses: Int, prerequisites: Array<IntArray>): Boolean {
+        val courseStates = IntArray(numCourses)
+        val graphs = Array(numCourses) { mutableListOf<Int>() }
+
+        for (prerequisite in prerequisites) {
+            val post = prerequisite[0]
+            val prev = prerequisite[1]
+            graphs[prev].add(post)
+        }
+
+        fun hasCycle(curr: Int): Boolean {
+            if (courseStates[curr] == 1) return true
+            if (courseStates[curr] == 2) return false
+
+            courseStates[curr] = 1
+            for (postrequisite in graphs[curr]) {
+                if (hasCycle(postrequisite)) return true
+            }
+            courseStates[curr] = 2
+            return false
+        }
+
+        for (i in 0 until numCourses) {
+            if (courseStates[i] == 0) {
+                if (hasCycle(i)) return false
+            }
+        }
+
+        return true
+    }
+
+    fun canFinishBFS(numCourses: Int, prerequisites: Array<IntArray>): Boolean {
+        val inDegree = IntArray(numCourses)
+        val graphs = Array(numCourses) { mutableListOf<Int>() }
+        var totalCourses = 0
+        val dq = ArrayDeque<Int>(numCourses)
+        for (prerequisite in prerequisites) {
+            val prev = prerequisite[1]
+            val post = prerequisite[0]
+            graphs[prev].add(post)
+            inDegree[post]++
+        }
+
+        for (i in 0 until numCourses) {
+            if (inDegree[i] == 0) {
+                dq.addLast(i)
+            }
+        }
+        while (dq.isNotEmpty()) {
+            val course = dq.removeLast()
+            totalCourses++
+            for (postrequisite in graphs[course]) {
+                if (--inDegree[postrequisite] == 0) {
+                    dq.addLast(postrequisite)
+                }
+            }
+        }
+
+        return totalCourses == numCourses
+    }
+
     // Day 41 - LC 200. Number of Islands
     fun numIslands(grid: Array<CharArray>): Int {
         if (grid.isEmpty() || grid[0].isEmpty()) return 0

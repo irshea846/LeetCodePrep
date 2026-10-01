@@ -12,6 +12,123 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Topological Sort
 - [ ] Dijkstra’s Algorithm
 
+## Day 42 - LC 207. Course Schedule
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Directed Acyclic Graph (DAG) Cycle Detection**: Dependencies represented as directed edges 
+  `prev -> post` require determining whether the graph contains a directed cycle.
+  * **DFS Tricolor Graph States (0/1/2)**: State 0 = Unvisited, State 1 = Visiting (currently in 
+  recursion call stack), State 2 = Visited (verified cycle-free DAG component). Encountering State 1
+  during traversal signals a back-edge (cycle).
+  * **BFS In-Degree Topological Sort (Kahn's Algorithm)**: Processing nodes with `inDegree == 0` 
+  iteratively. If the number of processed nodes equals `numCourses`, the graph is a valid DAG.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **BFS (Kahn's Algorithm)** | **O(V + E)** | **O(V + E)** queue + adj list | **Staff Level (Optimal)** | Prevent `StackOverflowError`; parallel task scheduling; models build systems (Gradle/Bazel). |
+ **DFS (3-Color State)** | **O(V + E)** | **O(V + E)** stack + adj list | **Peak (Canonical)** | Standard interview choice; fast recursive cycle detection via back-edges. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **FIFO Queue vs LIFO Stack (`removeFirst()` vs `removeLast()`)**:
+  * Using `dq.removeLast()` on `ArrayDeque` creates LIFO Stack behavior (DFS order).
+  * For Kahn's Algorithm BFS, use **`dq.removeFirst()`** (FIFO Queue behavior) to maintain standard 
+  level-by-level topological order (critical for LC 210 Course Schedule II).
+* **Lambda Allocation Overhead in `forEach`**: Avoid `graphs[curr].forEach { ... }` in tight graph 
+traversal loops to eliminate iterator/lambda heap allocations. Prefer `for (neighbor in graphs[curr])`.
+* **Destructuring Performance (`val (post, prev) = prerequisite`)**: Destructuring arrays calls 
+`component1()` and `component2()`. Direct index access `prerequisite[0]` / `prerequisite[1]` is faster.
+
+### 4. Code Block
+```kotlin
+// Approach 1: DFS (3-Color State Tracking)
+// Time Complexity: O(V + E) | Auxiliary Space Complexity: O(V + E)
+fun canFinishDFS(numCourses: Int, prerequisites: Array<IntArray>): Boolean {
+    val courseStates = IntArray(numCourses) // 0 = Unvisited, 1 = Visiting, 2 = Visited
+    val graphs = Array(numCourses) { mutableListOf<Int>() }
+
+    for (prerequisite in prerequisites) {
+        val post = prerequisite[0]
+        val prev = prerequisite[1]
+        graphs[prev].add(post)
+    }
+
+    fun hasCycle(curr: Int): Boolean {
+        if (courseStates[curr] == 1) return true  // Back-edge detected (cycle)
+        if (courseStates[curr] == 2) return false // Already verified cycle-free
+
+        courseStates[curr] = 1 // Mark visiting
+        for (next in graphs[curr]) {
+            if (hasCycle(next)) return true
+        }
+        courseStates[curr] = 2 // Mark visited
+        return false
+    }
+
+    for (i in 0 until numCourses) {
+        if (courseStates[i] == 0) {
+            if (hasCycle(i)) return false
+        }
+    }
+
+    return true
+}
+```
+```kotlin
+// Approach 2: BFS Kahn's Algorithm (Topological Sort)
+// Time Complexity: O(V + E) | Auxiliary Space Complexity: O(V + E)
+fun canFinishBFS(numCourses: Int, prerequisites: Array<IntArray>): Boolean {
+    val inDegree = IntArray(numCourses)
+    val graphs = Array(numCourses) { mutableListOf<Int>() }
+    var totalCourses = 0
+    val dq = ArrayDeque<Int>(numCourses)
+
+    for (prerequisite in prerequisites) {
+        val post = prerequisite[0]
+        val prev = prerequisite[1]
+        graphs[prev].add(post)
+        inDegree[post]++
+    }
+
+    for (i in 0 until numCourses) {
+        if (inDegree[i] == 0) {
+            dq.addLast(i)
+        }
+    }
+
+    while (dq.isNotEmpty()) {
+        val course = dq.removeFirst() // Standard FIFO Queue behavior
+        totalCourses++
+        for (neighbor in graphs[course]) {
+            if (--inDegree[neighbor] == 0) {
+                dq.addLast(neighbor)
+            }
+        }
+    }
+
+    return totalCourses == numCourses
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **DFS Call Stack Overflow vs. Kahn's BFS Iteration**:
+  * On a deep linear graph (0 → 1 → 2 → … → V-1), DFS recursion depth reaches V 
+  frames. For V = 10⁵, this risks a JVM `StackOverflowError`.
+  * Kahn's BFS is **100% StackOverflow safe** because it processes nodes iteratively using an explicit 
+  `ArrayDeque`.
+* **Parallel / Distributed Dependency Execution**:
+  * Kahn's algorithm models real-world task schedulers (Gradle, Bazel, DAG orchestrators like Airflow).
+  * At any BFS step, all nodes in `dq` with `inDegree == 0` have satisfied their prerequisites and 
+  **can be executed concurrently in parallel across worker nodes/threads**!
+* **Extension to LC 210 (Course Schedule II)**:
+  * To output the valid topological ordering, record each polled course in an array 
+  * (`order[index++] = course`). If `totalCourses == numCourses`, return `order`; otherwise return 
+  `intArrayOf()`.
+
+---
+
 ## Day 41 - LC 200. Number of Islands
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
