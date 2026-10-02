@@ -12,6 +12,102 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Topological Sort
 - [ ] Dijkstra’s Algorithm
 
+## Day 44 - LC 133. Clone Graph
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Graph Deep Copying with Cycles**: Cloning a general graph (containing cycles, self-loops, and 
+  undirected/directed edges) requires tracking mapping from original nodes to cloned nodes 
+  (`HashMap<Node, Node>`) to prevent infinite recursion and duplicate node creation.
+  * **Memoized Mapping Invariant**: Instantiating a cloned node and putting it in `cloneMap[v] = clone` 
+  **before** making recursive calls or pushing to queue guarantees cycle resolution.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **BFS (Single Pass Iterative)** | **O(V + E)** | **O(V)** queue + map | **Staff Level (Optimal)** | 100% StackOverflow safe; connects cloned neighbor edges in a single pass. |
+ **DFS (Memoized Recursion)** | **O(V + E)** | **O(V)** stack + map | **Peak (Canonical)** | Standard interview choice; clean recursive tree/graph traversal. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Double Map Lookups (`contains` + `get`)**: Writing `if (cloneMap.contains(v)) return cloneMap[v]!!` 
+performs two hash lookups. Use `cloneMap[v]?.let { return it }` for a **single $O(1)$ lookup**.
+* **Brittle Force Non-Null Assertions (`!!`)**: Avoid `neighbor!!` or `cloneMap[neighbor]!!`. Use 
+safe calls `neighbor?.let { ... }` or `if (neighbor != null)`.
+* **Escaped Keyword Identifier (`` `val` ``)**: Accessing the reserved keyword property `val` on `Node` 
+requires backticks (`` `val` ``).
+
+### 4. Code Block
+```kotlin
+// Approach 1: DFS (Single Lookup Memoization)
+// Time Complexity: O(V + E) | Auxiliary Space Complexity: O(V) stack
+class Node(var `val`: Int) {
+    var neighbors: ArrayList<Node?> = ArrayList<Node?>()
+}
+
+fun cloneGraphDFS(node: Node?): Node? {
+    if (node == null) return null
+    val cloneMap = HashMap<Node, Node>()
+
+    fun cloneHelper(v: Node): Node {
+        cloneMap[v]?.let { return it } // Single map lookup
+
+        val clone = Node(v.`val`)
+        cloneMap[v] = clone // Map before traversing neighbors to handle cycles
+
+        for (neighbor in v.neighbors) {
+            neighbor?.let {
+                clone.neighbors.add(cloneHelper(it))
+            }
+        }
+        return clone
+    }
+
+    return cloneHelper(node)
+}
+
+// Approach 2: BFS (Single Pass Edge Wiring)
+// Time Complexity: O(V + E) | Auxiliary Space Complexity: O(V)
+fun cloneGraphBFS(node: Node?): Node? {
+    if (node == null) return null
+    val cloneMap = HashMap<Node, Node>()
+    val dq = ArrayDeque<Node>()
+
+    val cloneHead = Node(node.`val`)
+    cloneMap[node] = cloneHead
+    dq.addLast(node)
+
+    while (dq.isNotEmpty()) {
+        val curr = dq.removeFirst()
+        val currClone = cloneMap[curr]!!
+
+        for (neighbor in curr.neighbors) {
+            if (neighbor == null) continue
+            if (neighbor !in cloneMap) {
+                cloneMap[neighbor] = Node(neighbor.`val`)
+                dq.addLast(neighbor)
+            }
+            currClone.neighbors.add(cloneMap[neighbor]) // Wire cloned edge in single pass
+        }
+    }
+
+    return cloneHead
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Two-Pass BFS vs. Single-Pass BFS**:
+  * Two-pass BFS enqueues all nodes in pass 1 and connects edges in pass 2. Single-pass BFS connects 
+  cloned neighbor edges immediately when examining neighbors, reducing hash map accesses by 50%.
+* **Identity-Based Hashing (`java.util.IdentityHashMap`) vs. Standard `HashMap`**:
+  * Standard `HashMap` uses `hashCode()` and `equals()`. If `Node` overrides `equals()` to check only 
+  `val`, two distinct nodes with `node.val = 1` would collide!
+  * **Staff Insight**: Real-world object cloning frameworks (Jackson, Kryo, Java Serialization) use 
+  **`IdentityHashMap`**, which uses `System.identityHashCode()` and `==` reference equality to uniquely 
+  identify instances regardless of property values.
+
+---
+
 ## Day 43 - LC 743. Network Delay Time
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**

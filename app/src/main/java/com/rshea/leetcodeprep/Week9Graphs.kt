@@ -5,6 +5,58 @@ import kotlin.math.max
 
 object Week9Graphs {
 
+    // Day 44 - LC 133. Clone Graph
+    class Node(var `val`: Int) {
+        var neighbors: ArrayList<Node?> = ArrayList<Node?>()
+    }
+
+    fun cloneGraphDFS(node: Node?): Node? {
+        if (node == null) return null
+        val cloneMap = HashMap<Node, Node>()
+
+        fun cloneHelper(v: Node): Node {
+            cloneMap[v]?.let { return it }
+
+            val clone = Node(v.`val`)
+            cloneMap[v] = clone
+
+            for (neighbor in v.neighbors) {
+                neighbor?.let {
+                    clone.neighbors.add(cloneHelper(it))
+                }
+            }
+            return clone
+        }
+
+        return cloneHelper(node)
+    }
+
+    fun cloneGraphBFS(node: Node?): Node? {
+        if (node == null) return null
+        val cloneMap = HashMap<Node, Node>()
+        val dq = ArrayDeque<Node>()
+
+        val cloneHead = Node(node.`val`)
+        cloneMap[node] = cloneHead
+        dq.addLast(node)
+
+        while (dq.isNotEmpty()) {
+            val curr = dq.removeFirst()
+            val currClone = cloneMap[curr]!!
+
+            for (neighbor in curr.neighbors) {
+                if (neighbor == null) continue
+                if (neighbor !in cloneMap) {
+                    cloneMap[neighbor] = Node(neighbor.`val`)
+                    dq.addLast(neighbor)
+                }
+                currClone.neighbors.add(cloneMap[neighbor])
+            }
+        }
+
+        return cloneHead
+    }
+
     // Day 43 - LC 743. Network Delay Time
     fun networkDelayTime(times: Array<IntArray>, n: Int, k: Int): Int {
         val adjMap = Array(n + 1) { _ -> mutableListOf<Pair<Int, Int>>() }
@@ -39,9 +91,6 @@ object Week9Graphs {
 
         return if (maxWeight == Int.MAX_VALUE) -1 else maxWeight
     }
-
-
-
 
 
     // Day 42 - LC 207. Course Schedule
