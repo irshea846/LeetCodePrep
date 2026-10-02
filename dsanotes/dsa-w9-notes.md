@@ -12,6 +12,91 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Topological Sort
 - [ ] Dijkstra’s Algorithm
 
+## Day 43 - LC 743. Network Delay Time
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Single-Source Shortest Path with Non-Negative Edge Weights**: Reaching all **N** nodes in minimum 
+  total signal propagation time maps directly to Dijkstra's Algorithm on a directed weighted graph.
+  * **Lazy Deletion / Stale Node Pruning (`currentWeight > dist[curNode]`)**: PriorityQueue cannot 
+  perform 𝒪(log V) `decreaseKey` operations efficiently on JVM. Pruning stale nodes when polled 
+  (`currentWeight > dist[curNode]`) ensures optimal 𝒪((V+E) log V) performance.
+  * **Signal Delivery Invariant**: The total network delay time equals the maximum shortest distance 
+  among all 1 ... N nodes (max_{1 ≤ i ≤ N} dist[i]). If any node remains unreachable (dist[i] == ∞),
+  return `-1`.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **Dijkstra (Min-Heap / PriorityQueue)** | **O((V + E) log V)** | **O(V + E)** Heap + Adj List | **Staff Level (Optimal)** | Non-negative edge weights; canonical shortest path solution. |
+ **Bellman-Ford Algorithm** | **O(V x E)** | **O(V)** | Dynamic / Edge-List | Graphs with **negative edge weights**; detects negative weight cycles. |
+ **Floyd-Warshall Algorithm** | **O(V^3)** | **O(V^2)** | All-Pairs Matrix | Small graphs (V ≤ 500) requiring distance matrix for all node pairs. |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Heap Object Allocation (`Pair<Int, Int>`)**: Enqueuing `Pair(weight, node)` instantiates 
+short-lived heap objects for every edge relaxation step. For high-throughput systems, bit-packing 
+`(weight shl 32) or node` into a `Long` or using `IntArray(2)` achieves zero heap object allocations.
+* **1-Based Index Alignment**: Nodes are numbered 1 ~ N. Allocating `IntArray(n + 1)` and 
+`Array(n + 1)` simplifies indexing and eliminates **1**-off subtraction logic throughout the code.
+* **Non-Null Assertion (`poll()!!`)**: While `pq.isNotEmpty()` guards against empty polls, using 
+destructuring inside loops (`val (currDist, currNode) = pq.poll()!!`) can be cleaned using idiomatic 
+Kotlin or primitive packing.
+
+### 4. Code Block
+```kotlin
+// Approach 1: PriorityQueue Dijkstra (Min-Heap Lazy Deletion)
+// Time Complexity: O((V + E) log V) | Auxiliary Space Complexity: O(V + E)
+fun networkDelayTime(times: Array<IntArray>, n: Int, k: Int): Int {
+    val adjMap = Array(n + 1) { _ -> mutableListOf<Pair<Int, Int>>() }
+    val dist = IntArray(n + 1) { Int.MAX_VALUE }
+    dist[k] = 0
+
+    for (time in times) {
+        val (u, v, w) = time
+        adjMap[u].add(Pair(w, v)) // Pair(weight, adjacent_node)
+    }
+
+    val pq = PriorityQueue<Pair<Int, Int>>(compareBy { it.first })
+    pq.add(Pair(0, k))
+
+    while (pq.isNotEmpty()) {
+        val (currentWeight, curNode) = pq.poll()!!
+        if (currentWeight > dist[curNode]) continue // Prune stale heap entries
+
+        for (adjacent in adjMap[curNode]) {
+            val (adjWeight, adjNode) = adjacent
+            val newWeight = currentWeight + adjWeight
+            if (newWeight < dist[adjNode]) {
+                dist[adjNode] = newWeight
+                pq.add(Pair(dist[adjNode], adjNode))
+            }
+        }
+    }
+
+    var maxWeight = Int.MIN_VALUE
+    for (i in 1..n) {
+        maxWeight = max(maxWeight, dist[i])
+    }
+
+    return if (maxWeight == Int.MAX_VALUE) -1 else maxWeight
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Dijkstra vs. Bellman-Ford vs. SPFA (Shortest Path Faster Algorithm)**:
+  * **Dijkstra**: Greedy selection via Min-Heap. Fast 𝒪((V+E) log V), but **fails on graphs with 
+  negative edge weights** (greedy choice assumption breaks).
+  * **Bellman-Ford**: Dynamic programming edge-relaxation over **V-1** iterations (O(V * E)). Works 
+  with negative edge weights and detects negative weight cycles.
+* **Network Propagation & Routing Protocols**:
+  * Dijkstra's algorithm powers **Open Shortest Path First (OSPF)** and **IS-IS** interior gateway 
+  routing protocols in computer networks.
+  * In distributed microservices (e.g. gRPC service mesh routing), latency metrics are dynamically 
+  weighted edges where Dijkstra routes requests along the lowest-latency network path.
+
+---
+
 ## Day 42 - LC 207. Course Schedule
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
