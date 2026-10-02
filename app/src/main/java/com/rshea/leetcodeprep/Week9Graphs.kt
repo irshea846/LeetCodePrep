@@ -1,6 +1,48 @@
 package com.rshea.leetcodeprep
 
+import java.util.PriorityQueue
+import kotlin.math.max
+
 object Week9Graphs {
+
+    // Day 43 - LC 743. Network Delay Time
+    fun networkDelayTime(times: Array<IntArray>, n: Int, k: Int): Int {
+        val adjMap = Array(n + 1) { _ -> mutableListOf<Pair<Int, Int>>() }
+        val dist = IntArray(n + 1) { Int.MAX_VALUE }
+        dist[k] = 0
+
+        for (time in times) {
+            val (u, v, w) = time
+            adjMap[u].add(Pair(w, v))
+        }
+
+        val pq = PriorityQueue<Pair<Int, Int>>(compareBy { it.first })
+        pq.add(Pair(0, k))
+
+        while (pq.isNotEmpty()) {
+            val (currentWeight, curNode) = pq.poll()!!
+            if (currentWeight > dist[curNode]) continue
+            for (adjacent in adjMap[curNode]) {
+                val (adjWeight, adjNode) = adjacent
+                val newWeight = currentWeight + adjWeight
+                if (newWeight < dist[adjNode]) {
+                    dist[adjNode] = newWeight
+                    pq.add(Pair(dist[adjNode], adjNode))
+                }
+            }
+        }
+
+        var maxWeight = Int.MIN_VALUE
+        for (i in 1 .. n) {
+            maxWeight = max(maxWeight, dist[i])
+        }
+
+        return if (maxWeight == Int.MAX_VALUE) -1 else maxWeight
+    }
+
+
+
+
 
     // Day 42 - LC 207. Course Schedule
     fun canFinishDFS(numCourses: Int, prerequisites: Array<IntArray>): Boolean {

@@ -5,6 +5,52 @@ import kotlin.test.assertEquals
 
 class Week9GraphsTest {
 
+    // Day 43 - LC 743. Network Delay Time
+    @Test
+    fun testNetworkDelayTime_ValidCase1() {
+        val times = arrayOf(intArrayOf(2, 1, 1), intArrayOf(2, 3, 1), intArrayOf(3, 4, 1))
+        val n = 4
+        val k = 2
+        assertEquals(2, Week9Graphs.networkDelayTime(times, n, k))
+    }
+
+    @Test
+    fun testNetworkDelayTime_ValidCase2() {
+        val times = arrayOf(intArrayOf(1, 2, 1))
+        val n = 2
+        val k = 1
+        assertEquals(1, Week9Graphs.networkDelayTime(times, n, k))
+    }
+
+    @Test
+    fun testNetworkDelayTime_InvalidCase3() {
+        val times = arrayOf(intArrayOf(1, 2, 1))
+        val n = 2
+        val k = 2
+        assertEquals(-1, Week9Graphs.networkDelayTime(times, n, k))
+    }
+
+    @Test
+    fun testNetworkDelayTime_InvalidCase4() {
+        val times = arrayOf(intArrayOf(1, 2, 1), intArrayOf(2, 3, 7), intArrayOf(1, 3, 4), intArrayOf(2, 1, 2))
+        val n = 3
+        val k = 2
+        assertEquals(6, Week9Graphs.networkDelayTime(times, n, k))
+    }
+
+    @Test
+    fun testNetworkDelayTime_InvalidCase5() {
+        val times = arrayOf(intArrayOf(1, 3, 68), intArrayOf(1, 4, 20), intArrayOf(4, 1, 65),
+            intArrayOf(3, 2, 74), intArrayOf(2, 1, 44), intArrayOf(4, 3, 68), intArrayOf(3, 1, 26),
+            intArrayOf(5, 1, 60), intArrayOf(5, 3, 3), intArrayOf (4,5,5), intArrayOf(2, 5, 36),
+            intArrayOf(2, 3, 94), intArrayOf(1 ,2, 0), intArrayOf(3, 5, 90), intArrayOf(2, 4, 28),
+            intArrayOf(4, 2, 12), intArrayOf(5, 4, 52), intArrayOf(5, 2, 85),intArrayOf(1, 5, 42))
+        val n = 5
+        val k = 4
+        assertEquals(34, Week9Graphs.networkDelayTime(times, n, k))
+    }
+
+
     // Day 42 - LC 207. Course Schedule
     @Test
     fun testCanFinish_ValidCase1() {
