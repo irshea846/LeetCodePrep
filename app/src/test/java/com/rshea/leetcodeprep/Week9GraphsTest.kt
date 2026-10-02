@@ -5,6 +5,25 @@ import kotlin.test.assertEquals
 
 class Week9GraphsTest {
 
+    // Day 44 - LC 133. Clone Graph
+    @Test
+    fun testCloneGraph_ValidCase1() {
+        val node1 = Week9Graphs.Node(1)
+        val node2 = Week9Graphs.Node(2)
+        val node3 = Week9Graphs.Node(3)
+        val node4 = Week9Graphs.Node(4)
+        node1.neighbors = arrayListOf(node2, node4)
+        node2.neighbors = arrayListOf(node1, node3)
+        node3.neighbors = arrayListOf(node2, node4)
+        node4.neighbors = arrayListOf(node1, node3)
+        val clonedNode1 = Week9Graphs.cloneGraphDFS(node1)
+        val clonedNode2 = Week9Graphs.cloneGraphBFS(node1)
+        assertEquals(clonedNode1!!.`val`, clonedNode2!!.`val`)
+        assertEquals(clonedNode1.neighbors[0]!!.`val`, clonedNode2.neighbors[0]!!.`val`)
+        assertEquals(clonedNode1.neighbors[1]!!.`val`, clonedNode2.neighbors[1]!!.`val`)
+    }
+
+
     // Day 43 - LC 743. Network Delay Time
     @Test
     fun testNetworkDelayTime_ValidCase1() {
