@@ -31,6 +31,8 @@ class Week9GraphsTest {
         val n = 4
         val k = 2
         assertEquals(2, Week9Graphs.networkDelayTime(times, n, k))
+        assertEquals(2, Week9Graphs.networkDelayTimeBitPacking(times, n, k))
+        assertEquals(2, Week9Graphs.networkDelayTimeBellmanFord(times, n, k))
     }
 
     @Test
@@ -39,6 +41,8 @@ class Week9GraphsTest {
         val n = 2
         val k = 1
         assertEquals(1, Week9Graphs.networkDelayTime(times, n, k))
+        assertEquals(1, Week9Graphs.networkDelayTimeBitPacking(times, n, k))
+        assertEquals(1, Week9Graphs.networkDelayTimeBellmanFord(times, n, k))
     }
 
     @Test
@@ -47,6 +51,8 @@ class Week9GraphsTest {
         val n = 2
         val k = 2
         assertEquals(-1, Week9Graphs.networkDelayTime(times, n, k))
+        assertEquals(-1, Week9Graphs.networkDelayTimeBitPacking(times, n, k))
+        assertEquals(-1, Week9Graphs.networkDelayTimeBellmanFord(times, n, k))
     }
 
     @Test
@@ -55,6 +61,8 @@ class Week9GraphsTest {
         val n = 3
         val k = 2
         assertEquals(6, Week9Graphs.networkDelayTime(times, n, k))
+        assertEquals(6, Week9Graphs.networkDelayTimeBitPacking(times, n, k))
+        assertEquals(6, Week9Graphs.networkDelayTimeBellmanFord(times, n, k))
     }
 
     @Test

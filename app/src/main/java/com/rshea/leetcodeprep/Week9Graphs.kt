@@ -58,13 +58,16 @@ object Week9Graphs {
     }
 
     // Day 43 - LC 743. Network Delay Time
+    // Approach 1: PriorityQueue Dijkstra (Pair Object Allocation)
     fun networkDelayTime(times: Array<IntArray>, n: Int, k: Int): Int {
-        val adjMap = Array(n + 1) { _ -> mutableListOf<Pair<Int, Int>>() }
+        val adjMap = Array(n + 1) { mutableListOf<Pair<Int, Int>>() }
         val dist = IntArray(n + 1) { Int.MAX_VALUE }
         dist[k] = 0
 
         for (time in times) {
-            val (u, v, w) = time
+            val u = time[0]
+            val v = time[1]
+            val w = time[2]
             adjMap[u].add(Pair(w, v))
         }
 
@@ -85,11 +88,85 @@ object Week9Graphs {
         }
 
         var maxWeight = Int.MIN_VALUE
-        for (i in 1 .. n) {
+        for (i in 1..n) {
             maxWeight = max(maxWeight, dist[i])
         }
 
         return if (maxWeight == Int.MAX_VALUE) -1 else maxWeight
+    }
+
+    // Approach 2: Bit-Packed Long Dijkstra (Zero Heap Object Allocations)
+    fun networkDelayTimeBitPacking(times: Array<IntArray>, n: Int, k: Int): Int {
+        val dist = IntArray(n + 1) { Int.MAX_VALUE }
+        val graph = Array(n + 1) { mutableListOf<Long>() }
+
+        fun encode(d: Int, v: Int): Long {
+            return (d.toLong() shl 32) or (v.toLong() and 0xFFFFFFFFL)
+        }
+
+        for (time in times) {
+            val u = time[0]
+            val v = time[1]
+            val w = time[2]
+            graph[u].add(encode(w, v))
+        }
+
+        dist[k] = 0
+        val pq = PriorityQueue<Long>()
+        pq.add(encode(0, k))
+
+        while (pq.isNotEmpty()) {
+            val code = pq.poll()!!
+            val currDist = (code ushr 32).toInt()
+            val currNode = (code and 0xFFFFFFFFL).toInt()
+
+            if (currDist > dist[currNode]) continue
+
+            for (edge in graph[currNode]) {
+                val adjWeight = (edge ushr 32).toInt()
+                val adjNode = (edge and 0xFFFFFFFFL).toInt()
+                val newDist = currDist + adjWeight
+                if (newDist < dist[adjNode]) {
+                    dist[adjNode] = newDist
+                    pq.add(encode(newDist, adjNode))
+                }
+            }
+        }
+
+        var maxDistance = Int.MIN_VALUE
+        for (i in 1..n) {
+            maxDistance = max(maxDistance, dist[i])
+        }
+
+        return if (maxDistance == Int.MAX_VALUE) -1 else maxDistance
+    }
+
+    // Approach 3: Bellman-Ford Algorithm (O(V * E))
+    fun networkDelayTimeBellmanFord(times: Array<IntArray>, n: Int, k: Int): Int {
+        val dist = IntArray(n + 1) { Int.MAX_VALUE }
+        dist[k] = 0
+
+        for (i in 1 until n) {
+            var updated = false
+            for (time in times) {
+                val u = time[0]
+                val v = time[1]
+                val w = time[2]
+                if (dist[u] != Int.MAX_VALUE && dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w
+                    updated = true
+                }
+            }
+            if (!updated) break // Early exit convergence optimization
+        }
+
+        var maxTime = 0
+        for (j in 1..n) {
+            if (dist[j] == Int.MAX_VALUE) return -1
+            maxTime = max(maxTime, dist[j])
+        }
+
+        return maxTime
     }
 
 

@@ -91,7 +91,7 @@ Buffer** (using CAS operations) would be superior to this basic implementation.
   This is the hallmark for **Graph Traversal (DFS/BFS)** or **Disjoint Set Union (DSU)**.
 
   * **Symmetric Adjacency Matrix**: The input `isConnected[i][j]` defines edges between cities. 
-  Since it's an adjacency matrix, traversal is **O(N^2)**.
+  Since it's an adjacency matrix, traversal is **O(N²)**.
   
   * **Global Component Counting**: DSU is particularly elegant here because we start with **N** 
   provinces and decrement the count every time a successful `union` operation merges two previously 
@@ -102,18 +102,18 @@ Buffer** (using CAS operations) would be superior to this basic implementation.
 
 | Approach | Time | Space | Performance | Best Used When... |
 | :--- |:-----------|:---------| :--- | :--- |
-| **DFS / BFS** | **O(N^2)** | **O(N)** | High | Matrix is static; implementation speed is prioritized. |
-| **Union-Find (DSU)** | **O(N^2 \cdot \alpha(N))** | **O(N)** | **Peak** | **Dynamic connectivity** (edges added over time). |
+| **DFS / BFS** | **O(N²)** | **O(N)** | High | Matrix is static; implementation speed is prioritized. |
+| **Union-Find (DSU)** | **O(N² · α(N))** | **O(N)** | **Peak** | **Dynamic connectivity** (edges added over time). |
 
 *\*N = number of cities.*
 
 ### 3. Native Kotlin Syntax Pitfalls
 *   **Matrix Symmetry**: Don't check the whole matrix. `for (j in i + 1 until n)` avoids redundant 
-checks and potential $O(N^2)$ work on the diagonal.
+checks and potential **O(N²)** work on the diagonal.
 *   **Typo Alert**: Ensure `dfs` naming is standard. Avoid naming conflicts or typos like `DisjoinSetUnion` 
 vs `DisjointSetUnion` which cause compilation failures.
 *   **Path Compression**: In DSU, always use `parent[i] = find(parent[i])`. Without this, the tree 
-height can become **O(N)**, degrading performance to **O(N^2)** for Union operations.
+height can become **O(N)**, degrading performance to **O(N²)** for Union operations.
 *   **BFS/DFS redundant starts**: Always wrap your traversal call in `if (!visited[i])`. Calling 
 BFS/DFS on an already visited node won't break the logic, but it adds unnecessary **O(N)** scans to 
 your total execution time.
@@ -154,7 +154,7 @@ fun findCircleNum(isConnected: Array<IntArray>): Int {
 ```kotlin
 fun findCircleNumDSU(isConnected: Array<IntArray>): Int {
     // Union-Find Approach
-    // Time Complexity: O(N^2 x A(N)) | Space Complexity: O(N)
+    // Time Complexity: O(N² · α(N)) | Space Complexity: O(N)
     val cities = isConnected.size
     val dsu = DisjointSetUnion(cities)
     var provinces = cities
