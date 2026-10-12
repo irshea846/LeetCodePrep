@@ -5,6 +5,62 @@ import kotlin.test.assertEquals
 
 class Week10DPTest {
 
+    // Day 47 - LC 198. House Robber
+    @Test
+    fun testRob() {
+        val testCase1 = intArrayOf(1, 2, 3, 1)
+        val testCase2 = intArrayOf(2, 7, 9, 3, 1)
+        val testCase3 = intArrayOf(2, 1, 1, 2)
+        val testCase4 = intArrayOf(
+            183, 219, 57, 193, 94, 233, 202, 154, 65, 240,
+            97, 234, 100, 249, 186, 66, 90
+        )
+        val testCase5 = intArrayOf(0)
+        val testCase6 = intArrayOf(2, 1)
+
+        assertEquals(4, Week10DP.robInPlace(testCase1))
+        assertEquals(12, Week10DP.robInPlace(testCase2))
+        assertEquals(4, Week10DP.robInPlace(testCase3))
+        assertEquals(1612, Week10DP.robInPlace(testCase4))
+        assertEquals(0, Week10DP.robInPlace(testCase5))
+        assertEquals(2, Week10DP.robInPlace(testCase6))
+
+
+        assertEquals(4, Week10DP.robTable(testCase1))
+        assertEquals(12, Week10DP.robTable(testCase2))
+        assertEquals(4, Week10DP.robTable(testCase3))
+        assertEquals(1612, Week10DP.robTable(testCase4))
+        assertEquals(0, Week10DP.robTable(testCase5))
+        assertEquals(2, Week10DP.robTable(testCase6))
+
+        assertEquals(4, Week10DP.robTailRec(testCase1))
+        assertEquals(12, Week10DP.robTailRec(testCase2))
+        assertEquals(4, Week10DP.robTailRec(testCase3))
+        assertEquals(1612, Week10DP.robTailRec(testCase4))
+        assertEquals(0, Week10DP.robTailRec(testCase5))
+        assertEquals(2, Week10DP.robTailRec(testCase6))
+
+    }
+
+    // Day 46 - LC 1137. N-th Tribonacci Number
+    @Test
+    fun testTribonacciTailRec() {
+        assertEquals(4, Week10DP.tribonacciTailRec(4))
+        assertEquals(1389537, Week10DP.tribonacciTailRec(25))
+        assertEquals(2082876103, Week10DP.tribonacciTailRec(37))
+    }
+
+    // Day 46 - LC 509. Fibonacci Number
+    @Test
+    fun testFibBitnet() {
+        assertEquals(1, Week10DP.fibBitnet(2))
+        assertEquals(2, Week10DP.fibBitnet(3))
+        assertEquals(5, Week10DP.fibBitnet(5))
+        assertEquals(317811, Week10DP.fibBitnet(28))
+        assertEquals(514229, Week10DP.fibBitnet(29))
+        assertEquals(832040, Week10DP.fibBitnet(30))
+    }
+
     // Day 46 - LC 70. Climbing Stairs
     @Test
     fun testClimbStairsTable() {

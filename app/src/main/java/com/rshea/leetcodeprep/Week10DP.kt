@@ -4,6 +4,178 @@ import kotlin.math.*
 
 object Week10DP {
 
+    // Day 47 - LC 198. House Robber
+    // Approach 1: Bottom-Up Dynamic Programming (In-Place)
+    // Time Complexity: O(n) | Auxiliary Space Complexity: O(1)
+    fun robInPlace(nums: IntArray): Int {
+        val n = nums.size
+        if (n < 2) return nums[0]
+
+        var prev2 = nums[0]
+        var prev1 = nums[1]
+        for (i in 2 until n) {
+            val skip = prev1
+            val rub = maxOf(prev1, prev2 + nums[i])
+            prev2 = max(prev1, prev2)
+            prev1 = max(skip, rub)
+        }
+
+        return if (n == 2) max(prev1, prev2) else prev1
+    }
+    //    BUG ALERT in robInPlace:
+    //    • Look at prev1 = nums[1].
+    //    • For nums = intArrayOf(2, 1, 1, 2):
+    //      ◦ prev2 = 2, prev1 = 1.
+    //      ◦ Max profit at house index 1 should be max(nums[0], nums[1]) = max(2, 1) = 2! But prev1
+    //      was set to 1 (just nums[1]), ignoring nums[0]!
+    //      ◦ Loop $i=2$ (nums[2] = 1):
+    //          ▪ rub = maxOf(prev1, prev2 + nums[2]) = maxOf(1, 2 + 1) = 3.
+    //          ▪ prev2 = max(1, 2) = 2.
+    //          ▪ prev1 = max(1, 3) = 3.
+    //      ◦ Loop $i=3$ (nums[3] = 2):
+    //          ▪rub = maxOf(3, 2 + 2) = 4.
+    //      ◦ Result becomes wrong for certain test cases!
+    //
+    //    • Canonical & Idiomatic O(1) Space House Robber: At any house $i$, we have two choices:
+    //      i. Rob house i: Total loot = prev2 + nums[i]
+    //      ii. Skip house i: Total loot = prev1, curr = max(prev1, prev2 + nums[i])
+    //
+    //    If we initialize prev2 = 0 (max loot before house 0) and prev1 = 0 (max loot at current house),
+    //    the loop handles ALL $n \ge 1$ cleanly without edge cases:
+    //
+    //    fun robInPlace(nums: IntArray): Int {
+    //          var prev2 = 0
+    //          var prev1 = 0
+    //          for (num in nums) {
+    //              val curr = maxOf(prev1, prev2 + num)
+    //              prev2 = prev1
+    //              prev1 = curr
+    //          }
+    //          return prev1
+    //    }
+    //    Look how elegant and clean this 6-line O(1) space implementation is! It handles n = 0, 1,
+    //    2, ... seamlessly with ZERO special branching!
+
+    // Approach 2: Bottom-Up Dynamic Programming (Table)
+    // Time Complexity: O(n) | Auxiliary Space Complexity: O(n)
+    fun robTable(nums: IntArray): Int {
+        val dp = IntArray(nums.size)
+
+        dp[0] = nums[0]
+        if (nums.size > 1) dp[1] = maxOf(dp[0], nums[1])
+        for (i in 2 until nums.size) {
+            val skip = dp[i - 1]
+            val rub = maxOf(dp[i - 1], dp[i - 2] + nums[i])
+            dp[i] = max(skip, rub)
+        }
+
+        return dp[dp.lastIndex]
+    }
+    //    Review Findings:
+    //
+    //    1. Correctness:
+    //      ◦ dp[0] = nums[0], dp[1] = maxOf(nums[0], nums[1]).
+    //      ◦ dp[i] = maxOf(dp[i - 1], dp[i - 2] + nums[i]).
+    //      ◦ Correctly returns dp[dp.lastIndex].
+    //
+    //    2. Syntax Cleanup:
+    //      ◦ In the loop: val skip = dp[i - 1]; val rub = maxOf(dp[i - 1], dp[i - 2] + nums[i]);
+    //      dp[i] = max(skip, rub) repeats dp[i-1] comparisons.
+    //      ◦ Simply: dp[i] = maxOf(dp[i - 1], dp[i - 2] + nums[i]).
+
+    // Approach 3: Top-Down Recursion with Memoization
+    // Time Complexity: O(n) | Auxiliary Space Complexity: O(1)
+    fun robTailRec(nums: IntArray): Int {
+        val n = nums.size
+
+        tailrec fun robEx(i: Int, b: Int, a: Int): Int {
+            if (i == 0) return a
+            if (i == 1) return robEx(0, b, max(a, b))
+
+            return robEx(
+                i - 1,
+                max(b, a),
+                max(a, b + nums[n - i + 1])
+            )
+        }
+
+        return robEx(n - 1, nums[0], if (n < 2) nums[0] else nums[1])
+    }
+    //    Review Findings:
+    //
+    //    1. Index Alignment & State Variables:
+    //
+    //      ◦ Tracking nums[n - i + 1] with reverse index count makes tracing difficult.
+    //      ◦ Passing prev2 and prev1 directly as tail parameters moving forward through indices 0 .. N-1:
+    //          fun robTailRec(nums: IntArray): Int {
+    //              tailrec fun helper(idx: Int, prev2: Int, prev1: Int): Int {
+    //                  if (idx == nums.size) return prev1
+    //                  return helper(idx + 1, prev1, maxOf(prev1, prev2 + nums[idx]))
+    //              }
+    //              return helper(0, 0, 0)
+    //          }
+    //
+    //      ◦ Look at helper(idx + 1, prev1, maxOf(prev1, prev2 + nums[idx])):
+    //          ▪ prev2 becomes the old prev1.
+    //          ▪ prev1 becomes maxOf(prev1, prev2 + nums[idx]).
+    //      ◦ This matches the 2-variable iterative DP state transition exactly!
+    //      ◦ Pure O(N) time, O(1) space, and 100% stack-safe!
+
+    // Day 46 - LC 1137. N-th Tribonacci Number
+    // Approach 1: Top-Down Recursion with Memoization
+    // Time Complexity: O(n) | Auxiliary Space Complexity: O(1)
+    fun tribonacciTailRec(n: Int): Int {
+
+        tailrec fun tribonacciEx(i: Int, c: Int, b: Int, a: Int): Int {
+            return if (i > 2) tribonacciEx(i - 1, a + b + c, c, b) else
+                if (i == 2) c else if (i == 1) b else a
+        }
+
+        return tribonacciEx(n, 1, 1, 0)
+    }
+    //    Code Style Cleanup:
+    //      ◦ Using chained ternary if ... else if ... else on one line can be cleaned up using
+    //      idiomatic Kotlin when expression:
+    //            tailrec fun tribonacciEx(i: Int, c: Int, b: Int, a: Int): Int {
+    //                return when {
+    //                    i > 2 -> tribonacciEx(i - 1, a + b + c, c, b)
+    //                    i == 2 -> c
+    //                    i == 1 -> b
+    //                    else -> a
+    //                }
+    //            }
+
+
+    // Day 46 - LC 509. Fibonacci Number
+    // Approach 1: Binet's Closed-Form Formula
+    // Time Complexity: O(1) | Auxiliary Space Complexity: O(1)
+    // Consider 1: If n were significantly larger, say one million, how would you calculate the result
+    // modulo 10 to the 9 plus 7 in logarithmic time or change your strategy to compute the result
+    // modulo m efficiently?
+    // Consider 2: Since you mastered the linear approach, could you think of a way to solve this in
+    // logarithmic time using matrix exponentiation?
+    // Consider 3: Since you used the mathematical approach, how would you handle potential precision
+    // issues if the input n was significantly larger?
+    fun fibBitnet(n: Int): Int {
+        val sqrt5 = sqrt(5.0)
+        val phi = (1.0 + sqrt5) / 2
+
+        return round(phi.pow(n) / sqrt5).toInt()
+    }
+
+
+    // Approach 2: Top-Down Recursion with Memoization
+    // Time Complexity: O(n) | Auxiliary Space Complexity: O(1)
+    fun fibTailRec(n: Int): Int {
+
+        tailrec fun fibEx(times: Int, b: Int, a: Int): Int {
+            if (times == 0) return b
+            return fibEx(times - 1, a, a + b)
+        }
+
+        return fibEx(n, 0, 1)
+    }
+
     // Day 46 - LC 70. Climbing Stairs
     // Approach 1: Bottom-Up Dynamic Programming (Table)
     // Time Complexity: O(n) | Auxiliary Space Complexity: O(n)
