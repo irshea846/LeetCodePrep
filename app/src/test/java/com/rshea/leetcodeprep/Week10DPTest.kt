@@ -5,6 +5,43 @@ import kotlin.test.assertEquals
 
 class Week10DPTest {
 
+    // Day 48 - LC 139. Word Break
+    @Test
+    fun testWordBreak() {
+        val testCase1 = "leetcode"
+        val testCase2 = "applepenapple"
+        val testCase3 = "catsandog"
+        val testCase4 =
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab"
+
+        val wordDict1 = listOf("leet", "code")
+        val wordDict2 = listOf("apple", "pen")
+        val wordDict3 = listOf("cats", "dog", "sand", "and", "cat")
+        val wordDict4 = listOf(
+            "a",
+            "aa",
+            "aaa",
+            "aaaa",
+            "aaaaa",
+            "aaaaaa",
+            "aaaaaaa",
+            "aaaaaaaa",
+            "aaaaaaaaa",
+            "aaaaaaaaaa"
+        )
+
+        assertEquals(true, Week10DP.wordBreakOptimal(testCase1, wordDict1))
+        assertEquals(true, Week10DP.wordBreakOptimal(testCase2, wordDict2))
+        assertEquals(false, Week10DP.wordBreakOptimal(testCase3, wordDict3))
+        assertEquals(false, Week10DP.wordBreakOptimal(testCase4, wordDict4))
+
+        assertEquals(true, Week10DP.wordBreak(testCase1, wordDict1))
+        assertEquals(true, Week10DP.wordBreak(testCase2, wordDict2))
+        assertEquals(false, Week10DP.wordBreak(testCase3, wordDict3))
+        assertEquals(false, Week10DP.wordBreak(testCase4, wordDict4))
+    }
+
+
     // Day 47 - LC 198. House Robber
     @Test
     fun testRob() {

@@ -10,6 +10,78 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] DP
 - [ ] Tail Recursion
 
+## Day 48 - LC 139. Word Break
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **String Segmentation Overlapping Subproblems**: Determining if string **s[0 .. N-1]** can be 
+  segmented into dictionary words requires finding at least one split index **j** (**0 ⩽ j < i**) 
+  where **s[0 ⋯ j-1]** is valid (DP[j] == true) AND s[j .. i-1] exists in `wordSet`.
+  * **Max Word Length Bounded Search Window**: Instead of scanning j all the way back to index 0 
+  (O(N^2)) inner iterations), dictionary word lengths are bounded (L = maxLen ⩽ 20). Pruning the 
+  inner loop to scan only `j in (i-1) downTo max(0, i - L) reduces inner checks from $\mathcal{O}(N)$ 
+  to O(L).
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When...                                                                        |
+ :--- | :--- | :--- | :--- |:-----------------------------------------------------------------------------------------|
+ **DP + Max Word Length Pruning** | **O(N x L^2)** | **O(N + M)** | **Staff Level (Optimal)** | Standard production choice; L <= 20 converts O(N^3) string slicing to fast O(N * L^2).   |
+ **DP + Unbounded Search Window** | **O(N^3)** | **O(N + M)** | Moderate | Vulnerable to Time Limit Exceeded (TLE) on long repetitive strings like `"aaaa...b"`.    |
+ **Trie + DP Traversal** | **O(N x L)** | **O(N + M x L)** | **Staff Level (Zero Allocation)** | Zero `String.substring` heap allocations; ideal for high-throughput dictionary searches. |
+
+*(where $N = s.\text{length}$, $M = \text{wordDict.size}$, $L = \text{max word length}$)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **`wordDict.toHashSet()` Idiom**: Avoid manual `HashSet` instantiation loops 
+(`for (word in wordDict) wordSet.add(word)`). Use `val wordSet = wordDict.toHashSet()` or 
+`HashSet(wordDict)`.
+* **Max Word Length Calculation**: `val maxLen = wordDict.maxOf { it.length }` provides the exact 
+upper bound for string slicing windows in a single readable pass.
+* **Substring Allocation Churn**: Calling `s.substring(j, i)` creates a **new `String` heap object** 
+on every check. Bounding j by `maxLen` prevents excessive Young Generation Garbage Collection (GC) 
+pauses on long strings.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bottom-Up DP + Max Word Length Pruning (Staff Level Optimal)
+// Time Complexity: O(N * L^2) where L = max word length | Auxiliary Space Complexity: O(N + M)
+fun wordBreak(s: String, wordDict: List<String>): Boolean {
+    if (s.isEmpty() || wordDict.isEmpty()) return false
+
+    val wordSet = wordDict.toHashSet()
+    val maxLen = wordDict.maxOf { it.length }
+    val dp = BooleanArray(s.length + 1)
+    dp[0] = true
+
+    for (i in 1..s.length) {
+        // Prune search space: only check inner split j up to max word length
+        for (j in (i - 1) downTo maxOf(0, i - maxLen)) {
+            if (dp[j] && wordSet.contains(s.substring(j, i))) {
+                dp[i] = true
+                break
+            }
+        }
+    }
+
+    return dp[s.length]
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **The "aaaa...b" Stress Test (TLE Vulnerability)**:
+  * Consider s = "aaaaaaaaaaaaaaaaaaaa...b" with `wordDict = ["a", "aa", "aaa", ...]`.
+  * Without L = maxLen pruning, an unbounded inner loop scans j across all 0 .. i-1, generating O(N^2) 
+  substring allocations and hashing operations (O(N^3) total time), causing **Time Limit Exceeded (TLE)**.
+  * With L = maxLen} pruning, the inner loop executes at most L steps, cutting execution time by over 
+  **100 times** on long inputs.
+* **Trie (Prefix Tree) vs. HashSet**:
+  * In production search engines or spellcheckers (e.g., search autocompletion), building a **Trie** 
+  from `wordDict` allows traversing characters in $s$ directly on Trie nodes without calling 
+  `String.substring()`, achieving **Zero Heap Object Allocations**.
+
+---
+
 ## Day 47 - LC 198. House Robber
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**

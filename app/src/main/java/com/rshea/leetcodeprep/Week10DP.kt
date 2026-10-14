@@ -4,6 +4,84 @@ import kotlin.math.*
 
 object Week10DP {
 
+    // Day 48 - LC 139. Word Break
+    // Approach 1: Bottom-Up DP + Max Word Length Pruning (Staff Level Optimal)
+    // Time Complexity: O(N * L^2) where L = max word length | Auxiliary Space Complexity: O(N + M)
+    fun wordBreakOptimal(s: String, wordDict: List<String>): Boolean {
+        if (s.isEmpty() || wordDict.isEmpty()) return false
+
+        val wordSet = wordDict.toHashSet()
+        val maxLen = wordDict.maxOf { it.length }
+        val dp = BooleanArray(s.length + 1)
+        dp[0] = true
+
+        for (i in 1..s.length) {
+            // Prune search space: only check inner split j up to max word length
+            for (j in (i - 1) downTo maxOf(0, i - maxLen)) {
+                if (dp[j] && wordSet.contains(s.substring(j, i))) {
+                    dp[i] = true
+                    break
+                }
+            }
+        }
+
+        return dp[s.length]
+    }
+
+    // Approach 2: Bottom-Up DP (Baseline)
+    // Time Complexity: O(N² × M) time and Auxiliary Space Complexity: O(N + M × k)
+    fun wordBreak(s: String, wordDict: List<String>): Boolean {
+        val n = s.length + 1
+        val dp = BooleanArray(n)
+        val wordSet = HashSet<String>()
+        dp[0] = true
+
+        for (word in wordDict) {
+            wordSet.add(word)
+        }
+
+        for (i in 1 .. s.length) {
+            for (j in 0 until i) {
+                if (dp[j] && wordSet.contains(s.substring(j, i))) {
+                    dp[i] = true
+                    break
+                }
+            }
+        }
+        return dp[s.length]
+    }
+    //    Detailed Senior / Staff Level Review
+    //
+    //    1. Algorithmic Correctness & DP State Definition
+    //      • State Definition: DP[i] = Boolean indicating whether the substring s[0...i-1] can be segmented into dictionary words.
+    //      • Base Case: DP[0] = true (empty string is always valid).
+    //      • State Transition: DP[i] = [Any split point j where 0 ≤ j < i] (DP[j] AND wordSet.contains(s[j...i-1]))
+    //      • Output: Correctly returns DP[s.length].
+    //
+    //    2. Performance & Optimization Opportunities (Staff Level)
+    //      1. HashSet Initialization Idiom:
+    //          ◦ Current: val wordSet = HashSet<String>(); for (word in wordDict) { wordSet.add(word) }
+    //          ◦ Idiomatic Kotlin: val wordSet = wordDict.toHashSet() or val wordSet = HashSet(wordDict).
+    //      2. Substring Range Limiting via Max Word Length:
+    //         ◦ Problem: In the inner loop for (j in 0 until i), j iterates from 0 up to i.
+    //         ◦ This creates substrings s[j...i-1] of lengths up to i ≤ N.
+    //         ◦ Performance Bottleneck: s.substring(j, i) creates a new String heap object on every
+    //         inner iteration!
+    //         ◦ Total String allocations ≈ 𝒪(N²) short-lived objects.
+    //         ◦ Optimization 1 (Max Word Length Bound):
+    //            ▪ Find the length of the longest word in the dictionary:
+    //                  val maxLen = wordDict.maxOf { it.length }.
+    //            ▪ Limit j to iterate only down from i-1 down to maxOf(0, i - maxLen).
+    //            ▪ Impact: Reduces inner loop iterations from 𝒪(N) per outer step down to 𝒪(L)
+    //            (where L ≤ 20 is max word length). This improves time complexity from 𝒪(N³)
+    //            (including 𝒪(N) string slicing/hashing) down to 𝒪(N · L²)!
+    //      3. Prefix Tree (Trie) / Aho-Corasick Alternative for Zero Substring Allocations:
+    //         ◦ Alternative: Instead of calling s.substring(j, i) (which allocates new heap Strings),
+    //         build a Trie of dictionary words.
+    //         ◦ Benefit: Traversing characters in s directly on the Trie checks word matches without
+    //         creating any substring objects!
+
+
     // Day 47 - LC 198. House Robber
     // Approach 1: Bottom-Up Dynamic Programming (In-Place)
     // Time Complexity: O(n) | Auxiliary Space Complexity: O(1)
