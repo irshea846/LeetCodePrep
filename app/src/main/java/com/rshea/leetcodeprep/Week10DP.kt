@@ -4,6 +4,57 @@ import kotlin.math.*
 
 object Week10DP {
 
+    // Day 49 - LC 62. Unique Paths
+    // Approach 1: Bottom-Up Dynamic Programming (1D Table)
+    // Time Complexity: O(m * n) | Auxiliary Space Complexity: O(n)
+    fun uniquePaths(m: Int, n: Int): Int {
+        val dp = IntArray(n)
+        for (i in 0 until m) {
+            for (j in 0 until n) {
+                if (i == 0 || j == 0) {
+                    dp[j] = 1
+                } else {
+                    dp[j] = dp[j] + dp[j - 1]
+                }
+            }
+        }
+        return dp[n - 1]
+    }
+
+    // Approach 2: Zero-Allocation Primitive Combinatorics
+    // Time Complexity: O(min(m, n)) | Auxiliary Space Complexity: O(1)
+    fun uniquePathsMath(m: Int, n: Int): Int {
+        val k = minOf(m - 1, n - 1)
+        val total = m + n - 2
+        var result = 1L
+
+        for (i in 1..k) {
+            result = result * (total - k + i) / i
+        }
+
+        return result.toInt()
+    }
+
+    // Approach 3: BigInteger Combinatorics
+    // Time Complexity: O(min(m, n)) | Auxiliary Space Complexity: O(1)
+    fun uniquePathsCombinatorics(m: Int, n: Int): Int {
+        val totalSlots = m + n - 2
+        val optimalMoves = minOf(m - 1, n - 1)
+
+        var steps = 1.toBigInteger()
+        val lowerBound = totalSlots - optimalMoves + 1
+        for (i in totalSlots downTo lowerBound) {
+            steps = steps.times(i.toBigInteger())
+        }
+
+        for (i in optimalMoves downTo 2) {
+            steps = steps.div(i.toBigInteger())
+        }
+
+        return steps.toInt()
+    }
+
+
     // Day 48 - LC 139. Word Break
     // Approach 1: Bottom-Up DP + Max Word Length Pruning (Staff Level Optimal)
     // Time Complexity: O(N * L^2) where L = max word length | Auxiliary Space Complexity: O(N + M)
