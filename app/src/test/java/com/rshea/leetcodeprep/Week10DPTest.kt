@@ -5,6 +5,29 @@ import kotlin.test.assertEquals
 
 class Week10DPTest {
 
+    // Day 49 - LC 62. Unique Paths
+    @Test
+    fun testUniquePaths() {
+        assertEquals(3, Week10DP.uniquePaths(3, 2))
+        assertEquals(28, Week10DP.uniquePaths(3, 7))
+        assertEquals(84, Week10DP.uniquePaths(4, 7))
+        assertEquals(48620, Week10DP.uniquePaths(10, 10))
+        assertEquals(193536720, Week10DP.uniquePaths(23, 12))
+
+        assertEquals(3, Week10DP.uniquePathsMath(3, 2))
+        assertEquals(28, Week10DP.uniquePathsMath(3, 7))
+        assertEquals(84, Week10DP.uniquePathsMath(4, 7))
+        assertEquals(48620, Week10DP.uniquePathsMath(10, 10))
+        assertEquals(193536720, Week10DP.uniquePathsMath(23, 12))
+
+        assertEquals(3, Week10DP.uniquePathsCombinatorics(3, 2))
+        assertEquals(28, Week10DP.uniquePathsCombinatorics(3, 7))
+        assertEquals(84, Week10DP.uniquePathsCombinatorics(4, 7))
+        assertEquals(48620, Week10DP.uniquePathsCombinatorics(10, 10))
+        assertEquals(193536720, Week10DP.uniquePathsCombinatorics(23, 12))
+
+    }
+
     // Day 48 - LC 139. Word Break
     @Test
     fun testWordBreak() {
