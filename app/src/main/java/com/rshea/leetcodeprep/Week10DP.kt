@@ -20,6 +20,44 @@ object Week10DP {
         }
         return dp[n - 1]
     }
+    //    Review Findings for 1D Bottom-Up DP:
+    //
+    //    1. Mathematical State Reduction:
+    //      ◦ Reduces $2D$ table $DP[i][j] = DP[i-1][j] + DP[i][j-1]$ into a single $1D$ array of
+    //      size N (IntArray(n)).
+    //      ◦ In 1D DP:
+    //          ▪ dp[j] (before update) represents $DP[i-1][j]$ (cell directly above).
+    //          ▪ dp[j-1] represents $DP[i][j-1]$ (cell directly to the left).
+    //          ▪ dp[j] = dp[j] + dp[j-1] updates cell $(i, j)$ in-place!
+    //      ◦ Time Complexity: O(M * N)
+    //      ◦ Auxiliary Space Complexity: O(N)
+    //
+    //    2. Optimization: Transpose Grid so Space is O(min(M, N)):
+    //      ◦ If M = 1000 and N = 10, allocating IntArray(n) takes 10 slots.
+    //      ◦ If M = 10 and N = 1000, allocating IntArray(n) takes 1000 slots.
+    //      ◦ Staff Touch: Allocate val cols = minOf(m, n) so memory is strictly O(min(M, N))
+    //      regardless of grid orientation!
+    //
+    //    3. Loop Initialization Optimization:
+    //      ◦ Instead of checking if (i == 0 || j == 0) inside the nested loops $M \times N$ times:
+    //      Initialize val dp = IntArray(n) { 1 } (row 0 is all 1s). Start outer loop from
+    //      i = 1 ⋯ m - 1 and inner loop from j = 1 ⋯ n-1:
+    //
+    //        fun uniquePaths(m: Int, n: Int): Int {
+    //            val cols = minOf(m, n)
+    //            val rows = maxOf(m, n)
+    //            val dp = IntArray(cols) { 1 }
+    //
+    //            for (r in 1 until rows) {
+    //                for (c in 1 until cols) {
+    //                    dp[c] += dp[c - 1]
+    //                }
+    //            }
+    //
+    //            return dp[cols - 1]
+    //        }
+    //
+    //      This eliminates M * N branch checks inside the inner loop!
 
     // Approach 2: Zero-Allocation Primitive Combinatorics
     // Time Complexity: O(min(m, n)) | Auxiliary Space Complexity: O(1)
@@ -34,6 +72,44 @@ object Week10DP {
 
         return result.toInt()
     }
+    //    Review Findings for Combinatorics:
+    //    1. Mathematical Invariant:
+    //      ◦ Any path from (0,0) to (m-1, n-1) consists of exactly m - 1 Down moves and n - 1 Right
+    //      moves.
+    //      ◦ Total moves = (m - 1) + (n - 1) = m + n - 2.
+    //      ◦ Number of unique ways = Combination
+    //          C(m + n - 2, m - 1) = (m + n - 2)! / (m - 1)! * (n - 1)!.
+    //      ◦ Time Complexity: O(min(M, N))
+    //      ◦ Auxiliary Space Complexity: O(1)
+    //    2. Primitive Overflow vs BigInteger:
+    //      ◦ Computing (m + n - 2)! directly exceeds 64-bit Long.MAX_VALUE even for moderate grid
+    //      sizes (m = 50, n = 50 ⇒ 98! ≈ 9.4 × 10¹⁵³).
+    //      ◦ Your code correctly uses BigInteger to avoid integer overflow during multiplication
+    //      and division steps.
+    //    3. Primitive O(1) Math without BigInteger Allocation:
+    //      ◦ By interleaving multiplication and division in a single loop, we can compute
+    //          C(N, K) = ∏(i = 1 ⋯ K) (N - K + i) / i
+    //                  = ((N - K + 1) / 1) * ((N - K + 2) / 2) * ... * ((N - K + K) / K)
+    //                  = ((N - K + 1) / 1) * ((N - K + 2) / 2) * ... * (N / K)
+    //                  = (N - K + 1) * (N - K + 2) * ... * (N) / K!
+    //      using primitive Long without allocating heap BigInteger objects!
+    //
+    //        fun uniquePathsMath(m: Int, n: Int): Int {
+    //            val k = minOf(m - 1, n - 1)
+    //            val total = m + n - 2
+    //            var result = 1L
+    //
+    //            for (i in 1 .. k) {
+    //                result = result * (total - k + i) / i
+    //            }
+    //
+    //            return result.toInt()
+    //        }
+    //
+    //      Because ∏(i = 1 ⋯ j) (total - k + i) is a product of j consecutive integers, it is
+    //      guaranteed to be divisible by j! at step i, so result * (total - k + i) / i produces
+    //      an exact integer division at every iteration!
+
 
     // Approach 3: BigInteger Combinatorics
     // Time Complexity: O(min(m, n)) | Auxiliary Space Complexity: O(1)
