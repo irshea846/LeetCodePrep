@@ -4,6 +4,47 @@ import kotlin.math.*
 
 object Week10DP {
 
+    // Day 50 - LC 322. Coin Change
+    // Approach 1: Bottom-Up Dynamic Programming (Tabulation)
+    // Time Complexity: O(n * m) where n = amount | Auxiliary Space Complexity: O(n)
+    fun coinChangeTable(coins: IntArray, amount: Int): Int {
+        coins.sort() // If API contract requires immutability, sort a copy val sortedCoins = coins.sorted()
+        val n = amount + 1
+        val dp = IntArray(n) { amount + 1 }
+        dp[0] = 0
+
+        for (i in 1 until n) {
+            for (coin in coins) {
+                if (i < coin) break
+                dp[i] = minOf(dp[i], dp[i - coin] + 1)
+            }
+        }
+
+        return if (dp[amount] != amount + 1) dp[amount] else -1
+    }
+
+    // Approach 2: Bottom-Up Dynamic Programming (Tail Recursion + Table)
+    // Time Complexity: O(n * m) where n = amount | Auxiliary Space Complexity: O(n)
+    fun coinChangeRecursion(coins: IntArray, amount: Int): Int {
+        coins.sort() // If API contract requires immutability, sort a copy val sortedCoins = coins.sorted()
+        val n = amount + 1
+        val dp = IntArray(n) { amount + 1 }
+        dp[0] = 0
+
+        tailrec fun coinChangeEx(i: Int) {
+            if (i == n) return
+            for (coin in coins) {
+                if (i < coin) break
+                dp[i] = minOf(dp[i], dp[i - coin] + 1)
+            }
+            return coinChangeEx(i + 1)
+        }
+
+        coinChangeEx(1)
+
+        return if (dp[amount] != amount + 1) dp[amount] else -1
+    }
+
     // Day 49 - LC 62. Unique Paths
     // Approach 1: Bottom-Up Dynamic Programming (1D Table)
     // Time Complexity: O(m * n) | Auxiliary Space Complexity: O(n)
