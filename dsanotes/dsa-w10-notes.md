@@ -10,6 +10,100 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] DP
 - [ ] Tail Recursion
 
+## Day 50 - LC 322. Coin Change
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Unbounded Knapsack Overlapping Subproblems**: Finding the minimum number of coins to make a target 
+  `amount` allows reusing coin denominations infinitely many times.
+  * **Inner Loop Pruning via Sorting**: Sorting `coins.sort()` enables an early inner loop break 
+  (`if (i < coin) break`), pruning all coin checks larger than active amount i.
+  * **Sentinel Infinity Value Protection (`amount + 1`)**: Initializing DP entries with `amount + 1` 
+  instead of `Int.MAX_VALUE` prevents 32-bit Integer Overflow when performing `dp[i - coin] + 1` 
+  additions!
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When...                                               |
+ :--- | :--- | :--- | :--- |:----------------------------------------------------------------|
+ **DP Tabulation (Pruned)** | **O(A x M)** | **O(A)** | **Staff Level (Optimal DP)** | Standard production choice; A = amount, M = coins.size.         |
+ **`tailrec` Functional Loop** | **O(A x M)** | **O(A)** | **Staff Level (Functional)** | Idiomatic Kotlin; compiler converts tail call to bytecode loop. |
+ **BFS Implicit Graph Traversal** | **O(A x M)** | **O(A)** | **Staff Level (Sparse Goal)** | Ideal when A is huge but minimum coin steps is very small.      |
+
+*(where A = amount, M = coins.size)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Sentinel Integer Overflow (`amount + 1` vs `Int.MAX_VALUE`)**: Using `Int.MAX_VALUE` causes 
+`Int.MAX_VALUE + 1` to overflow to negative integer (`Int.MIN_VALUE`), completely corrupting 
+`minOf()` calculations. Always use `amount + 1` as sentinel infinity!
+* **Array Mutation Side Effects**: `coins.sort()` mutates the caller's parameter in-place. If API 
+contract requires immutability, sort a copy (`val sortedCoins = coins.sortedArray()`).
+* **The `tailrec` Optimization**: Marking `coinChangeEx` as `tailrec` ensures the compiler unrolls 
+the tail recursion into a zero-stack-frame bytecode loop.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bottom-Up Dynamic Programming (Tabulation)
+// Time Complexity: O(A * M) where A = amount | Auxiliary Space Complexity: O(A)
+fun coinChangeTable(coins: IntArray, amount: Int): Int {
+    coins.sort()
+    val n = amount + 1
+    val dp = IntArray(n) { amount + 1 } // Safe infinity sentinel
+    dp[0] = 0
+
+    for (i in 1 until n) {
+        for (coin in coins) {
+            if (i < coin) break // Inner loop pruning
+            dp[i] = minOf(dp[i], dp[i - coin] + 1)
+        }
+    }
+
+    return if (dp[amount] != amount + 1) dp[amount] else -1
+}
+
+// Approach 2: Bottom-Up Dynamic Programming (Tail Recursion + Table)
+// Time Complexity: O(A * M) where A = amount | Auxiliary Space Complexity: O(A)
+fun coinChangeRecursion(coins: IntArray, amount: Int): Int {
+    coins.sort()
+    val n = amount + 1
+    val dp = IntArray(n) { amount + 1 }
+    dp[0] = 0
+
+    tailrec fun coinChangeEx(i: Int) {
+        if (i == n) return
+        for (coin in coins) {
+            if (i < coin) break
+            dp[i] = minOf(dp[i], dp[i - coin] + 1)
+        }
+        return coinChangeEx(i + 1)
+    }
+
+    coinChangeEx(1)
+
+    return if (dp[amount] != amount + 1) dp[amount] else -1
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Unbounded Knapsack vs. 0/1 Knapsack**:
+  * Unbounded Knapsack allows infinite reuse of elements ⇒ inner loop evaluates coin choices for 
+  active target i.
+  * 0/1 Knapsack allows picking each item at most once ⇒ outer loop iterates over items, inner loop 
+  * runs backwards W ... w_i.
+* **BFS Shortest Path on Implicit Graph vs. Dynamic Programming**:
+  * We can model Coin Change as finding the **Shortest Path in an Unweighted Directed Graph** where 
+  nodes are amounts 0 ... amount and edges are coin values.
+  * Level-order BFS from node 0 finds the target node `amount` in minimum steps.
+  * **When BFS beats DP**: When `amount` is huge (e.g., 10⁹) but minimum coins required is small 
+  (e.g., 3 coins), BFS reaches `amount` in 3 steps without building a 10⁹ DP array!
+* **Greedy Approach Fallacy**:
+  * Greedy always picks the largest coin denomination ≤ i.
+  * Greedy works for canonical currency systems (US coins [25, 10, 5, 1]), but fails for general coin 
+  sets (e.g. `coins = [1, 3, 4]`, `amount = 6`: Greedy picks (4, 1, 1) = 3 coins, but DP/BFS finds
+    (3, 3) = 2 coins).
+
+---
+
 ## Day 49 - LC 62. Unique Paths
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**

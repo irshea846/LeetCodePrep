@@ -5,6 +5,31 @@ import kotlin.test.assertEquals
 
 class Week10DPTest {
 
+    // Day 50 - LC 322. Coin Change
+    @Test
+    fun testCoinChange() {
+        val testCase1 = intArrayOf(1, 2, 5)
+        val testCase2 = intArrayOf(2)
+        val testCase3 = intArrayOf(1)
+        val testCase4 = intArrayOf(2, 5, 10, 1)
+        val testCase5 = intArrayOf(186, 419, 83, 408)
+        val testCase6 = intArrayOf(411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422)
+
+        assertEquals(3, Week10DP.coinChangeTable(testCase1, 11))
+        assertEquals(-1, Week10DP.coinChangeTable(testCase2, 3))
+        assertEquals(0, Week10DP.coinChangeTable(testCase3, 0))
+        assertEquals(4, Week10DP.coinChangeTable(testCase4, 27))
+        assertEquals(20, Week10DP.coinChangeTable(testCase5, 6249))
+        assertEquals(24, Week10DP.coinChangeTable(testCase6, 9864))
+
+        assertEquals(3, Week10DP.coinChangeRecursion(testCase1, 11))
+        assertEquals(-1, Week10DP.coinChangeRecursion(testCase2, 3))
+        assertEquals(0, Week10DP.coinChangeRecursion(testCase3, 0))
+        assertEquals(4, Week10DP.coinChangeRecursion(testCase4, 27))
+        assertEquals(20, Week10DP.coinChangeRecursion(testCase5, 6249))
+        assertEquals(24, Week10DP.coinChangeRecursion(testCase6, 9864))
+    }
+
     // Day 49 - LC 62. Unique Paths
     @Test
     fun testUniquePaths() {
