@@ -10,6 +10,127 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] 2D DP
 - [ ] Tail Recursion
 
+## Day 52 - LC 494. Target Sum
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Mathematical Reduction to 0/1 Subset Sum**:
+    Let **P** be the sum of positive numbers, and **N** be the sum of negative numbers:
+    **P - N = target**
+    **P + N = totalSum**
+    Adding both equations: **2P = totalSum + target -> P = (totalSum + target) / 2**.
+    This reduces LC 494 to **finding the number of subsets with sum equal to P = (totalSum + target) / 2 **!
+  * **Parity & Bounds Guard**:
+    If **target + totalSum < 0** or **(totalSum + target) % 2 != 0**, it is mathematically impossible 
+    to assign signs to reach target; exit in O(N) time immediately with `return 0`.
+  * **0/1 Knapsack Reverse Traversal Invariant**:
+    Reversing the inner loop (`for (j in sumOfPos downTo num)`) ensures each number is used at most 
+    once per subset path.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When...                                                                        |
+ :--- | :--- | :--- | :--- |:-----------------------------------------------------------------------------------------|
+ **0/1 Subset Sum 1D DP** | **O(N x S)** | **O(S)** | **Staff Level (Optimal)** | Standard production choice; S = (totalSum + target) / 2.                                 |
+ **Top-Down Memoized DFS** | **O(N x totalSum)** | **O(N x totalSum)** | Peak (Canonical) | Standard interview choice for demonstrating memoization on negative index state offsets. |
+ **Un-memoized Brute Force DFS** | **O(2^N)** | **O(N)** | Poor | Exponential time limit exceeded (TLE) for N > 25.                                        |
+
+*(where N = nums.size, S = (totalSum + target) / 2)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Math Guard Condition**: Writing `if (kotlin.math.abs(target) > totalSum || (totalSum + target) 
+% 2 != 0) return 0` handles both positive/negative `target` boundary checks in a single line.
+* **Array Indexing**: Allocating `IntArray(sumOfPos + 1)` and initializing `dp[0] = 1` (1 way to form 
+subset sum 0: the empty set) provides the base case for 0/1 Knapsack subset counting.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bottom-Up Dynamic Programming (1D Subset Sum Table)
+// Time Complexity: O(N * S) where S = (totalSum + target) / 2 | Auxiliary Space Complexity: O(S)
+fun findTargetSumWays(nums: IntArray, target: Int): Int {
+    val totalSum = nums.sum()
+    if (kotlin.math.abs(target) > totalSum || (totalSum + target) % 2 != 0) return 0
+    val sumOfPos = (totalSum + target) / 2
+    val dp = IntArray(sumOfPos + 1)
+    dp[0] = 1
+
+    for (num in nums) {
+        for (j in sumOfPos downTo num) {
+            dp[j] += dp[j - num]
+        }
+    }
+
+    return dp[sumOfPos]
+}
+
+// Approach 2: Top-Down Memoized DFS (Negative Index Offset)
+// Time Complexity: O(N * totalSum) | Auxiliary Space Complexity: O(N * totalSum)
+fun findTargetSumWaysMemoization(nums: IntArray, target: Int): Int {
+    val totalSum = nums.sum()
+    if (kotlin.math.abs(target) > totalSum) return 0
+
+    // Memo array size: N x (2 * totalSum + 1)
+    val memo = Array(nums.size) { IntArray(2 * totalSum + 1) { -1 } }
+
+    fun dfs(idx: Int, currentSum: Int): Int {
+        if (idx == nums.size) {
+            return if (currentSum == target) 1 else 0
+        }
+
+        // Offset negative sum to non-negative array index [0 .. 2 * totalSum]
+        val memoIdx = currentSum + totalSum
+        if (memo[idx][memoIdx] != -1) {
+            return memo[idx][memoIdx]
+        }
+
+        val add = dfs(idx + 1, currentSum + nums[idx])
+        val subtract = dfs(idx + 1, currentSum - nums[idx])
+
+        memo[idx][memoIdx] = add + subtract
+        return memo[idx][memoIdx]
+    }
+
+    return dfs(0, 0)
+}
+
+// Approach 3: Un-memoized Recursion (Exponential Baseline)
+// Time Complexity: O(2^N) | Auxiliary Space Complexity: O(N) stack
+fun findTargetSumWaysRecursion(nums: IntArray, target: Int): Int {
+
+    fun findTargetSumWaysRecursionEx(nums: IntArray, target: Int, curIdx: Int, curSum: Int): Int {
+        if (curIdx == nums.size) {
+            return if (target == curSum) 1 else 0
+        }
+
+        return findTargetSumWaysRecursionEx(nums, target, curIdx + 1, curSum - nums[curIdx]) +
+                findTargetSumWaysRecursionEx(nums, target, curIdx + 1, curSum + nums[curIdx])
+    }
+
+    return findTargetSumWaysRecursionEx(nums, target, 0, 0)
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **0/1 Subset Sum Reduction vs 2D DP Table**:
+  * **Un-reduced 2D DP**: **DP[i][s]** = ways to reach sum **s** using first **i** numbers. Sum range 
+  is **[-totalSum, totalSum], requiring array size `2 x totalSum + 1` with index offset mapping 
+  (`s + totalSum`).
+  * **Reduced 1D Subset Sum DP**: **2 * ∑(P) = target + ∑(nums)  ⇒  ∑(P) = (target + ∑(nums)) / 2**. 
+  Reduces space down to a 1D array of size P + 1 with zero negative index offsets!
+* **Bitwise Parallelism for Subset Sum Counting (Polynomial Generating Functions)**:
+  * **Boolean Reachability (LC 416)**: `bitset = bitset or (bitset shl num)` evaluates 64 target sum 
+  transitions in 1 CPU cycle (O(N × S / 64) time).
+  * **Subset Sum Counting (LC 494)**: The number of ways to form target sums corresponds to polynomial 
+  coefficients of the generating function:
+    `P(x) = (1 + x^num_1) × (1 + x^num_2) × ... × (1 + x^num_N) = ∑ dp[j] x^j`
+  By packing K-bit counter slots (e.g., K = 16 bits per slot) into a `BigInteger`, the state 
+  transition `DP[j] = DP[j] + DP[j - num]` simplifies to a single bitwise shift and addition:
+    `poly = poly + (poly << (num * K))`
+  Evaluating **`64 / K`** slot additions per CPU instruction achieves hardware SIMD parallelism for subset sum counting!
+  transitions per CPU instruction, achieving hardware SIMD parallelism.
+
+---
+
 ## Day 51 - LC 416. Partition Equal Subset Sum
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**

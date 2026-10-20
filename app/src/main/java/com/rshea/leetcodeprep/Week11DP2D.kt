@@ -2,6 +2,71 @@ package com.rshea.leetcodeprep
 
 object Week11DP2D {
 
+    // Day 53 - LC 494. Target Sum
+    // Approach 1: Bottom-Up Dynamic Programming (1D Table)
+    // Time Complexity: O(N * S) where N = nums.size, S = (sum + target) / 2 | Auxiliary Space Complexity: O(S)
+    fun findTargetSumWays(nums: IntArray, target: Int): Int {
+        val totalSum = nums.sum()
+        if (target + totalSum < 0 ||  0 != (totalSum + target) % 2) return 0
+        val sumOfPos = (totalSum + target) / 2
+        val dp = IntArray(sumOfPos + 1)
+        dp[0] = 1
+
+        for (num in nums) {
+            for (j in dp.size - 1 downTo num) {
+                dp[j] = dp[j] + dp[j - num]
+            }
+        }
+
+        return dp[sumOfPos]
+    }
+
+    // Approach 2: Top-Down Memoized DFS (Negative Index Offset)
+    // Time Complexity: O(N * totalSum) | Auxiliary Space Complexity: O(N * totalSum)
+    fun findTargetSumWaysMemoization(nums: IntArray, target: Int): Int {
+        val totalSum = nums.sum()
+        if (kotlin.math.abs(target) > totalSum) return 0
+
+        // Memo array size: N x (2 * totalSum + 1)
+        val memo = Array(nums.size) { IntArray(2 * totalSum + 1) { -1 } }
+
+        fun dfs(idx: Int, currentSum: Int): Int {
+            if (idx == nums.size) {
+                return if (currentSum == target) 1 else 0
+            }
+
+            // Offset negative sum to array index [0 .. 2 * totalSum]
+            val memoIdx = currentSum + totalSum
+            if (memo[idx][memoIdx] != -1) {
+                return memo[idx][memoIdx]
+            }
+
+            val add = dfs(idx + 1, currentSum + nums[idx])
+            val subtract = dfs(idx + 1, currentSum - nums[idx])
+
+            memo[idx][memoIdx] = add + subtract
+            return memo[idx][memoIdx]
+        }
+
+        return dfs(0, 0)
+    }
+
+    // Approach 3: Recursion + Memoization (Un-memoized Baseline)
+    // Time Complexity: O(2^N) where N = nums.size | Auxiliary Space Complexity: O(N)
+    fun findTargetSumWaysRecursion(nums: IntArray, target: Int): Int {
+
+        fun findTargetSumWaysRecursionEx(nums: IntArray, target: Int, curIdx:Int, curSum: Int): Int {
+            if (curIdx == nums.size) {
+                return if (target == curSum) 1 else 0
+            }
+
+            return findTargetSumWaysRecursionEx(nums, target, curIdx + 1, curSum + (-1) * nums[curIdx]) +
+                    findTargetSumWaysRecursionEx(nums, target, curIdx + 1, curSum + nums[curIdx])
+        }
+
+        return findTargetSumWaysRecursionEx(nums, target, 0, 0)
+    }
+
     // Day 52 - LC 416. Partition Equal Subset Sum
     // Approach 1: Bottom-Up Dynamic Programming (1D Table)
     // Time Complexity: O(N * S) where N = nums.size | Auxiliary Space Complexity: O(S)

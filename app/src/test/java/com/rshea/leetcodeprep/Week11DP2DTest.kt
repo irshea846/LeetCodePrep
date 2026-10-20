@@ -5,6 +5,26 @@ import kotlin.test.assertEquals
 
 class Week11DP2DTest {
 
+    // Day 53 - LC 494. Target Sum
+    @Test
+    fun findTargetSumWaysTest() {
+        val nums1 = intArrayOf(1, 1, 1, 1, 1)
+        val nums2 = intArrayOf(1)
+        val nums3 = intArrayOf(1, 0)
+
+        assertEquals(5, Week11DP2D.findTargetSumWays(nums1, 3))
+        assertEquals(1, Week11DP2D.findTargetSumWays(nums2, 1))
+        assertEquals(2, Week11DP2D.findTargetSumWays(nums3, 1))
+
+        assertEquals(5, Week11DP2D.findTargetSumWaysMemoization(nums1, 3))
+        assertEquals(1, Week11DP2D.findTargetSumWaysMemoization(nums2, 1))
+        assertEquals(2, Week11DP2D.findTargetSumWaysMemoization(nums3, 1))
+
+        assertEquals(5, Week11DP2D.findTargetSumWaysRecursion(nums1, 3))
+        assertEquals(1, Week11DP2D.findTargetSumWaysRecursion(nums2, 1))
+        assertEquals(2, Week11DP2D.findTargetSumWaysRecursion(nums3, 1))
+    }
+
     // Day 52 - LC 416. Partition Equal Subset Sum
     @Test
    fun canPartitionTest() {
