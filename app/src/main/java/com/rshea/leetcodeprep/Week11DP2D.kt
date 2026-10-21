@@ -2,6 +2,55 @@ package com.rshea.leetcodeprep
 
 object Week11DP2D {
 
+    // Day 54 - LC 518. Coin Change II
+    // Approach 1: Bottom-Up Dynamic Programming (1D Table)
+    // Time Complexity: O(N * amount) where N = coins.size | Auxiliary Space Complexity: O(amount)
+    fun change(amount: Int, coins: IntArray): Int {
+        val dp = IntArray(amount + 1)
+        dp[0] = 1
+        for (coin in coins) {
+            for (j in coin .. amount) {
+                dp[j] += dp[j - coin]
+            }
+        }
+
+        return dp[dp.lastIndex]
+    }
+    //    Detailed Staff-Tier Review of change (Coin Change II):
+    //
+    //    1. Unbounded Knapsack Combination vs Permutation Ordering (The Crucial Difference!)
+    //
+    //      • Compare Coin Change II (LC 518) vs Combination Sum IV (LC 377):
+    //          ◦ LC 518 (Coin Change II - Unique Combinations):
+    //              ▪ Outer loop = for (coin in coins)
+    //              ▪ Inner loop = for (j in coin .. amount)
+    //              ▪ Why outer loop over coins? Because processing coin c_1 for all amounts, then
+    //              c_2, ensures coins are processed in a fixed order (e.g., 1+2+2 is counted once,
+    //              but 2+1+2 is NOT counted as a separate permutation). This counts Combinations
+    //              (Order does NOT matter)!
+    //
+    //          ◦ LC 377 (Combination Sum IV - Unique Permutations):
+    //              ▪ Outer loop = for (j in 1 .. amount)
+    //              ▪ Inner loop = for (coin in coins)
+    //              ▪ Reversing loop order counts Permutations (Order DOES matter)!
+    //
+    //    2. Performance & Micro-Optimizations
+    //
+    //       1. Sorting coins.sort() or filtering coin > amount:
+    //          ◦ if (amount == 0) return 1 (instant $\mathcal{O}(1)$ exit for $amount = 0$).
+    //          ◦ Sorting coins.sort() allows skipping coins larger than amount (if (coin > amount) continue).
+    //          ◦ If coins are sorted, when coin > amount, we can break early from the outer loop!
+    //
+    //       2. Loop Primitive Indexing (dp[j] vs dp.lastIndex):
+    //          ◦ dp[dp.lastIndex] retrieves dp[amount] by evaluating property getter lastIndex.
+    //          ◦ Returning dp[amount] directly is clearer, faster, and avoids property lookup overhead.
+    //
+    //       3. Bit-Packing / Primitive Array SIMD or 2D Space Optimization:
+    //          ◦ dp[j] += dp[j - coin]
+    //          ◦ Time Complexity: O(N * amount) where N = coins.size.
+    //          ◦ Space Complexity:  O(amount) (IntArray(amount + 1)).
+
+
     // Day 53 - LC 494. Target Sum
     // Approach 1: Bottom-Up Dynamic Programming (1D Table)
     // Time Complexity: O(N * S) where N = nums.size, S = (sum + target) / 2 | Auxiliary Space Complexity: O(S)

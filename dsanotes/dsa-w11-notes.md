@@ -10,6 +10,96 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] 2D DP
 - [ ] Tail Recursion
 
+## Day 53 - LC 518. Coin Change II
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Unbounded Knapsack Combination Counting**: Finding the total number of unique coin combinations 
+    to form `amount` with infinite coin reuse.
+  * **Loop Ordering Invariant (Outer Coins vs Outer Amounts)**:
+    - **Outer loop `for (coin in coins)`**: Forces coins to be processed in a fixed order, ensuring 
+    **1+2+2** and **2+1+2** are counted as **1** unique combination.
+    - **Reversing loop order (`for (j in 1..amount)` outer)** would count **Permutations (Order matters 
+    - LC 377)** instead of **Combinations (LC 518)**!
+  * **Forward Inner Loop (`for (j in coin..amount)`)**:
+    Iterating forward allows the current coin to be reused multiple times (**DP[j] += DP[j - coin]**), 
+    satisfying Unbounded Knapsack rules.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When...                                                       |
+ :--- | :--- | :--- | :--- |:------------------------------------------------------------------------|
+ **1D DP (Pruned & Sorted)** | **O(N x A)** | **O(A)** | **Staff Level (Optimal)** | Standard production choice; **A = amount, N = coins.size**              |
+ **2D DP Table** | **O(N x A)** | **O(N x A)** | Baseline | Standard interview default for demonstrating full 2D state transitions. |
+
+*(where $A = \text{amount}, N = \text{coins.size}$)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Direct Array Indexing (`dp[amount]` vs `dp[dp.lastIndex]`)**: Accessing `dp[amount]` directly is 
+clearer and eliminates property getter evaluation overhead.
+* **Array Mutation Side Effects**: `coins.sort()` mutates the caller's parameter in-place. If API 
+contract requires immutability, sort a copy (`val sortedCoins = coins.sortedArray()`).
+* **Zero Amount Guard**: `if (amount == 0) return 1` provides an immediate **O(1)** exit condition 
+for amount 0 (1 way: empty set).
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bottom-Up Dynamic Programming (1D Table Pruned)
+// Time Complexity: O(N * amount) where N = coins.size | Auxiliary Space Complexity: O(amount)
+fun change(amount: Int, coins: IntArray): Int {
+    if (amount == 0) return 1
+    val dp = IntArray(amount + 1)
+    dp[0] = 1
+
+    coins.sort() // Sort coins to enable early outer loop break
+
+    for (coin in coins) {
+        if (coin > amount) break // Skip coins larger than amount
+        for (j in coin..amount) {
+            dp[j] += dp[j - coin]
+        }
+    }
+
+    return dp[amount]
+}
+
+// Approach 2: Bottom-Up Dynamic Programming (2D Table)
+// Time Complexity: O(N * amount) | Auxiliary Space Complexity: O(N * amount)
+fun change2D(amount: Int, coins: IntArray): Int {
+    val m = coins.size + 1
+    val n = amount + 1
+    val dp = Array(m) { IntArray(n) }
+
+    for (i in 0 until m) dp[i][0] = 1
+
+    for (i in 1 until m) {
+        val coin = coins[i - 1]
+        for (j in 1 until n) {
+            dp[i][j] = dp[i - 1][j] // Exclude current coin
+            if (j >= coin) {
+                dp[i][j] += dp[i][j - coin] // Include current coin
+            }
+        }
+    }
+
+    return dp[m - 1][amount]
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Combinations (LC 518) vs. Permutations (LC 377) Loop Ordering**:
+  * **Combinations (LC 518)**: Outer loop = `for (coin in coins)`, Inner loop = `for (j in coin..amount)`. 
+  Processes coins one by one, eliminating duplicate ordering permutations.
+  * **Permutations (LC 377)**: Outer loop = `for (j in 1..amount)`, Inner loop = `for (coin in coins)`. 
+  Evaluates all coins for each amount step, counting different orderings (**1+2** vs **2+1**) as 
+  distinct paths.
+* **Polynomial Generating Functions (∏ (1 / (1 - x^coin)) for coin ∈ coins)**:
+  * Mathematically, Coin Change II calculates the coefficient of (x^amount) in the power series expansion:
+    P(x) = ∏ [1 / (1 - x^coin)] = (1 + x^c_1 + x^(2c_1) + ...) · (1 + x^c_2 + ...) for coin ∈ coins
+  * In 1D DP, `dp[j] += dp[j - coin]` evaluates this polynomial expansion in-place in O(N * A) time!
+
+---
+
 ## Day 52 - LC 494. Target Sum
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
@@ -17,7 +107,7 @@ A collection of LeetCode problem solutions implemented in Kotlin.
     Let **P** be the sum of positive numbers, and **N** be the sum of negative numbers:
     **P - N = target**
     **P + N = totalSum**
-    Adding both equations: **2P = totalSum + target -> P = (totalSum + target) / 2**.
+    Adding both equations: **2P = totalSum + target ⇒ P = (totalSum + target) / 2**.
     This reduces LC 494 to **finding the number of subsets with sum equal to P = (totalSum + target) / 2 **!
   * **Parity & Bounds Guard**:
     If **target + totalSum < 0** or **(totalSum + target) % 2 != 0**, it is mathematically impossible 
