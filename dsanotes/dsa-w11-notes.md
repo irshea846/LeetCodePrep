@@ -10,7 +10,135 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] 2D DP
 - [ ] Tail Recursion
 
-## Day 53 - LC 518. Coin Change II
+## Day 55 - LC 1143. Longest Common Subsequence
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **2D Grid Subsequence Matching**: Finding the length of the longest subsequence common to two 
+  strings `text1` and `text2` requires comparing character prefixes `text1[0 ... i-1]` and 
+  `text2[0 ... j-1]`.
+  * **Match vs. Non-Match State Transitions**:
+    - **Match (`text1[i-1] == text2[j-1]`)**: Extend the common subsequence length from the top-left 
+    diagonal (`DP[i][j] = DP[i-1][j-1] + 1`).
+    - **Non-Match (`text1[i-1] != text2[j-1]`)**: Take the maximum of skipping a character from 
+    `text1` or `text2` (`DP[i][j] = max(DP[i-1][j], DP[i][j-1])`).
+  * **Single 1D Array Space Optimization (O(min(N, M)) Memory)**:
+    Since row i depends only on row i-1 (specifically top-left diagonal `DP[i-1][j-1]` and top 
+    `DP[i-1][j]`), we can compress memory down to a single 1D `IntArray(min(N, M) + 1)` by tracking 
+    the top-left diagonal value in a scalar variable `prevDiag`!
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When...                                                                   |
+ :--- | :--- | :--- | :--- |:------------------------------------------------------------------------------------|
+ **Single 1D DP Array** | **O(N x M)** | **O(min(N, M))** | **Staff Level (Optimal DP)** | Standard production choice; zero heap object allocations; minimal memory footprint. |
+ **Two 1D DP Arrays** | **O(N x M)** | **O(M)** | Good | Baseline 1D DP; requires array swap logic or object reference swapping.             |
+ **2D DP Table** | **O(N x M)** | **O(N x M)** | Baseline | Standard interview default for demonstrating full 2D state transitions.             |
+ **Bit-Parallel LCS (Myers)** | **O(N x M / 64)** | **O(M / 64)** | **Staff Level (Extreme)** | Short strings (N ≤ 64); evaluates 64 character comparisons per CPU cycle.           |
+
+*(where N = text1.length, M = text2.length)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Avoid `curr.clone()` Memory Churn**: Calling `prev = curr.clone()` inside an outer loop allocates 
+a **new `IntArray` on every row iteration**! Instead, track top-left diagonal state `prevDiag` in a 
+scalar variable within a single `IntArray`.
+* **String Swap Orientation Optimization**: Swapping strings (`if (text1.length < text2.length) text1 
+to text2 else text2 to text1`) guarantees that `IntArray` size is strictly bounded by O(min(N, M)).
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bottom-Up Dynamic Programming (Single 1D Table - Staff Level Optimal)
+// Time Complexity: O(N * M) | Auxiliary Space Complexity: O(min(N, M))
+fun longestCommonSubsequence1D(text1: String, text2: String): Int {
+    // Ensure s1 is shorter to guarantee O(min(N, M)) space
+    val (s1, s2) = if (text1.length < text2.length) text1 to text2 else text2 to text1
+    val n = s1.length
+    val dp = IntArray(n + 1)
+
+    for (c2 in s2) {
+        var prevDiag = 0 // Represents dp[i-1][j-1] (top-left diagonal)
+        for (j in 1..n) {
+            val temp = dp[j] // Save top value before overwriting
+            if (s1[j - 1] == c2) {
+                dp[j] = prevDiag + 1
+            } else {
+                dp[j] = maxOf(dp[j], dp[j - 1])
+            }
+            prevDiag = temp // Advance top-left diagonal for next iteration
+        }
+    }
+
+    return dp[n]
+}
+
+// Approach 2: Bottom-Up Dynamic Programming (2D Table)
+// Time Complexity: O(N * M) | Auxiliary Space Complexity: O(N * M)
+fun longestCommonSubsequence2D(text1: String, text2: String): Int {
+    val m = text1.length + 1
+    val n = text2.length + 1
+    val dp = Array(m) { IntArray(n) }
+
+    for (i in 1 until m) {
+        for (j in 1 until n) {
+            if (text1[i - 1] == text2[j - 1]) {
+                dp[i][j] = dp[i - 1][j - 1] + 1
+            } else {
+                dp[i][j] = maxOf(dp[i][j - 1], dp[i - 1][j])
+            }
+        }
+    }
+    return dp[m - 1][n - 1]
+}
+
+// Approach 3: Bit-Parallel LCS (Crochemore / Myers Bit-Vector Algorithm - Staff Level - 64x Speedup)
+// Time Complexity: O(N * M / 64) | Auxiliary Space Complexity: O(1) bitmask
+fun longestCommonSubsequenceBitParallel(text1: String, text2: String): Int {
+    val (s1, s2) = if (text1.length < text2.length) text1 to text2 else text2 to text1
+    val n = s1.length
+    if (n == 0 || s2.isEmpty()) return 0
+    if (n > 64) return longestCommonSubsequence1D(text1, text2) // Fallback for N > 64
+
+    val peq = LongArray(128)
+    for (i in 0 until n) {
+        val code = s1[i].code
+        if (code < 128) {
+            peq[code] = peq[code] or (1L shl i)
+        }
+    }
+
+    var s = -1L
+    for (c in s2) {
+        val code = c.code
+        val p = if (code < 128) peq[code] else 0L
+        val u = s and p
+        s = (s + u) or (s - u) // Bitwise parallel state transition
+    }
+
+    val mask = if (n == 64) -1L else (1L shl n) - 1L
+    return (s.inv() and mask).countOneBits()
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Two 1D Arrays (`clone()`) vs. Single 1D Array with Diagonal Tracking (`prevDiag`)**:
+  * Using `prev = curr.clone()` instantiates $M$ array allocations on the JVM Heap, triggering Young 
+  Generation Garbage Collection (GC) pauses.
+  * Maintaining a single `IntArray(min(N, M) + 1)` and capturing `prevDiag = temp` eliminates object 
+  allocations completely during execution!
+* **String Reconstructability (Reconstructing the LCS String)**:
+  * To reconstruct the actual LCS string (not just its length), a full 2D DP matrix is required to 
+  backtrack pointers from `DP[M][N]` back to `DP[0][0]`.
+  * **Hirschberg's Algorithm (Divide & Conquer + 1D DP)**: A mix-and-match and convoluted algorithm 
+  which reconstructs the actual LCS string in **O(N * M)** time, but it can achieve **O(min(N, M))** 
+  space! It is kind of rescue tool when dealing with large data like DNA alignment or git diff from
+  large files to avoid memory crash.
+* **Bit-Parallel LCS (Myers' Bit-Vector Algorithm)**:
+  * For **N ≤ 64**, LCS can be formulated as bitwise operations on a 64-bit `Long` bitmask, achieving 
+  64x SIMD speedup.
+
+---
+
+## Day 54 - LC 518. Coin Change II
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
   * **Unbounded Knapsack Combination Counting**: Finding the total number of unique coin combinations 
@@ -100,7 +228,7 @@ fun change2D(amount: Int, coins: IntArray): Int {
 
 ---
 
-## Day 52 - LC 494. Target Sum
+## Day 53 - LC 494. Target Sum
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
   * **Mathematical Reduction to 0/1 Subset Sum**:
@@ -221,7 +349,7 @@ fun findTargetSumWaysRecursion(nums: IntArray, target: Int): Int {
 
 ---
 
-## Day 51 - LC 416. Partition Equal Subset Sum
+## Day 52 - LC 416. Partition Equal Subset Sum
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
   * **0/1 Knapsack Decision Model**: Partitioning array into two equal subset sums requires finding 
