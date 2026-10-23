@@ -5,6 +5,59 @@ import kotlin.test.assertEquals
 
 class Week11DP2DTest {
 
+    // Day 55 - LC 1143. Longest Common Subsequence
+    @Test
+    fun longestCommonSubsequenceTest() {
+        var text1 = "abcde"
+        var text2 = "ace"
+        assertEquals(3, Week11DP2D.longestCommonSubsequence1D(text1, text2))
+        assertEquals(3, Week11DP2D.longestCommonSubsequence21D(text1, text2))
+        assertEquals(3, Week11DP2D.longestCommonSubsequence2D(text1, text2))
+        assertEquals(3, Week11DP2D.longestCommonSubsequenceBitParallel(text1, text2))
+
+        text1 = "abc"
+        text2 = "abc"
+        assertEquals(3, Week11DP2D.longestCommonSubsequence1D(text1, text2))
+        assertEquals(3, Week11DP2D.longestCommonSubsequence21D(text1, text2))
+        assertEquals(3, Week11DP2D.longestCommonSubsequence2D(text1, text2))
+        assertEquals(3, Week11DP2D.longestCommonSubsequenceBitParallel(text1, text2))
+
+        text1 = "abc"
+        text2 = "def"
+        assertEquals(0, Week11DP2D.longestCommonSubsequence1D(text1, text2))
+        assertEquals(0, Week11DP2D.longestCommonSubsequence21D(text1, text2))
+        assertEquals(0, Week11DP2D.longestCommonSubsequence2D(text1, text2))
+        assertEquals(0, Week11DP2D.longestCommonSubsequenceBitParallel(text1, text2))
+
+        text1 = "oxcpqrsvwf"
+        text2 = "shmtulqrypy"
+        assertEquals(2, Week11DP2D.longestCommonSubsequence1D(text1, text2))
+        assertEquals(2, Week11DP2D.longestCommonSubsequence21D(text1, text2))
+        assertEquals(2, Week11DP2D.longestCommonSubsequence2D(text1, text2))
+        assertEquals(2, Week11DP2D.longestCommonSubsequenceBitParallel(text1, text2))
+
+        text1 = "oxcpqrshmt"
+        text2 = "shmtulqrypy"
+        assertEquals(4, Week11DP2D.longestCommonSubsequence1D(text1, text2))
+        assertEquals(4, Week11DP2D.longestCommonSubsequence21D(text1, text2))
+        assertEquals(4, Week11DP2D.longestCommonSubsequence2D(text1, text2))
+        assertEquals(4, Week11DP2D.longestCommonSubsequenceBitParallel(text1, text2))
+
+        text1 = "abcdefghij"
+        text2 = "acfeigj"
+        assertEquals(5, Week11DP2D.longestCommonSubsequence1D(text1, text2))
+        assertEquals(5, Week11DP2D.longestCommonSubsequence21D(text1, text2))
+        assertEquals(5, Week11DP2D.longestCommonSubsequence2D(text1, text2))
+        assertEquals(5, Week11DP2D.longestCommonSubsequenceBitParallel(text1, text2))
+
+        text1 = "abcba"
+        text2 = "abcbcba"
+        assertEquals(5, Week11DP2D.longestCommonSubsequence1D(text1, text2))
+        assertEquals(5, Week11DP2D.longestCommonSubsequence21D(text1, text2))
+        assertEquals(5, Week11DP2D.longestCommonSubsequence2D(text1, text2))
+        assertEquals(5, Week11DP2D.longestCommonSubsequenceBitParallel(text1, text2))
+    }
+
     // Day 54 - LC 518. Coin Change II
     @Test
     fun changeTest() {

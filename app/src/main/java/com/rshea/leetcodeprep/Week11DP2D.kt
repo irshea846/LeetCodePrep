@@ -2,6 +2,127 @@ package com.rshea.leetcodeprep
 
 object Week11DP2D {
 
+    // Day 55 - LC 1143. Longest Common Subsequence
+    // Approach 1: Bottom-Up Dynamic Programming (Single 1D Table - Staff Level Optimal)
+    // Time Complexity: O(N * M) | Auxiliary Space Complexity: O(min(N, M))
+    fun longestCommonSubsequence1D(text1: String, text2: String): Int {
+        // Ensure s1 is shorter to guarantee O(min(N, M)) space
+        val (s1, s2) = if (text1.length < text2.length) text1 to text2 else text2 to text1
+        val n = s1.length
+        val dp = IntArray(n + 1)
+
+        for (c2 in s2) {
+            var prevDiag = 0 // Represents dp[i-1][j-1] (top-left diagonal)
+            for (j in 1..n) {
+                val temp = dp[j] // Save top value before overwriting
+                if (s1[j - 1] == c2) {
+                    dp[j] = prevDiag + 1
+                } else {
+                    dp[j] = maxOf(dp[j], dp[j - 1])
+                }
+                prevDiag = temp // Advance top-left diagonal for next iteration
+            }
+        }
+
+        return dp[n]
+    } 
+    
+    // Approach 2: Bottom-Up Dynamic Programming (Two 1D Table)
+    // Time Complexity: O(N * M) | Auxiliary Space Complexity: O(N)
+    fun longestCommonSubsequence21D(text1: String, text2: String): Int {
+        val m = text1.length + 1
+        val n = text2.length + 1
+        var prev = IntArray(n)
+        var curr = IntArray(n)
+
+        for (i in 1 until m) {
+            for (j in 1 until n) {
+                if (text1[i - 1] == text2[j - 1]) {
+                    curr[j] = prev[j - 1] + 1
+                } else {
+                    curr[j] = maxOf(curr[j - 1], prev[j])
+                }
+            }
+            val temp = prev; // curr.clone() <--- Bug / Object Churn
+            prev = curr;
+            curr = temp
+        }
+        return prev[n - 1]
+    }
+    // Analysis 1: longestCommonSubsequence21D(text1: String, text2: String) (Two 1D Arrays)
+    //    CRITICAL BUGS & PERFORMANCE PITFALLS in longestCommonSubsequence21D:
+    //
+    //    1. prev = curr.clone() Bug / Object Churn:
+    //      ◦ prev = curr.clone() allocates a NEW IntArray on every outer loop iteration
+    //      i in 1 .. m-1!
+    //      ◦ More dangerously, prev and curr now reference the same clone, but on the next
+    //      iteration i+1, curr[j] mutates curr, which means curr isn't re-cleared properly or prev
+    //      gets overwritten!
+    //      ◦ Correct Object Swap: Instead of curr.clone(), swap array references or swap variables
+    //      (val temp = prev; prev = curr; curr = temp) without ANY heap array allocations!
+    //
+    //    2. Space Optimization to O(min(M, N)):
+    //      ◦ Currently, space is O(text2.length).
+    //      ◦ If text1.length = 10,000 and text2.length = 10, IntArray(n) takes size 11.
+    //      ◦ If text1.length = 10 and text2.length = 10,000, IntArray(n) takes size 10,001!
+    //      ◦ Staff Optimization: If text1.length < text2.length, swap text1 and text2! Then allocate
+    //      dp arrays for the shorter string, guaranteeing space is strictly O(min(M, N)).
+    //
+    //    3. Single 1D Array Space Reduction O(min(M, N)) Space with 1 Array + 1 Variable):
+    //      ◦ We don't even need two full arrays (prev and curr)!
+    //      ◦ We can maintain a single 1D array dp = IntArray(n)!
+    //      ◦ To compute dp[j], we need dp[j-1] (from current row), dp[j] (from previous row), and
+    //      dp[j-1] (from previous row - top-left diagonal).
+    //      ◦ Storing dp[j-1] before updating dp[j] in a single scalar variable prevDiag allows 1D
+    //      space reduction using a single primitive IntArray!
+
+    // Approach 3: Bottom-Up Dynamic Programming (2D Table)
+    // Time Complexity: O(N * M) | Auxiliary Space Complexity: O(N * M)
+    fun longestCommonSubsequence2D(text1: String, text2: String): Int {
+        val m = text1.length + 1
+        val n = text2.length + 1
+        val dp = Array(m) { IntArray(n) }
+
+        for (i in 1 until m) {
+            for (j in 1 until n) {
+                if (text1[i - 1] == text2[j - 1]) {
+                    dp[i][j] = dp[i - 1][j - 1] + 1
+                } else {
+                    dp[i][j] = maxOf(dp[i][j - 1], dp[i - 1][j])
+                }
+            }
+        }
+        return dp[m - 1][n - 1]
+    }
+
+    // Approach 4: Bit-Parallel LCS (Myers' Bit-Vector Algorithm - Staff Level - 64x Speedup)
+    // Time Complexity: O(N * M / 64) | Auxiliary Space Complexity: O(1)
+    fun longestCommonSubsequenceBitParallel(text1: String, text2: String): Int {
+        val (s1, s2) = if (text1.length < text2.length) text1 to text2 else text2 to text1
+        val n = s1.length
+        if (n == 0 || s2.isEmpty()) return 0
+        if (n > 64) return longestCommonSubsequence1D(text1, text2)
+
+        val peq = LongArray(128)
+        for (i in 0 until n) {
+            val code = s1[i].code
+            if (code < 128) {
+                peq[code] = peq[code] or (1L shl i)
+            }
+        }
+
+        var s = -1L
+        for (c in s2) {
+            val code = c.code
+            val p = if (code < 128) peq[code] else 0L
+            val u = s and p
+            s = (s + u) or (s - u)
+        }
+
+        val mask = if (n == 64) -1L else (1L shl n) - 1L
+        return (s.inv() and mask).countOneBits()
+    }
+
     // Day 54 - LC 518. Coin Change II
     // Approach 1: Bottom-Up Dynamic Programming (1D Table)
     // Time Complexity: O(N * amount) where N = coins.size | Auxiliary Space Complexity: O(amount)
