@@ -76,18 +76,27 @@ class Week11DP2DTest {
         val nums1 = intArrayOf(1, 1, 1, 1, 1)
         val nums2 = intArrayOf(1)
         val nums3 = intArrayOf(1, 0)
+        val nums4 = intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
 
         assertEquals(5, Week11DP2D.findTargetSumWays(nums1, 3))
         assertEquals(1, Week11DP2D.findTargetSumWays(nums2, 1))
         assertEquals(2, Week11DP2D.findTargetSumWays(nums3, 1))
+        assertEquals(524288, Week11DP2D.findTargetSumWays(nums4, 1))
+
+        assertEquals(5, Week11DP2D.findTargetSumWaysBitset(nums1, 3))
+        assertEquals(1, Week11DP2D.findTargetSumWaysBitset(nums2, 1))
+        assertEquals(2, Week11DP2D.findTargetSumWaysBitset(nums3, 1))
+        assertEquals(524288, Week11DP2D.findTargetSumWaysBitset(nums4, 1))
 
         assertEquals(5, Week11DP2D.findTargetSumWaysMemoization(nums1, 3))
         assertEquals(1, Week11DP2D.findTargetSumWaysMemoization(nums2, 1))
         assertEquals(2, Week11DP2D.findTargetSumWaysMemoization(nums3, 1))
+        assertEquals(524288, Week11DP2D.findTargetSumWaysMemoization(nums4, 1))
 
         assertEquals(5, Week11DP2D.findTargetSumWaysRecursion(nums1, 3))
         assertEquals(1, Week11DP2D.findTargetSumWaysRecursion(nums2, 1))
         assertEquals(2, Week11DP2D.findTargetSumWaysRecursion(nums3, 1))
+        assertEquals(524288, Week11DP2D.findTargetSumWaysRecursion(nums4, 1))
     }
 
     // Day 52 - LC 416. Partition Equal Subset Sum
@@ -97,21 +106,25 @@ class Week11DP2DTest {
         val nums2 = intArrayOf(1, 2, 3, 5)
         val nums3 = intArrayOf(3, 3, 3, 4, 5)
         val nums4 = intArrayOf(1, 2, 5)
+        val nums5 = intArrayOf(14, 9, 8, 4, 3, 2)
 
         assertEquals(true, Week11DP2D.canPartition(nums1))
         assertEquals(false, Week11DP2D.canPartition(nums2))
         assertEquals(true, Week11DP2D.canPartition(nums3))
         assertEquals(false, Week11DP2D.canPartition(nums4))
+        assertEquals(true, Week11DP2D.canPartition(nums5))
 
         assertEquals(true, Week11DP2D.canPartition2D(nums1))
         assertEquals(false, Week11DP2D.canPartition2D(nums2))
         assertEquals(true, Week11DP2D.canPartition2D(nums3))
         assertEquals(false, Week11DP2D.canPartition2D(nums4))
+        assertEquals(true, Week11DP2D.canPartition2D(nums5))
 
         assertEquals(true, Week11DP2D.canPartitionBitset(nums1))
         assertEquals(false, Week11DP2D.canPartitionBitset(nums2))
         assertEquals(true, Week11DP2D.canPartitionBitset(nums3))
         assertEquals(false, Week11DP2D.canPartitionBitset(nums4))
+        assertEquals(true, Week11DP2D.canPartitionBitset(nums5))
 
     }
 

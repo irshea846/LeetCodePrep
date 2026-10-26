@@ -191,7 +191,26 @@ object Week11DP2D {
         return dp[sumOfPos]
     }
 
-    // Approach 2: Top-Down Memoized DFS (Negative Index Offset)
+    // Approach 2: Bitwise Parallelism / Polynomial Shift Optimization (Staff Level)
+    // Time Complexity: O(N * targetPos * K / 64) = O(N * targetPos / 2) | Auxiliary Space Complexity: O(targetPos / 2)
+    fun findTargetSumWaysBitset(nums: IntArray, target: Int): Int {
+        val totalSum = nums.sum()
+        if (kotlin.math.abs(target) > totalSum || (totalSum + target) % 2 != 0) return 0
+        val targetPos = (totalSum + target) / 2
+
+        val k = 32 // 32 bits per counter slot (supports counts up to 4,294,967,295 without slot carryover)
+        var poly = 1.toBigInteger() // Slot 0 initialized to 1 way
+
+        for (num in nums) {
+            // Polynomial addition: poly = poly + (poly << (num * K))
+            poly = poly.add(poly.shiftLeft(num * k))
+        }
+
+        // Extract 32-bit counter value at slot targetPos
+        return poly.shiftRight(targetPos * k).and(0xFFFFFFFFL.toBigInteger()).toInt()
+    }
+
+    // Approach 3: Top-Down Memoized DFS (Negative Index Offset)
     // Time Complexity: O(N * totalSum) | Auxiliary Space Complexity: O(N * totalSum)
     fun findTargetSumWaysMemoization(nums: IntArray, target: Int): Int {
         val totalSum = nums.sum()
@@ -245,21 +264,20 @@ object Week11DP2D {
         if (1 == sum % 2) return false
         val target = sum / 2
         val m = nums.size
-        val n = target + 1
-        val dp = BooleanArray(n)
+        val dp = BooleanArray(target + 1)
         dp[0] = true
 
-        for (i in 0 until m) {
-            for (j in n - 1 downTo 1) {
-                if (j >= nums[i]) {
-                    dp[j] = dp[j] || dp[j - nums[i]]
+        for (num in nums) {
+            for (j in target downTo 1) {
+                if (j >= num) {
+                    dp[j] = dp[j] || dp[j - num]
                 }
-                if (dp[j] && j == n - 1) {
+                if (dp[j] && j == target) {
                     return true
                 }
             }
         }
-        return dp[n - 1]
+        return dp[target] //dp[n - 1]
     }
     //    Code Analysis 1: Review Findings for canPartition (1D DP):
     //
@@ -307,7 +325,6 @@ object Week11DP2D {
         val dp = Array(m) { BooleanArray(n) }
 
         for (i in 0 until m) dp[i][0] = true
-        for (j in 1 until n) dp[0][j] = false
 
         for (i in 1 until m) {
             for (j in 1 until n) {
@@ -346,6 +363,7 @@ object Week11DP2D {
 
         for (num in nums) {
             bitset = bitset or (bitset shl num) // Bitwise shift evaluates 64 target sums in 1 CPU cycle
+            println("$num --- ${bitset.toString(2)}")
         }
 
         return bitset.testBit(target)
