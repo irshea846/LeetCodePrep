@@ -160,7 +160,7 @@ fun longestCommonSubsequenceBitParallel(text1: String, text2: String): Int {
  **1D DP (Pruned & Sorted)** | **O(N x A)** | **O(A)** | **Staff Level (Optimal)** | Standard production choice; **A = amount, N = coins.size**              |
  **2D DP Table** | **O(N x A)** | **O(N x A)** | Baseline | Standard interview default for demonstrating full 2D state transitions. |
 
-*(where $A = \text{amount}, N = \text{coins.size}$)*
+*(where A = amount, N = coins.size)*
 
 ### 3. Native Kotlin Syntax Pitfalls
 * **Direct Array Indexing (`dp[amount]` vs `dp[dp.lastIndex]`)**: Accessing `dp[amount]` directly is 
@@ -247,11 +247,12 @@ fun change2D(amount: Int, coins: IntArray): Int {
 ### 2. Complexity Boundaries
 * Comparison Matrix
 
- Approach | Time | Space | Performance | Best Used When...                                                                        |
- :--- | :--- | :--- | :--- |:-----------------------------------------------------------------------------------------|
- **0/1 Subset Sum 1D DP** | **O(N x S)** | **O(S)** | **Staff Level (Optimal)** | Standard production choice; S = (totalSum + target) / 2.                                 |
+ Approach | Time                | Space               | Performance | Best Used When...                                                                        |
+ :--- |:--------------------|:--------------------| :--- |:-----------------------------------------------------------------------------------------|
+ **Bitset Shift Optimization** | **O(N x S / 32)**   | **O(S / 32)**       | **Staff Level (Extreme)** | Zero object allocations; 32x hardware SIMD parallelism.                                  |
+ **0/1 Subset Sum 1D DP** | **O(N x S)**        | **O(S)**            | **Staff Level (Optimal)** | Standard production choice; S = (totalSum + target) / 2.                                 |
  **Top-Down Memoized DFS** | **O(N x totalSum)** | **O(N x totalSum)** | Peak (Canonical) | Standard interview choice for demonstrating memoization on negative index state offsets. |
- **Un-memoized Brute Force DFS** | **O(2^N)** | **O(N)** | Poor | Exponential time limit exceeded (TLE) for N > 25.                                        |
+ **Un-memoized Brute Force DFS** | **O(2^N)**          | **O(N)**            | Poor | Exponential time limit exceeded (TLE) for N > 25.                                        |
 
 *(where N = nums.size, S = (totalSum + target) / 2)*
 
@@ -279,6 +280,25 @@ fun findTargetSumWays(nums: IntArray, target: Int): Int {
     }
 
     return dp[sumOfPos]
+}
+
+// Approach 2: Bitwise Parallelism / Polynomial Shift Optimization (Staff Level)
+// Time Complexity: O(N * targetPos / 64) | Auxiliary Space Complexity: O(targetPos / 64)
+fun findTargetSumWaysBitset(nums: IntArray, target: Int): Int {
+  val totalSum = nums.sum()
+  if (kotlin.math.abs(target) > totalSum || (totalSum + target) % 2 != 0) return 0
+  val targetPos = (totalSum + target) / 2
+
+  val k = 32 // 32 bits per counter slot (supports counts up to 4,294,967,295 without slot carryover)
+  var poly = 1.toBigInteger() // Slot 0 initialized to 1 way
+
+  for (num in nums) {
+    // Polynomial addition: poly = poly + (poly << (num * K))
+    poly = poly.add(poly.shiftLeft(num * k))
+  }
+
+  // Extract 32-bit counter value at slot targetPos
+  return poly.shiftRight(targetPos * k).and(0xFFFFFFFFL.toBigInteger()).toInt()
 }
 
 // Approach 2: Top-Down Memoized DFS (Negative Index Offset)
@@ -336,16 +356,21 @@ fun findTargetSumWaysRecursion(nums: IntArray, target: Int): Int {
   * **Reduced 1D Subset Sum DP**: **2 * ∑(P) = target + ∑(nums)  ⇒  ∑(P) = (target + ∑(nums)) / 2**. 
   Reduces space down to a 1D array of size P + 1 with zero negative index offsets!
 * **Bitwise Parallelism for Subset Sum Counting (Polynomial Generating Functions)**:
-  * **Boolean Reachability (LC 416)**: `bitset = bitset or (bitset shl num)` evaluates 64 target sum 
-  transitions in 1 CPU cycle (O(N × S / 64) time).
-  * **Subset Sum Counting (LC 494)**: The number of ways to form target sums corresponds to polynomial 
-  coefficients of the generating function:
+  * **Boolean Reachability (LC 416 - $1$ Bit Per Slot)**: `bitset = bitset or (bitset shl num)` 
+  evaluates 64 boolean target sums simultaneously in 1 CPU cycle (64x speedup).
+  * **Subset Sum Counting (LC 494 - $32$ Bits Per Slot)**: The number of ways to form target sums 
+  corresponds to polynomial coefficients of the generating function:
     `P(x) = (1 + x^num_1) × (1 + x^num_2) × ... × (1 + x^num_N) = ∑ dp[j] x^j`
-  By packing K-bit counter slots (e.g., K = 16 bits per slot) into a `BigInteger`, the state 
-  transition `DP[j] = DP[j] + DP[j - num]` simplifies to a single bitwise shift and addition:
+  By packing K-bit counter slots ($K = 32$ bits per slot) into a `BigInteger`, the state transition 
+  `DP[j] = DP[j] + DP[j - num]` simplifies to a single bitwise shift and addition:
     `poly = poly + (poly << (num * K))`
-  Evaluating **`64 / K`** slot additions per CPU instruction achieves hardware SIMD parallelism for subset sum counting!
-  transitions per CPU instruction, achieving hardware SIMD parallelism.
+  * **Parallelism Ratio**: With K = 32 bits per slot, a single 64-bit CPU word addition adds 
+  **64 / 32 = 2 counter slots in parallel per 64-bit register word (2x SIMD word parallelism)**, 
+  while shifting all S slots in 1 bitwise shift operation!
+  * **Counter Slot Size Requirement (K = 32 bits)**: Since N elements can produce up to 2^N ways 
+  (e.g., 20 zeros produces 2^{20} = 524,288 ways), each slot must be allocated K = 32 bits 
+  (0xFFFFFFFFL mask) to hold counts up to (2^{32} - 1 = 4,294,967,295) without carrying over into 
+  adjacent slots!
 
 ---
 
