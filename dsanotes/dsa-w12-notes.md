@@ -10,7 +10,95 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Advanced 2D DP
 - [ ] Tail Recursion
 
-## Day 56 - LC 62. Unique Paths
+## Day 58 - LC 64. Minimum Path Sum
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Grid Path Sum Overlapping Subproblems**: To reach cell (i, j), you must come from cell (i-1, j) 
+  (top) or cell (i, j-1) (left). Thus, minPathSum(i, j) = grid[i][j] + min(minPathSum(i-1, j), 
+  minPathSum(i, j-1)).
+  * **Branchless Pre-filling Optimization**: Pre-filling row 0 and col 0 before entering the main 
+  inner loop eliminates M * N inner `if-else` branch checks!
+  * **Space Optimization (O(min(M, N)) Space)**: Maintaining a 1D DP table representing the active 
+  row compresses memory down to O(min(M, N) without mutating the input matrix.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **Branchless In-Place DP** | **O(M * N)** | **O(1)** | **Staff Level (Extreme)** | Auxiliary $O(1)$ memory; mutates input grid in-place. |
+ **Branchless 1D DP** | **O(M * N)** | **O(min(M, N))** | **Staff Level (Optimal DP)** | Standard production choice; preserves input parameter immutability. |
+ **2D DP Table** | **O(M * N)** | **O(M * N)** | Baseline | Standard interview default for demonstrating full 2D state transitions. |
+
+*(where M = m, N = n)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Branch Elimination**: Pre-filling row 0 (`for (j in 1 until cols) dp[j] = dp[j-1] + grid[0][j]`) 
+and column 0 (`dp[0] += grid[i][0]`) removes all inner loop boundary checks (`if (i == 0 || j == 0)`).
+* **Input Mutation Side Effects**: `grid[i][j] += minOf(...)` achieves O(1) space, but mutates caller 
+parameter in-place. In multithreaded systems or shared data pipelines, prefer 1D DP with O(min(M, N))
+space.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bottom-Up Dynamic Programming (Branchless 1D Table - Staff Level Optimal)
+// Time Complexity: O(m * n) | Auxiliary Space Complexity: O(min(m, n))
+fun minPathSum1D(grid: Array<IntArray>): Int {
+    if (grid.isEmpty() || grid[0].isEmpty()) return 0
+    val rows = grid.size
+    val cols = grid[0].size
+
+    val dp = IntArray(cols)
+    dp[0] = grid[0][0]
+    for (j in 1 until cols) {
+        dp[j] = dp[j - 1] + grid[0][j] // Branchless pre-fill row 0
+    }
+
+    for (i in 1 until rows) {
+        dp[0] += grid[i][0] // Leftmost column transition
+        for (j in 1 until cols) {
+            dp[j] = minOf(dp[j], dp[j - 1]) + grid[i][j] // Branchless inner transition
+        }
+    }
+
+    return dp[cols - 1]
+}
+
+// Approach 2: Bottom-Up Dynamic Programming (Branchless In-Place)
+// Time Complexity: O(m * n) | Auxiliary Space Complexity: O(1)
+fun minPathSumInPlace(grid: Array<IntArray>): Int {
+    if (grid.isEmpty() || grid[0].isEmpty()) return 0
+    val m = grid.size
+    val n = grid[0].size
+
+    // Branchless pre-fill row 0 and col 0
+    for (j in 1 until n) grid[0][j] += grid[0][j - 1]
+    for (i in 1 until m) grid[i][0] += grid[i - 1][0]
+
+    for (i in 1 until m) {
+        for (j in 1 until n) {
+            grid[i][j] += minOf(grid[i - 1][j], grid[i][j - 1])
+        }
+    }
+
+    return grid[m - 1][n - 1]
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Branchless Execution vs. Inner Branch Checking**:
+  * In the naive 1D / In-Place DP, `if (i == 0 && j == 0) ... else if (i == 0) ...` performs 4 branch 
+  evaluations per cell (4 * M * N total conditional checks).
+  * Pre-filling row 0 and column 0 upfront eliminates all inner branch checks, maximizing CPU instruction pipelining and cache throughput!
+* **In-Place Mutation (O(1)) Space) vs. Parameter Immutability**:
+  * In-place mutation saves memory by re-using `grid[i][j]`, but destroys input parameter state.
+  * In production systems (e.g. gRPC services or Kotlin Coroutine worker threads), mutating shared 
+  parameters creates subtle thread-safety bugs. 1D DP with O(min(M, N)) space is strictly preferred 
+  when API immutability contracts must be honored.
+
+---
+
+## Day 57 - LC 62. Unique Paths
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
   * **Overlapping Subproblems Invariant**: To reach cell (i, j), you must come from cell (i - 1, j) (top) 
