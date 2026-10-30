@@ -2,6 +2,93 @@ package com.rshea.leetcodeprep
 
 object Week12AdvDP2D {
 
+    // Day 60 - LC 97. Interleaving String
+    // Approach 1: Bottom-Up Dynamic Programming (1D Table - Staff Level Optimal)
+    // Time Complexity: O(m * n) | Auxiliary Space Complexity: O(min(m, n))
+    fun isInterleave1D(s1: String, s2: String, s3: String): Boolean {
+        if (s3.length != s1.length + s2.length) return false
+        val (t1, t2) = if (s1.length >= s2.length) s1 to s2 else s2 to s1
+        val m = t1.length + 1
+        val n = t2.length + 1
+        val dp = BooleanArray(n)
+        dp[0] = true
+        for (j in 1 until n) {
+            dp[j] = dp[j - 1] && t2[j - 1] == s3[j - 1]
+        }
+
+        for (i in 1 until m) {
+            dp[0] = dp[0] && t1[i - 1] == s3[i - 1]
+
+            var rowHasValidPath = dp[0] // Track row continuity to trigger early branch short-circuits
+
+            for (j in 1 until n) {
+                val matchStr1 = dp[j] && t1[i - 1] == s3[i + j - 1]
+                val matchStr2 = dp[j - 1] && t2[j - 1] == s3[i + j - 1]
+                dp[j] = matchStr1 || matchStr2
+
+                if (dp[j]) {
+                    rowHasValidPath = true
+                }
+            }
+
+            // Early Row Termination Guard: If an entire row vector becomes false, the goal is dead
+            if (!rowHasValidPath) return false
+
+        }
+
+        return dp[n - 1]
+    }
+    //    Code Analysis 1: isInterleave1D(s1: String, s2: String, s3: String): Boolean
+    //    Staff-Level Review Findings for isInterleave1D:
+    //
+    //    1. Length Invariant Check:
+    //      ◦ if (s3.length != s1.length + s2.length) return false O(1) time guard).
+    //
+    //    2. Shorter String Memory Alignment:
+    //      ◦ val (t1, t2) = if (s1.length >= s2.length) s1 to s2 else s2 to s1
+    //      ◦ t2 is the shorter string, so n = t2.length + 1 = min(M, N) + 1.
+    //      ◦ BooleanArray(n) allocates memory strictly proportional to O(min(M, N)).
+    //
+    //    3. Early Row Termination Guard (rowHasValidPath):
+    //      ◦ Brilliant Staff-Level Optimization! If an entire row in the 1D DP table becomes false,
+    //      no valid interleaving path can ever cross this row to reach the bottom-right corner (M, N).
+    //      ◦ if (!rowHasValidPath) return false immediately short-circuits the outer loop, saving
+    //      thousands of iterations on invalid test strings!
+    //    4. Boolean Micro-Optimization:
+    //      ◦ dp[j] = (dp[j] && t1[i - 1] == s3[i + j - 1]) || (dp[j - 1] && t2[j - 1] == s3[i + j - 1])
+    //      ◦ Short-circuiting dp[j] check before string character comparisons avoids character
+    //      indexing overhead if dp[j] or dp[j-1] is false!
+
+    // Approach 2: Bottom-Up Dynamic Programming (2D Table)
+    // Time Complexity: O(m * n) | Auxiliary Space Complexity: O(m * n)
+    fun isInterleave2D(s1: String, s2: String, s3: String): Boolean {
+        if (s3.length != s1.length + s2.length) return false
+        val m = s1.length + 1
+        val n = s2.length + 1
+        val dp = Array(m) { BooleanArray(n) }
+        dp[0][0] = true
+
+        for (i in 1 until m) {
+            dp[i][0] = dp[i - 1][0] && s1[i - 1] == s3[i - 1]
+        }
+        for (j in 1 until n) {
+            dp[0][j] = dp[0][j - 1] && s2[j - 1] == s3[j - 1]
+        }
+
+        for (i in 1 until m) {
+            for (j in 1 until n) {
+                dp[i][j] = dp[i - 1][j] && s1[i - 1] == s3[i + j - 1] ||
+                        dp[i][j - 1] && s2[j - 1] == s3[i + j - 1]
+            }
+        }
+
+        return dp[m - 1][n - 1]
+    }
+    //    Code Analysis 2: isInterleave2D (2D DP Table)
+    //
+    //    Review Findings for isInterleave2D:
+    //      • Correct baseline 2D DP implementation (O(M * N) time, O(M * N) space).
+
     // Day 59 - LC 72. Edit Distance
     // Approach 1: Bottom-Up Dynamic Programming (1D Table)
     // Time Complexity: O(m * n) | Auxiliary Space Complexity: O(min(m, n))
@@ -33,7 +120,6 @@ object Week12AdvDP2D {
     //    Code Analysis 1: minDistance(word1: String, word2: String): Int (Single 1D DP Array)
     //
     //    Critical Bug in minDistance:
-
     //    1. dp[0] Initialization inside Row Loop:
     //      ◦ For row i, the 0th column in 2D DP corresponds to converting prefix s1[0 ... i-1]
     //      to empty string s2, which requires i deletions (dp[0] = i).
@@ -82,11 +168,9 @@ object Week12AdvDP2D {
     }
     //    Code Analysis 2: minDistance21D (Two 1D Arrays)
     //    Review Findings for minDistance21D:
-    //
     //    1. Correct Logic & Object Swap:
     //      ◦ Swaps array references val temp = prev; prev = curr; curr = temp without allocating
     //      new arrays during execution!
-    //
     //    2. Minor Optimization:
     //      ◦ Swap s1 and s2 so s2 is shorter: n = min(M, N) + 1.
 
@@ -115,7 +199,6 @@ object Week12AdvDP2D {
     }
     //    Code Analysis 3: minDistance2D (2D Table)
     //    Review Findings for minDistance2D:
-    //
     //      • Correct baseline 2D Edit Distance implementation (O(M * N) time, O(M * N) space).
 
     // Approach 4: Ukkonen's Bounded Edit Distance / Diagonal Banded DP (Staff Level Extreme)
