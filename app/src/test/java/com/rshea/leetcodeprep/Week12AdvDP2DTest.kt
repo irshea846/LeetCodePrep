@@ -5,6 +5,43 @@ import kotlin.test.assertEquals
 
 class Week12AdvDP2DTest {
 
+    // Day 60 - LC 97. Interleaving String
+    @Test
+    fun isInterleaveTest() {
+        var s1 = "aabcc"
+        var s2 = "dbbca"
+        var s3 = "aadbbcbcac"
+        assertEquals(true, Week12AdvDP2D.isInterleave1D(s1, s2, s3))
+        assertEquals(true, Week12AdvDP2D.isInterleave2D(s1, s2, s3))
+
+        s1 = "aabcc"
+        s2 = "dbbca"
+        s3 = "aadbbbaccc"
+        assertEquals(false, Week12AdvDP2D.isInterleave1D(s1, s2, s3))
+        assertEquals(false, Week12AdvDP2D.isInterleave2D(s1, s2, s3))
+
+        s1 = "a"
+        s2 = ""
+        s3 = "c"
+        assertEquals(false, Week12AdvDP2D.isInterleave1D(s1, s2, s3))
+        assertEquals(false, Week12AdvDP2D.isInterleave2D(s1, s2, s3))
+
+        s1 = "aaa"
+        s2 = "bbb"
+        s3 = "aaaaaa"
+        assertEquals(false, Week12AdvDP2D.isInterleave1D(s1, s2, s3))
+        assertEquals(false, Week12AdvDP2D.isInterleave2D(s1, s2, s3))
+
+        s1 = "aabaac"
+        s2 = "aadaaeaaf"
+        s3 = "aadaaeaabaafaac"
+        assertEquals(true, Week12AdvDP2D.isInterleave1D(s1, s2, s3))
+        assertEquals(true, Week12AdvDP2D.isInterleave2D(s1, s2, s3))
+
+
+    }
+
+
     // Day 59 - LC 72. Edit Distance
     @Test
     fun minDistanceTest() {
