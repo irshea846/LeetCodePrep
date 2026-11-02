@@ -230,7 +230,7 @@ fun changeMemoization(amount: Int, coins: IntArray): Int {
 
 ### 4. Code Block
 ```kotlin
-    // Approach 1: Bitwise Parallelism / Polynomial Shift Optimization (Staff Level)
+// Approach 1: Bitwise Parallelism / Polynomial Shift Optimization (Staff Level)
 // Time Complexity: O(N * targetPos * K / 64) = O(N * targetPos / 2)
 // Auxiliary Space Complexity: O(targetPos / 2)
 fun findTargetSumWaysBitset(nums: IntArray, target: Int): Int {
