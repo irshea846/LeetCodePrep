@@ -22,6 +22,10 @@ object Week12AdvDP2D {
             var rowHasValidPath = dp[0] // Track row continuity to trigger early branch short-circuits
 
             for (j in 1 until n) {
+
+                // Perfect In-Place Invariant Strategy:
+                // dp[j] currently holds the top value (from row i-1)
+                // dp[j-1] has already been updated in this row sweep, meaning it holds the clean left value!
                 val matchStr1 = dp[j] && t1[i - 1] == s3[i + j - 1]
                 val matchStr2 = dp[j - 1] && t2[j - 1] == s3[i + j - 1]
                 dp[j] = matchStr1 || matchStr2

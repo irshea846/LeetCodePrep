@@ -236,7 +236,8 @@ fun minDistance2D(word1: String, word2: String): Int {
 
 // Approach 4: Ukkonen's Bounded Edit Distance / Diagonal Banded DP (Staff Level Extreme)
 // Time Complexity: O(K * min(M, N)) | Auxiliary Space Complexity: O(K)
-fun minDistanceBanded(word1: String, word2: String, k: Int = maxOf(word1.length, word2.length)): Int {
+fun minDistanceBanded(word1: String, word2: String): Int {
+    val k: Int = maxOf(word1.length, word2.length)
     val m = word1.length
     val n = word2.length
     
@@ -289,30 +290,30 @@ fun minDistanceBanded(word1: String, word2: String, k: Int = maxOf(word1.length,
 // Approach 5: Optimal String Alignment Distance (Damerau-Levenshtein 4-Operation Extension)
 // Time Complexity: O(m * n) | Auxiliary Space Complexity: O(m * n)
 fun damerauLevenshteinDistance(s1: String, s2: String): Int {
-  val m = s1.length + 1
-  val n = s2.length + 1
-  val dp = Array(m) { IntArray(n) }
-
-  for (i in 0 until m) dp[i][0] = i
-  for (j in 0 until n) dp[0][j] = j
-
-  for (i in 1 until m) {
-    for (j in 1 until n) {
-      val cost = if (s1[i - 1] == s2[j - 1]) 0 else 1
-      dp[i][j] = minOf(
-        dp[i - 1][j] + 1,       // Deletion
-        dp[i][j - 1] + 1,       // Insertion
-        dp[i - 1][j - 1] + cost // Substitution / Match
-      )
-
-      // 4th Operation: Transposition of adjacent characters (e.g., 'ca' -> 'ac' in 1 edit)
-      if (i > 1 && j > 1 && s1[i - 1] == s2[j - 2] && s1[i - 2] == s2[j - 1]) {
-        dp[i][j] = minOf(dp[i][j], dp[i - 2][j - 2] + 1)
-      }
+    val m = s1.length + 1
+    val n = s2.length + 1
+    val dp = Array(m) { IntArray(n) }
+  
+    for (i in 0 until m) dp[i][0] = i
+    for (j in 0 until n) dp[0][j] = j
+  
+    for (i in 1 until m) {
+        for (j in 1 until n) {
+            val cost = if (s1[i - 1] == s2[j - 1]) 0 else 1
+            dp[i][j] = minOf(
+              dp[i - 1][j] + 1,       // Deletion
+              dp[i][j - 1] + 1,       // Insertion
+              dp[i - 1][j - 1] + cost // Substitution / Match
+            )
+      
+            // 4th Operation: Transposition of adjacent characters (e.g., 'ca' -> 'ac' in 1 edit)
+            if (i > 1 && j > 1 && s1[i - 1] == s2[j - 2] && s1[i - 2] == s2[j - 1]) {
+                dp[i][j] = minOf(dp[i][j], dp[i - 2][j - 2] + 1)
+            }
+        }
     }
-  }
-
-  return dp[m - 1][n - 1]
+  
+    return dp[m - 1][n - 1]
 }
 ```
 
@@ -458,7 +459,7 @@ fun uniquePathsMath(m: Int, n: Int): Int {
     val total = m + n - 2
     var result = 1L
 
-    for (i in 1..k) {
+    for (i in 1 .. k) {
         result = result * (total - k + i) / i // Interleaved division prevents Long overflow
     }
 
