@@ -3,6 +3,107 @@ package com.rshea.leetcodeprep
 import kotlin.math.pow
 object Week13AdvDPLinear {
 
+    // Day 63 - LC 131. Palindrome Partitioning
+    // Approach 1: Backtracking (DFS)
+    // Time Complexity: O(N × 2ⁿ) | Auxiliary Space Complexity: O(N²)
+    fun partition(s: String): List<List<String>> {
+        val list = mutableListOf<List<String>>()
+        val n = s.length
+        val isPalindrome = Array(n) { BooleanArray(n) }
+
+        for (i in n - 1 downTo 0) {
+            for (j in i until n) {
+                isPalindrome[i][j] = s[i] == s[j] && (j - i <= 2 || isPalindrome[i + 1][j - 1])
+            }
+        }
+
+        fun backtrack(i: Int, sublist: MutableList<String>) {
+            if (i == n) {
+                list.add(ArrayList(sublist))
+                return
+            }
+
+            for (j in i until n) {
+                if (isPalindrome[i][j]) {
+                    sublist.add(s.substring(i, j + 1))
+                    backtrack(j + 1, sublist)
+                    sublist.removeAt(sublist.lastIndex)
+                }
+            }
+        }
+
+        backtrack(0, mutableListOf())
+        return list
+    }
+    // Code Analysis 1: partition(s: String): List<List<String>> (Backtracking + 2D DP)
+    //    1. 2D DP Palindrome Matrix Pre-computation (O(N²) Memoization)
+    //      * The Highlight:
+    //          ◦ You pre-computed the 2D DP table isPalindrome[i][j] in O(N²) time!
+    //          ◦ Recurrence Relation:
+    //              isPalindrome[i][j] = (s[i] == s[j]) && (j - i ≤ 2 || isPalindrome[i + 1][j - 1])
+    //          ◦ Why this is great: Without 2D DP pre-computation, verifying if s[ i … j ] is a
+    //          palindrome inside the backtracking loop takes O(N) per candidate branch, increasing
+    //          total time from O(N × 2ⁿ) to O(N² × 2ⁿ).
+    //          ◦ Pre-computing the 2D DP matrix reduces palindrome validity checks during
+    //          backtracking to O(1)!
+    //    2. Memory Allocation & Garbage Collection Optimizations (Staff Level)
+    //      * Array(n) { BooleanArray(n) } Heap Churn:
+    //          ◦ Array(n) { BooleanArray(n) } allocates N+1 separate heap objects.
+    //          ◦ For N <= 16, we can use a Flat 1D BooleanArray(n * n) or a Bitmask/BitSet!
+    //      * On-The-Fly Dynamic Backtracking with Pre-computed Palindrome Expansion (Zero O(N²)
+    //      Pre-computation Allocation):
+    //          ◦ Alternatively, we can check palindromes on-the-fly during backtracking using
+    //          expanding two-pointers or memoization, OR pre-compute isPalindrome table using flat
+    //          1D boolean array.
+    //          ◦ Even cleaner: In Kotlin, pre-populating
+    //              val isPalindrome = Array(n) { BooleanArray(n) }
+    //          and pre-allocating path as ArrayList<String>(n) avoids sublist re-allocations in
+    //          recursive calls.
+    //      * s.substring(i, j + 1) Object Churn:
+    //          ◦ s.substring(i, j + 1) creates a String heap object every time a palindrome is
+    //          explored.
+    //          ◦ Since we must output List<String>, s.substring is necessary for the final output
+    //          lists, but pre-allocating the single mutable stack path (ArrayList<String>(n)) across
+    //          recursive frames avoids object allocations per level.
+
+
+    // Approach 2: Backtracking + On-the-Fly Two-Pointers (O(N) Space)
+    // Time Complexity: O(N * 2^N) | Auxiliary Space Complexity: O(N) recursion stack
+    fun partitionTwoPointers(s: String): List<List<String>> {
+        val result = mutableListOf<List<String>>()
+        val n = s.length
+        val path = ArrayList<String>(n)
+
+        fun isPalindrome(l: Int, r: Int): Boolean {
+            var left = l
+            var right = r
+            while (left < right) {
+                if (s[left++] != s[right--]) return false
+            }
+            return true
+        }
+
+        fun backtrack(start: Int) {
+            if (start == n) {
+                result.add(ArrayList(path))
+                return
+            }
+
+            for (j in start until n) {
+                if (isPalindrome(start, j)) {
+                    path.add(s.substring(start, j + 1))
+                    backtrack(j + 1)
+                    path.removeAt(path.lastIndex)
+                }
+            }
+        }
+
+        backtrack(0)
+        return result
+    }
+
+
+    // Day 62 - LC 343. Integer Break
     // Approach 1: Mathematical Constant Pipeline (Pure Integer Math - Extreme Staff Level)
     // Time Complexity: O(1) | Auxiliary Space Complexity: O(1)
     fun integerBreakMath(n: Int): Int {
@@ -38,7 +139,7 @@ object Week13AdvDPLinear {
         }
     }
     // Code Analysis 1: integerBreak(n: Int): Int (Mathematical Constant / Modulo 3 Pipeline)
-    //  Staff-Level Review Findings for integerBreak (Mathematical $O(1)$ Approach):
+    //  Staff-Level Review Findings for integerBreak (Mathematical O(1) Approach):
     //    1. Mathematical Invariant & Euler's Constant (e ≈ 2.718):
     //      ◦ The derivative of f(x) = x^(N / x) is maximized when x = e ≈ 2.718$.
     //      ◦ Since n must be partitioned into integer factors, the integer closest to e is 3!
