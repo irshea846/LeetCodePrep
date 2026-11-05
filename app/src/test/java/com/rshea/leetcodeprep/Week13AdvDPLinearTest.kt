@@ -5,6 +5,30 @@ import kotlin.test.assertEquals
 
 class Week13AdvDPLinearTest {
 
+    // Day 64 - LC 312. Burst Balloons
+    @Test
+    fun testMaxCoins() {
+        val nums1 = intArrayOf(3, 1, 5, 8)
+        val nums2 = intArrayOf(1, 5)
+        val nums3 = intArrayOf(5, 8)
+        val nums4 = intArrayOf(0, 3, 0, 1, 5, 0, 8, 0) // Array with zeros
+
+        assertEquals(167, Week13AdvDPLinear.maxCoins(nums1))
+        assertEquals(10, Week13AdvDPLinear.maxCoins(nums2))
+        assertEquals(48, Week13AdvDPLinear.maxCoins(nums3))
+        assertEquals(167, Week13AdvDPLinear.maxCoins(nums4))
+
+        assertEquals(167, Week13AdvDPLinear.maxCoinsZeroPruned(nums1))
+        assertEquals(10, Week13AdvDPLinear.maxCoinsZeroPruned(nums2))
+        assertEquals(48, Week13AdvDPLinear.maxCoinsZeroPruned(nums3))
+        assertEquals(167, Week13AdvDPLinear.maxCoinsZeroPruned(nums4))
+
+        assertEquals(167, Week13AdvDPLinear.maxCoinsMemoization(nums1))
+        assertEquals(10, Week13AdvDPLinear.maxCoinsMemoization(nums2))
+        assertEquals(48, Week13AdvDPLinear.maxCoinsMemoization(nums3))
+        assertEquals(167, Week13AdvDPLinear.maxCoinsMemoization(nums4))
+    }
+
     // Day 63 - LC 131. Palindrome Partitioning
     @Test
     fun testPartition() {
