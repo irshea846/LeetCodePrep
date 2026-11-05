@@ -3,6 +3,71 @@ package com.rshea.leetcodeprep
 import kotlin.math.pow
 object Week13AdvDPLinear {
 
+    // Approach 1: Bottom-Up Dynamic Programming + Zero-Filtering Pruning (Staff Level Extreme)
+    // Time Complexity: O(N'^3) where N' <= N non-zeros | Auxiliary Space Complexity: O(N'^2)
+    fun maxCoinsZeroPruned(nums: IntArray): Int {
+        // Zero Pruning: Filter out zeros (0 coins earned, zero impact on adjacent product calculations)
+        val nonZeros = nums.filter { it > 0 }.toIntArray()
+        val n = nonZeros.size
+        val numsEx = IntArray(n + 2) { i -> if (i == 0 || i == n + 1) 1 else nonZeros[i - 1] }
+        val dp = Array(n + 2) { IntArray(n + 2) }
+
+        for (i in n - 1 downTo 0) {
+            for (j in i + 2..n + 1) {
+                val outerCoins = numsEx[i] * numsEx[j]
+                for (k in i + 1 until j) {
+                    dp[i][j] = maxOf(dp[i][j], dp[i][k] + dp[k][j] + (outerCoins * numsEx[k]))
+                }
+            }
+        }
+
+        return dp[0][n + 1]
+    }
+
+    // Approach 2: Bottom-Up Dynamic Programming (2D Table)
+    // Time Complexity: O(N^3) | Auxiliary Space Complexity: O(N^2)
+    fun maxCoins(nums: IntArray): Int {
+        val n = nums.size
+        val numsEx = IntArray(n + 2) { i -> if (i == 0 || i == n + 1) 1 else nums[i - 1] }
+        val dp = Array(n + 2) { IntArray(n + 2) }
+
+        for (i in n - 1 downTo 0) {
+            for (j in i + 2..n + 1) {
+                val outerCoins = numsEx[i] * numsEx[j]
+                for (k in i + 1 until j) {
+                    dp[i][j] = maxOf(dp[i][j], dp[i][k] + dp[k][j] + (outerCoins * numsEx[k]))
+                }
+            }
+        }
+
+        return dp[0][n + 1]
+    }
+
+    // Approach 3: Top-Down Memoized DFS (Interval Divide & Conquer)
+    // Time Complexity: O(N^3) | Auxiliary Space Complexity: O(N^2)
+    fun maxCoinsMemoization(nums: IntArray): Int {
+        val n = nums.size
+        val numsEx = IntArray(n + 2) { i -> if (i == 0 || i == n + 1) 1 else nums[i - 1] }
+        val memo = Array(n + 2) { IntArray(n + 2) }
+
+        fun solve(i: Int, j: Int): Int {
+            if (i + 1 >= j) return 0
+            if (memo[i][j] != 0) return memo[i][j]
+
+            var maxResult = 0
+            val outerCoins = numsEx[i] * numsEx[j]
+            for (k in i + 1 until j) {
+                val coins = solve(i, k) + solve(k, j) + (outerCoins * numsEx[k])
+                maxResult = maxOf(maxResult, coins)
+            }
+
+            memo[i][j] = maxResult
+            return maxResult
+        }
+
+        return solve(0, n + 1)
+    }
+
     // Day 63 - LC 131. Palindrome Partitioning
     // Approach 1: Backtracking (DFS)
     // Time Complexity: O(N × 2ⁿ) | Auxiliary Space Complexity: O(N²)

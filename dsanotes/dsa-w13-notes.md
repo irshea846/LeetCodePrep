@@ -10,6 +10,121 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Advanced Linear DP
 - [ ] Recursion
 
+## Day 64 - LC 312. Burst Balloons
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Reverse Thinking / Matrix Chain Multiplication Interval DP**:
+    Thinking about bursting the *first* balloon creates dependency coupling across sub-intervals 
+    because adjacent neighbors vanish.
+    **Reverse Thinking (The Last Balloon Burst Invariant)**: Consider which balloon k (i < k < j) is 
+    burst **LAST** in interval (i, j)!
+    If k is burst last, its boundary neighbors are balloon i and balloon j (padded with 1 at 0 and N+1).
+    `Coins earned = numsEx[i] x numsEx[k] x numsEx[j] + DP[i][k] + DP[k][j]`.
+  * **Zero Filtering Pruning**: Any balloon with nums[i] == 0 yields 0 coins. Filtering zeros before 
+  padding reduces array length N to N', giving up to an **8x - 64x speedup** (O(N'³) vs O(N³))!
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time      | Space | Performance | Best Used When...                                                                 |
+ :--- |:----------| :--- | :--- |:----------------------------------------------------------------------------------|
+ **2D Interval DP + Zero Pruning** | **O(N³)** | **O(N'²)** | **Staff Level (Extreme)** | Filters zeros (N' ≤ N), achieving up to **8x - 64x** speedup on sparse arrays.    |
+ **2D Interval DP (Bottom-Up)** | **O(N³)** | **O(N²)** | **Staff Level (Optimal DP)** | Standard interview choice for Matrix Chain Multiplication / Interval DP.          |
+ **Top-Down Memoized DFS** | **O(N³)** | **O(N²)** matrix + stack | Peak | Clean divide-and-conquer interval logic.                                          |
+
+*(where N = nums.size, N' = non-zero elements)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Array Bounds Padding**: Creating 
+        `val numsEx = IntArray(n + 2) { i -> if (i == 0 || i == n + 1) 1 else nums[i - 1] }` 
+  simplifies boundary product evaluations (numsEx[i] x numsEx[k] x numsEx[j]) without out-of-bounds 
+  branching.
+* **Hoisting Constant Multiplications**: Computing `val outerCoins = numsEx[i] * numsEx[j]` before 
+  entering inner loop k avoids re-evaluating `numsEx[i] x numsEx[j]` `j - i - 1` times per inner loop!
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bottom-Up Dynamic Programming + Zero-Filtering Pruning (Staff Level Extreme)
+// Time Complexity: O(N'^3) where N' <= N non-zeros | Auxiliary Space Complexity: O(N'^2)
+fun maxCoinsZeroPruned(nums: IntArray): Int {
+    // Zero Pruning: Filter out zeros (0 coins earned, zero impact on adjacent product calculations)
+    val nonZeros = nums.filter { it > 0 }.toIntArray()
+    val n = nonZeros.size
+    val numsEx = IntArray(n + 2) { i -> if (i == 0 || i == n + 1) 1 else nonZeros[i - 1] }
+    val dp = Array(n + 2) { IntArray(n + 2) }
+
+    for (i in n - 1 downTo 0) {
+        for (j in i + 2..n + 1) {
+            val outerCoins = numsEx[i] * numsEx[j] // Hoist outer product multiplication
+            for (k in i + 1 until j) {
+                dp[i][j] = maxOf(dp[i][j], dp[i][k] + dp[k][j] + (outerCoins * numsEx[k]))
+            }
+        }
+    }
+
+    return dp[0][n + 1]
+}
+
+// Approach 2: Bottom-Up Dynamic Programming (2D Table)
+// Time Complexity: O(N^3) | Auxiliary Space Complexity: O(N^2)
+fun maxCoins(nums: IntArray): Int {
+    val n = nums.size
+    val numsEx = IntArray(n + 2) { i -> if (i == 0 || i == n + 1) 1 else nums[i - 1] }
+    val dp = Array(n + 2) { IntArray(n + 2) }
+
+    for (i in n - 1 downTo 0) {
+        for (j in i + 2 .. n + 1) {
+            val outerCoins = numsEx[i] * numsEx[j]
+            for (k in i + 1 until j) {
+                dp[i][j] = maxOf(dp[i][j], dp[i][k] + dp[k][j] + (outerCoins * numsEx[k]))
+            }
+        }
+    }
+
+    return dp[0][n + 1]
+}
+
+// Approach 3: Top-Down Memoized DFS (Interval Divide & Conquer)
+// Time Complexity: O(N^3) | Auxiliary Space Complexity: O(N^2)
+fun maxCoinsMemoization(nums: IntArray): Int {
+    val n = nums.size
+    val numsEx = IntArray(n + 2) { i -> if (i == 0 || i == n + 1) 1 else nums[i - 1] }
+    val memo = Array(n + 2) { IntArray(n + 2) }
+
+    fun solve(i: Int, j: Int): Int {
+        if (i + 1 >= j) return 0
+        if (memo[i][j] != 0) return memo[i][j]
+
+        var maxResult = 0
+        val outerCoins = numsEx[i] * numsEx[j]
+        for (k in i + 1 until j) {
+            val coins = solve(i, k) + solve(k, j) + (outerCoins * numsEx[k])
+            maxResult = maxOf(maxResult, coins)
+        }
+
+        memo[i][j] = maxResult
+        return maxResult
+    }
+
+    return solve(0, n + 1)
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Why Reverse Thinking (Last Balloon) Works**:
+  * If we pick the *first* balloon to burst, nums[k-1] and nums[k+1] become adjacent, creating 
+  dependent subproblems that cannot be solved independently.
+  * If we pick the *last* balloon k to burst in interval (i, j), balloon i and balloon j remain 
+  intact until k is burst. Thus, subproblems (i, k) and (k, j) are completely independent and can be 
+  solved recursively!
+* **Zero Filtering Speedup**:
+  * Bursting a zero-coin balloon yields 0 × left × right = 0 coins, leaving adjacent neighbor 
+  multiplier values unchanged.
+  * Removing zeros reduces array length N to N', which yields up to an **8x - 64x speedup** due to 
+  cubic time complexity O(N³)!
+
+---
+
 ## Day 63 - LC 131. Palindrome Partitioning
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
