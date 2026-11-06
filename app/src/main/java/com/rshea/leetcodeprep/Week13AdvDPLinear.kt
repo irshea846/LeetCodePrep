@@ -3,6 +3,80 @@ package com.rshea.leetcodeprep
 import kotlin.math.pow
 object Week13AdvDPLinear {
 
+    // Day 65 - LC 188. Best Time to Buy and Sell Stock IV
+    // Approach 1: Bottom-Up Dynamic Programming (2 1D Tables + Fast-Path Guard - Staff Level)
+    // Time Complexity: O(min(k, n/2) * n) | Auxiliary Space Complexity: O(min(k, n/2))
+    fun maxProfitStaff(k: Int, prices: IntArray): Int {
+        val n = prices.size
+        if (n <= 1 || k <= 0) return 0
+
+        // Unlimited transactions fast-path: if k >= n / 2, greedy sum positive gains (LC 122)
+        if (k >= n / 2) {
+            var maxProfit = 0
+            for (i in 1 until n) {
+                if (prices[i] > prices[i - 1]) {
+                    maxProfit += prices[i] - prices[i - 1]
+                }
+            }
+            return maxProfit
+        }
+
+        val buy = IntArray(k + 1) { Int.MIN_VALUE / 2 } // Overflow-safe initial min value
+        val sell = IntArray(k + 1)
+
+        for (price in prices) {
+            for (j in 1..k) {
+                buy[j] = maxOf(buy[j], sell[j - 1] - price)
+                sell[j] = maxOf(sell[j], buy[j] + price)
+            }
+        }
+
+        return sell[k]
+    }
+
+    // Approach 2: Bottom-Up Dynamic Programming (2 1D Array)
+    // Time Complexity: O(N x K) | Auxiliary Space Complexity: O(K)
+    fun maxProfit(k: Int, prices: IntArray): Int {
+        val buy = IntArray(k + 1) { Int.MIN_VALUE }
+        val sell = IntArray(k + 1)
+
+        for (price in prices) {
+            for (j in 1 .. k) {
+                buy[j] = maxOf(buy[j], sell[j - 1] - price)
+                sell[j] = maxOf(sell[j], buy[j] + price)
+            }
+        }
+        return maxOf(buy[buy.lastIndex], sell[sell.lastIndex])
+    }
+    // Code Analysis 1: maxProfit(k: Int, prices: IntArray): Int (Bottom-Up 2 1D Table)
+    //    1. Unlimited Transactions Fast-Path Branch (k ≥ N / 2)
+    //
+    //    • The Optimization:
+    //      ◦ If k ≥ N / 2, transaction capacity $k$ is greater than or equal to the maximum possible
+    //        profitable transactions in an $N$-day price sequence.
+    //      ◦ This collapses the problem into LC 122. Best Time to Buy and Sell Stock II (Unlimited
+    //        Transactions)!
+    //      ◦ We can greedily sum every positive price gain (prices[i] - prices[i-1] > 0) in O(N)
+    //        time and O(1) space without running the inner loop over $k$ or allocating 2 * (k+1)
+    //        arrays!
+    //      ◦ if (k >= n / 2) greedy exit saves significant memory and time when k is large!
+    //
+    //    2. 32-Bit Integer Overflow Guard (Int.MIN_VALUE):
+    //    • Notice: sell[j - 1] - price.
+    //    • If sell[j - 1] = 0 (initial state) and price = 10, sell[j - 1] - price = -10 >
+    //      Int.MIN_VALUE.
+    //    • But if sell[j - 1] was ever set or subtracted from a large value, or if initialized to
+    //      Int.MIN_VALUE / 2, initializing buy array to -10^9 or Int.MIN_VALUE / 2 avoids 32-bit
+    //      Integer Underflow!
+    //    • In maxProfit, initializing buy with Int.MIN_VALUE works safely because sell[j - 1] -
+    //      price evaluates 0 - price, which sets buy[j] = -price on the first day!
+    //
+    //    3. Result Return Simplification:
+    //    • sell[k] is guaranteed to be $\ge buy[k]$ because selling after holding a stock yields
+    //      non-negative profit.
+    //    • Returning sell[minOf(k, n / 2)] directly avoids evaluating maxOf(buy.lastIndex, sell.lastIndex)!
+
+    // Day 64 - LC 312. Burst Balloons
     // Approach 1: Bottom-Up Dynamic Programming + Zero-Filtering Pruning (Staff Level Extreme)
     // Time Complexity: O(N'^3) where N' <= N non-zeros | Auxiliary Space Complexity: O(N'^2)
     fun maxCoinsZeroPruned(nums: IntArray): Int {

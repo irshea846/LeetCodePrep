@@ -5,6 +5,18 @@ import kotlin.test.assertEquals
 
 class Week13AdvDPLinearTest {
 
+    // Day 65 -  LC 188. Best Time to Buy and Sell Stock IV
+    @Test
+    fun testMaxProfit() {
+        val prices1 = intArrayOf(2, 4, 1)
+        val prices2 = intArrayOf(3, 2, 6, 5, 0, 3)
+
+        assertEquals(2, Week13AdvDPLinear.maxProfitStaff(2, prices1))
+        assertEquals(2, Week13AdvDPLinear.maxProfit(2, prices1))
+        assertEquals(7, Week13AdvDPLinear.maxProfitStaff(2, prices2))
+        assertEquals(7, Week13AdvDPLinear.maxProfit(2, prices2))
+    }
+
     // Day 64 - LC 312. Burst Balloons
     @Test
     fun testMaxCoins() {

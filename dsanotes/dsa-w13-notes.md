@@ -10,6 +10,90 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Advanced Linear DP
 - [ ] Recursion
 
+
+## Day 65 - LC 188. Best Time to Buy and Sell Stock IV
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Bounded k-Transaction State Machine**: Finding max profit with at most k transactions maps to 
+    state array transitions:
+    - buy[j] = max(buy[j], sell[j-1] - price) (holding j-th stock).
+    - sell[j] = max(sell[j], buy[j] + price) (sold j-th stock).
+  * **Unlimited Transactions Fast-Path Guard (k ≥ N / 2)**:
+    If transaction capacity k ≥ N / 2, k is unconstrained because at most N / 2 buy-sell transaction 
+    pairs can fit in N price days.
+    The problem collapses to **LC 122 (Unlimited Transactions)**, solved greedily in O(N) 
+    time and O(1) space!
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When...                                                                  |
+ :--- | :--- | :--- | :--- |:-----------------------------------------------------------------------------------|
+ **WQS Binary Search (Aliens' Trick)** | **O(N x log(maxPrice))** | **O(1)** | **Staff Level (Extreme)** | Extreme k >> 10^5; removes k dependency completely via penalty binary search.      |
+ **2 1D DP Arrays + (k ≥ N / 2) Fast-Path** | **O(min(k, N/2) x N)** | **O(min(k, N/2))** | **Staff Level (Optimal DP)** | Standard production choice; fast-path executes O(N) greedy logic when k ≥ N / 2. |
+ **2D DP Table (N x K)** | **O(k x N)** | **O(k x N)** | Baseline | Standard interview default for demonstrating full state space transitions.         |
+
+### 3. Native Kotlin Syntax Pitfalls
+* **32-Bit Integer Underflow Guard (`Int.MIN_VALUE / 2`)**: Initializing `buy` array with 
+`Int.MIN_VALUE / 2` (or -10^9) prevents integer underflow when evaluating `sell[j-1] - price` during
+day 1 transitions.
+* **Direct Return `sell[k]`**: `sell[k]` is guaranteed to be **≥ buy[k]** because selling a stock 
+yields non-negative profit over holding. Returning `sell[k]` directly avoids property getter 
+evaluation `maxOf(buy.lastIndex, sell.lastIndex)`.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bottom-Up Dynamic Programming (2 1D Tables + Fast-Path Guard - Staff Level)
+// Time Complexity: O(min(k, n/2) * n) | Auxiliary Space Complexity: O(min(k, n/2))
+fun maxProfit(k: Int, prices: IntArray): Int {
+    val n = prices.size
+    if (n <= 1 || k <= 0) return 0
+
+    // Unlimited transactions fast-path: if k >= n / 2, greedy sum positive gains (LC 122)
+    if (k >= n / 2) {
+        var maxProfit = 0
+        for (i in 1 until n) {
+            if (prices[i] > prices[i - 1]) {
+                maxProfit += prices[i] - prices[i - 1]
+            }
+        }
+        return maxProfit
+    }
+
+    val buy = IntArray(k + 1) { Int.MIN_VALUE / 2 } // Overflow-safe initial min value
+    val sell = IntArray(k + 1)
+
+    for (price in prices) {
+        for (j in 1..k) {
+            buy[j] = maxOf(buy[j], sell[j - 1] - price)
+            sell[j] = maxOf(sell[j], buy[j] + price)
+        }
+    }
+
+    return sell[k]
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Why k ≥ N / 2 Collapses to Unlimited Transactions**:
+  * On an array of length N, a complete buy-sell transaction requires at least 2 days (Buy on day i, 
+    Sell on day j > i).
+  * The maximum possible non-overlapping transaction count is ⌊N / 2⌋.
+  * If k ≥ N / 2, capacity constraint k is never binding! Bypassing DP to run the O(N) greedy loop 
+    reduces time from O(k * N) to O(N) and space from O(k) to O(1).
+* **WQS Binary Search / Aliens' Trick (O(N x log(maxPrice)) Time, O(1) Space)**:
+  * **The Problem**: If k and N are massive (e.g., N = 10^5, k = 10^5), O(k * N) = 10^10 operations 
+    cause Time Limit Exceeded (TLE).
+  * **The Solution (Parametric Penalty Search)**:
+    - Impose a fixed transaction penalty fee λ for every transaction.
+    - As penalty λ increases, the number of transactions chosen greedily by the O(N) algorithm 
+      decreases monotonically (convexity).
+    - We **Binary Search** for penalty λ ∈ [0, maxPrice] such that exact transaction count equals k!
+    - Achieves **(O(N x log(maxPrice)) time and O(1) space**, eliminating dependency 
+      on k completely!
+
+---
+
 ## Day 64 - LC 312. Burst Balloons
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
