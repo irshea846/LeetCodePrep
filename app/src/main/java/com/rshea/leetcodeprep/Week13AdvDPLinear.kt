@@ -3,6 +3,107 @@ package com.rshea.leetcodeprep
 import kotlin.math.pow
 object Week13AdvDPLinear {
 
+    // Day 66 - LC 465. Optimal Account Balancing
+    // Approach 1: Bitmask + DP (Staff Level)
+    // Time Complexity: O(3ᵐ) | Auxiliary Space Complexity: O(2ᵐ)
+    fun minTransfers(transactions: Array<IntArray>): Int {
+        val map = HashMap<Int, Int>()
+        transactions.forEach { transaction ->
+            val (x, y, balance) = transaction
+            map[x] = map.getOrDefault(x, 0) - balance
+            map[y] = map.getOrDefault(y, 0) + balance
+        }
+        val balances = map.values.filter { it != 0 }.toIntArray()
+        val people = balances.size
+        if (people == 0) return 0
+
+        val groups = 1 shl people
+        val dp = IntArray(groups)
+        val sumBuffer = IntArray(groups)
+
+        for (mask in 1 until groups) {
+            for (i in 0 until people) {
+                if ((mask and (1 shl i)) != 0) {
+                    sumBuffer[mask] = sumBuffer[mask xor (1 shl i)] + balances[i]
+                    break
+                }
+            }
+
+            if (sumBuffer[mask] == 0) {
+                dp[mask] = 1
+
+                var submask = (mask - 1) and mask
+                while (submask > 0) {
+                    dp[mask] = maxOf(dp[mask], dp[submask] + dp[mask xor submask])
+                    submask = (submask - 1) and mask
+                }
+            }
+        }
+
+        return people - dp[groups - 1]
+    }
+    // Code Analysis 1: minTransfers(transactions: Array<IntArray>): Int (Bitmask + DP)
+    //    1. Problem Core Mathematical Principle: Maximum Zero-Sum Subsets
+    //      • The Invariant:
+    //          ◦ Suppose there are M non-zero balances in the system (M <= 12).
+    //          ◦ If a group/subset of K people has balances summing to 0, they can settle all
+    //          debts internally using K - 1 transactions!
+    //          ◦ If we partition the total set of M people into G disjoint zero-sum subsets, the
+    //          total minimum transactions required is: Minimum Transactions = M - G_max where G_max
+    //          is the maximum number of disjoint zero-sum subsets that the balance array can be
+    //          partitioned into!
+    //    2. Staff-Level Performance & Syntax Review
+    //      1. Submask Iteration Bitmask DP (O(3ᵐ) Time, O(2ᵐ) Space):
+    //          ◦ Your Bitmask DP iterates through submasks of each mask: var submask = (mask - 1)
+    //          and mask while (submask > 0) { ... submask = (submask - 1) and mask }
+    //          ◦ Total iterations across all bitmasks = ∑ (M choose k) · 2ᵏ = 3ᵐ!
+    //          ◦ For M <= 12, 3¹² = 531,441 operations. This executes in sub-millisecond time on JVM!
+    //      2. Destructuring Overhead in Transaction Loop:
+    //          ◦ val (x, y, balance) = transaction calls component1(), component2(), component3().
+    //          ◦ Direct indexing transaction[0], transaction[1], transaction[2] eliminates
+    //          iterator/component function call overhead in tight loops.
+    //      3. Backtracking (DFS + Pruning) Alternative (O(M!) Worst Case, but Faster Average
+    //      Execution for M <= 12):
+    //          ◦ Backtracking works by picking the first person start with balances[start] != 0 and
+    //          transferring their balance to any subsequent person i > start with opposite sign
+    //          (balances[i] * balances[start] < 0).
+    //          ◦ With branch pruning (balances[i] + balances[start] == 0 early match), DFS
+    //          Backtracking often executes faster than Bitmask DP becauseM <= 12 is extremely small!
+
+    // Approach 2: Backtracking DFS + Opposite Sign Pruning (Fast Average Case)
+    // Time Complexity: O(M!) worst-case, fast in practice | Auxiliary Space Complexity: O(M) stack
+    fun minTransfersDFS(transactions: Array<IntArray>): Int {
+        val map = HashMap<Int, Int>()
+        for (t in transactions) {
+            map[t[0]] = map.getOrDefault(t[0], 0) - t[2]
+            map[t[1]] = map.getOrDefault(t[1], 0) + t[2]
+        }
+        val balances = map.values.filter { it != 0 }.toIntArray()
+        if (balances.isEmpty()) return 0
+
+        fun dfs(start: Int): Int {
+            var s = start
+            while (s < balances.size && balances[s] == 0) s++
+            if (s == balances.size) return 0
+
+            var minOps = Int.MAX_VALUE
+            for (i in s + 1 until balances.size) {
+                // Prune: only transfer between opposite signs (debtor to creditor or vice versa)
+                if (balances[i] * balances[s] < 0) {
+                    balances[i] += balances[s] // Transfer balance
+                    minOps = minOf(minOps, 1 + dfs(s + 1))
+                    balances[i] -= balances[s] // Backtrack
+
+                    // Exact zero-sum match pruning
+                    if (balances[i] + balances[s] == 0) break
+                }
+            }
+            return minOps
+        }
+
+        return dfs(0)
+    }
+
     // Day 65 - LC 188. Best Time to Buy and Sell Stock IV
     // Approach 1: Bottom-Up Dynamic Programming (2 1D Tables + Fast-Path Guard - Staff Level)
     // Time Complexity: O(min(k, n/2) * n) | Auxiliary Space Complexity: O(min(k, n/2))

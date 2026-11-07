@@ -5,7 +5,30 @@ import kotlin.test.assertEquals
 
 class Week13AdvDPLinearTest {
 
-    // Day 65 -  LC 188. Best Time to Buy and Sell Stock IV
+    // Day 66 - LC 465. Optimal Account Balancing
+    @Test
+    fun testMinTransfers() {
+        val transactions1 = arrayOf(intArrayOf(0, 1, 10), intArrayOf(2, 0, 5))
+        val transactions2 = arrayOf(
+            intArrayOf(0, 1, 10), intArrayOf(1, 0, 1), intArrayOf(1, 2, 5),
+            intArrayOf(2, 0, 5)
+        )
+        val transactions3 = arrayOf(
+            intArrayOf(1, 5, 8), intArrayOf(8, 9, 8), intArrayOf(2, 3, 9),
+            intArrayOf(4, 3, 1)
+        )
+
+        assertEquals(2, Week13AdvDPLinear.minTransfers(transactions1))
+        assertEquals(1, Week13AdvDPLinear.minTransfers(transactions2))
+        assertEquals(4, Week13AdvDPLinear.minTransfers(transactions3))
+
+        assertEquals(2, Week13AdvDPLinear.minTransfersDFS(transactions1))
+        assertEquals(1, Week13AdvDPLinear.minTransfersDFS(transactions2))
+        assertEquals(4, Week13AdvDPLinear.minTransfersDFS(transactions3))
+    }
+
+
+    // Day 65 - LC 188. Best Time to Buy and Sell Stock IV
     @Test
     fun testMaxProfit() {
         val prices1 = intArrayOf(2, 4, 1)
