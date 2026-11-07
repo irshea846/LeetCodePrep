@@ -10,6 +10,138 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Advanced Linear DP
 - [ ] Recursion
 
+## Day 66 - LC 465. Optimal Account Balancing
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **NP-Hard Subset Partitioning / Maximum Zero-Sum Subsets**:
+    - Aggregate net balance per person (map[x] -= balance, map[y] += balance$).
+    - Filter out zero balances (settled people).
+    - Let M be non-zero balances (M <= 12).
+    - **Key Invariant**: If a subset K of people has a net balance sum of 0, all debts within K can 
+      be settled in K - 1 transactions.
+    - Partitioning M people into G_max disjoint zero-sum subsets yields total minimum transactions:
+      Minimum Transactions = M - G_max
+      where G_max is the **maximum number of disjoint zero-sum subsets**!
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When...                                                                                 |
+ :--- | :--- | :--- | :--- |:--------------------------------------------------------------------------------------------------|
+ **Bitmask DP + Submask Enumeration** | **O(3ᵐ)** | **O(2ᵐ)** | **Staff Level (Optimal Guarantee)** | Rigorous O(3ᵐ) worst-case bound; guarantees zero-sum subset partition (M - G_max).                |
+ **Backtracking DFS + Opposite Sign Pruning** | **O(M!)** worst-case | **O(M)** stack | **Staff Level (Fast Average)** | M <= 12; early exit pruning on exact zero-sum complements makes it blazingly fast in practice. |
+
+*(where $M = \text{non-zero balance count} \le 12$)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Destructuring Overhead in Hot Loops**: Avoid `val (x, y, balance) = transaction` in tight loops 
+as it invokes `component1()`, `component2()`, `component3()`. Direct index access `t[0]`, `t[1]`, 
+`t[2]` eliminates iterator and method invocation overhead.
+* **Primitive Array Filter**: `map.values.filter { it != 0 }.toIntArray()` creates an unboxed 
+primitive `IntArray` containing only non-zero balances.
+* **Submask Enumeration Trick (`(submask - 1) and mask`)**: Iterating submasks of a bitmask in O(3ᵐ) 
+total time:
+  ```kotlin
+  var submask = (mask - 1) and mask
+  while (submask > 0) {
+      dp[mask] = maxOf(dp[mask], dp[submask] + dp[mask xor submask])
+      submask = (submask - 1) and mask
+  }
+  ```
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bitmask + DP (Staff Level)
+// Time Complexity: O(3ᵐ) | Auxiliary Space Complexity: O(2ᵐ)
+fun minTransfers(transactions: Array<IntArray>): Int {
+    val map = HashMap<Int, Int>()
+    for (t in transactions) {
+        map[t[0]] = map.getOrDefault(t[0], 0) - t[2]
+        map[t[1]] = map.getOrDefault(t[1], 0) + t[2]
+    }
+    val balances = map.values.filter { it != 0 }.toIntArray()
+    val people = balances.size
+    if (people == 0) return 0
+
+    val groups = 1 shl people
+    val dp = IntArray(groups)
+    val sumBuffer = IntArray(groups)
+
+    for (mask in 1 until groups) {
+        for (i in 0 until people) {
+            if ((mask and (1 shl i)) != 0) {
+                sumBuffer[mask] = sumBuffer[mask xor (1 shl i)] + balances[i]
+                break
+            }
+        }
+
+        if (sumBuffer[mask] == 0) {
+            dp[mask] = 1
+
+            var submask = (mask - 1) and mask
+            while (submask > 0) {
+                dp[mask] = maxOf(dp[mask], dp[submask] + dp[mask xor submask])
+                submask = (submask - 1) and mask
+            }
+        }
+    }
+
+    return people - dp[groups - 1]
+}
+
+// Approach 2: Backtracking DFS + Opposite Sign Pruning (Fast Average Case)
+// Time Complexity: O(M!) worst-case, fast in practice | Auxiliary Space Complexity: O(M) stack
+fun minTransfersDFS(transactions: Array<IntArray>): Int {
+    val map = HashMap<Int, Int>()
+    for (t in transactions) {
+        map[t[0]] = map.getOrDefault(t[0], 0) - t[2]
+        map[t[1]] = map.getOrDefault(t[1], 0) + t[2]
+    }
+    val balances = map.values.filter { it != 0 }.toIntArray()
+    if (balances.isEmpty()) return 0
+  
+    fun dfs(start: Int): Int {
+        var s = start
+        while (s < balances.size && balances[s] == 0) s++
+        if (s == balances.size) return 0
+    
+        var minOps = Int.MAX_VALUE
+        for (i in s + 1 until balances.size) {
+            // Prune: only transfer between opposite signs (debtor to creditor or vice versa)
+            if (balances[i] * balances[s] < 0) {
+                balances[i] += balances[s] // Transfer balance
+                minOps = minOf(minOps, 1 + dfs(s + 1))
+                balances[i] -= balances[s] // Backtrack
+        
+                // Exact zero-sum match pruning
+                if (balances[i] + balances[s] == 0) break
+            }
+        }
+        return minOps
+    }
+
+    return dfs(0)
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **NP-Hard Minimum Transaction Settlement Problem**:
+  * Finding the optimal transaction settlement is equivalent to the **Minimum Subset Partition 
+  Problem into Zero-Sum Subsets**, which is **NP-Hard**.
+  * Greedy heuristic (e.g. matching largest debtor with largest creditor) DOES NOT guarantee optimal 
+  minimum transactions! (E.g. `balances = [1, 2, 3, -1, -2, -3]`: Greedy might pair +3 with -3, +2 
+  with -2, +1 with -1 ⇒ 3 transactions, but zero-sum submask DP finds G_max = 3 zero-sum groups ⇒ 
+  6 - 3 = 3 transactions).
+* **Bitmask DP Submask Enumeration Complexity (O(3ᵐ))**:
+  * Sum of binomial coefficients: ∑ (M choose k) * 2^k = (1 + 2)ᵐ = 3ᵐ   for k = 0 to M .
+  * For M <= 12, 3^12 = 531,441 operations. Guaranteed worst-case runtime that executes in 
+  sub-milliseconds on the JVM!
+* **Backtracking DFS + Opposite Sign Pruning Efficiency**:
+  * Backtracking only pairs debtors with creditors (`balances[i] * balances[s] < 0`).
+  * Adding exact zero-sum match pruning (`if (balances[i] + balances[s] == 0) break`) cuts 
+  non-optimal branches early, making DFS blazingly fast in practice for M <= 12.
+
+---
 
 ## Day 65 - LC 188. Best Time to Buy and Sell Stock IV
 ### 1. Core Pattern Identifier
