@@ -369,7 +369,7 @@ object Week13AdvDPLinear {
     }
 
     // Approach 2: Mathematical Constant Pipeline (Math.pow)
-    // Time Complexity: O(1) | Auxiliary Space Complexity: O(1)
+    // Time Complexity: O(Log N) | Auxiliary Space Complexity: O(1)
     fun integerBreak(n: Int): Int {
         if (n <= 3) return n - 1
         return when (n % 3) {
