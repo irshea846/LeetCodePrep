@@ -12,6 +12,125 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Union-Find
 - [ ] Minimum Spanning Trees
 
+## Day 69 - LC 787. Cheapest Flights Within K Stops
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Shortest Path with Bounded Step Count (K Stops)**: Finding the cheapest flight path from `src`
+  to `dst` with at most K stops (at most K + 1 edges).
+  * **Step Boundary Relaxation Invariant (Ripple Effect Guard)**:
+    - Standard Bellman-Ford updates distance in-place, allowing a chain A → B → C → D to relax 3 
+    edges in 1 pass.
+    - For bounded K stops, pass i MUST ONLY use distances from pass i-1 
+    (`nextCost[v] = min(nextCost[v], cost[u] + w)`).
+  * **Level-Order BFS Queue Efficiency**:
+    Processing nodes level-by-level up to K+1 edge levels ONLY relaxes edges originating from active 
+    level nodes, skipping unnecessary scans over all $E$ flights!
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **Level-Order BFS Queue** | **O(V + E x K)** | **O(V + E)** | **Staff Level (Extreme)** | Sparse active node expansion; only relaxes edges from active level nodes. |
+ **Double-Buffered Bellman-Ford** | **O(K x E)** | **O(V)** | **Staff Level (Optimal DP)** | Standard production choice; zero array allocation buffer swapping. |
+ **Naive Bellman-Ford (`clone()`)** | **O(K x E)** | **O(V)** | Baseline | Creates $K+1$ `IntArray` clones during loop execution. |
+
+*(where V = n, E = flights.size, K = max stops)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Avoid `cost.clone()` Array Churn**: Calling `cost.clone()` on every iteration allocates K+1 heap 
+arrays. Use two pre-allocated arrays `cost` and `nextCost` and swap references (`val temp = cost; 
+cost = nextCost; nextCost = temp`)!
+* **Level-Order BFS Size Snapshot**: Inside the BFS queue loop, snapshot `val size = queue.size` at 
+the beginning of each stop level to process exactly one step level per outer loop iteration.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Level-Order BFS Queue (Staff Level Extreme - Sparse Active Node Processing)
+// Time Complexity: O(V + E * K) | Auxiliary Space Complexity: O(V + E)
+fun findCheapestPriceBFS(n: Int, flights: Array<IntArray>, src: Int, dst: Int, k: Int): Int {
+    val adj = Array(n) { mutableListOf<Pair<Int, Int>>() }
+    for (f in flights) {
+        adj[f[0]].add(Pair(f[1], f[2]))
+    }
+
+    val dist = IntArray(n) { Int.MAX_VALUE }
+    dist[src] = 0
+
+    val queue = ArrayDeque<Pair<Int, Int>>() // Pair(node, current_cost)
+    queue.addLast(Pair(src, 0))
+
+    var stops = 0
+    while (queue.isNotEmpty() && stops <= k) {
+        val size = queue.size
+        for (i in 0 until size) {
+            val (currNode, currCost) = queue.removeFirst()
+
+            for (edge in adj[currNode]) {
+                val nextNode = edge.first
+                val weight = edge.second
+                val newCost = currCost + weight
+
+                if (newCost < dist[nextNode]) {
+                    dist[nextNode] = newCost
+                    queue.addLast(Pair(nextNode, newCost))
+                }
+            }
+        }
+        stops++
+    }
+
+    return if (dist[dst] == Int.MAX_VALUE) -1 else dist[dst]
+}
+
+// Approach 2: Double-Buffered Bellman-Ford Algorithm (Zero Heap Allocations)
+// Time Complexity: O(K * E) | Auxiliary Space Complexity: O(N)
+fun findCheapestPriceBellmanFord(n: Int, flights: Array<IntArray>, src: Int, dst: Int, k: Int): Int {
+    var cost = IntArray(n) { Int.MAX_VALUE }
+    var nextCost = IntArray(n) { Int.MAX_VALUE }
+    cost[src] = 0
+    nextCost[src] = 0
+
+    for (i in 0..k) {
+        cost.copyInto(nextCost) // Zero array allocation buffer copy
+        var anyUpdate = false
+
+        for (flight in flights) {
+            val u = flight[0]
+            val v = flight[1]
+            val w = flight[2]
+
+            if (cost[u] != Int.MAX_VALUE && cost[u] + w < nextCost[v]) {
+                nextCost[v] = cost[u] + w
+                anyUpdate = true
+            }
+        }
+
+        if (!anyUpdate) break
+        val temp = cost
+        cost = nextCost
+        nextCost = temp
+    }
+
+    return if (cost[dst] == Int.MAX_VALUE) -1 else cost[dst]
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Why Standard Dijkstra Fails for Step-Bounded Shortest Path**:
+  * Standard Dijkstra selects nodes purely by minimum accumulated cost.
+  * A lower-cost path with `K + 2` stops might reach node X first and finalize it, blocking a slightly 
+  higher-cost path with ≤ K stops from reaching dst!
+  * To adapt Dijkstra for K stops, the state space must track `(cost, node, stops)`, increasing heap 
+  overhead over simple Level-Order BFS.
+* **Level-Order BFS vs. Bellman-Ford**:
+  * Bellman-Ford scans all E flight edges in every pass `0 .. K`, even if most graph nodes are 
+  unreachable at pass i.
+  * Level-Order BFS ONLY relaxes outgoing edges from active nodes at the current level, executing 
+  significantly faster on sparse graphs!
+
+---
+
 ## Day 68 - LC 743. Network Delay Time
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
@@ -35,13 +154,16 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 *(where V = N, E = times.size)*
 
 ### 3. Native Kotlin Syntax Pitfalls
-* **Heap Object Allocation (`Pair<Int, Int>`)**: Enqueuing `Pair(weight, node)` instantiates 
-short-lived heap objects for every edge relaxation step. Packing `(weight shl 32) or node` into a 
-primitive `Long` achieves **zero heap object allocations** during Dijkstra traversal.
+* **Zero-Comparator Bit-Packed Primitive `Long` Order**:
+  By packing `(distance.toLong() shl 32) or node`, `distance` occupies the upper 32 bits (Most 
+  Significant Bits - MSB). Because primitive `Long` comparison evaluates bits from MSB to LSB, 
+  natural `Long` ascending order (`a.compareTo(b)`) **automatically compares `distance` first**!
+  Thus, `PriorityQueue<Long>()` polls the minimum distance node natively without requiring any 
+  custom `Comparator` object (`compareBy { ... }`), achieving **zero heap object allocations**!
 * **Bellman-Ford Outer Loop Bound**: A shortest path in a graph without negative cycles contains at 
-most V - 1 edges. The outer loop should run V - 1 iterations (`for (i in 1 until n)`).
+  most V - 1 edges. The outer loop should run V - 1 iterations (`for (i in 1 until n)`).
 * **1-Based Index Alignment**: Allocating `IntArray(n + 1)` and `Array(n + 1)` simplifies 1-based 
-node indexing without 1-off subtraction logic throughout the code.
+  node indexing without 1-off subtraction logic throughout the code.
 
 ### 4. Code Block
 ```kotlin

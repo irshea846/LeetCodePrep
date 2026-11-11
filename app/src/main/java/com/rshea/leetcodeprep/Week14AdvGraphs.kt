@@ -4,6 +4,144 @@ import java.util.PriorityQueue
 
 object Week14AdvGraphs {
 
+    // Day 69 - LC 787. Cheapest Flights Within K Stops
+    // Approach 1: Level-Order BFS Queue (Staff Level Extreme - Sparse Active Node Processing)
+    // Time Complexity: O(V + E * K) | Auxiliary Space Complexity: O(V + E)
+    fun findCheapestPriceBFS(n: Int, flights: Array<IntArray>, src: Int, dst: Int, k: Int): Int {
+        val adj = Array(n) { mutableListOf<Pair<Int, Int>>() }
+        for (f in flights) {
+            adj[f[0]].add(Pair(f[1], f[2]))
+        }
+
+        val dist = IntArray(n) { Int.MAX_VALUE }
+        dist[src] = 0
+
+        val queue = ArrayDeque<Pair<Int, Int>>() // Pair(node, current_cost)
+        queue.addLast(Pair(src, 0))
+
+        var stops = 0
+        while (queue.isNotEmpty() && stops <= k) {
+            val size = queue.size
+            for (i in 0 until size) {
+                val (currNode, currCost) = queue.removeFirst()
+
+                for (edge in adj[currNode]) {
+                    val nextNode = edge.first
+                    val weight = edge.second
+                    val newCost = currCost + weight
+
+                    if (newCost < dist[nextNode]) {
+                        dist[nextNode] = newCost
+                        queue.addLast(Pair(nextNode, newCost))
+                    }
+                }
+            }
+            stops++
+        }
+
+        return if (dist[dst] == Int.MAX_VALUE) -1 else dist[dst]
+    }
+
+    // Approach 2: Double-Buffered Bellman-Ford Algorithm (Zero Heap Allocations)
+    // Time Complexity: O(K * E) | Auxiliary Space Complexity: O(N)
+    fun findCheapestPriceBellmanFord(n: Int, flights: Array<IntArray>, src: Int, dst: Int, k: Int): Int {
+        var cost = IntArray(n) { Int.MAX_VALUE }
+        var nextCost = IntArray(n) { Int.MAX_VALUE }
+        cost[src] = 0
+        nextCost[src] = 0
+
+        for (i in 0..k) {
+            cost.copyInto(nextCost) // Zero array allocation buffer copy
+            var anyUpdate = false
+
+            for (flight in flights) {
+                val u = flight[0]
+                val v = flight[1]
+                val w = flight[2]
+
+                if (cost[u] != Int.MAX_VALUE && cost[u] + w < nextCost[v]) {
+                    nextCost[v] = cost[u] + w
+                    anyUpdate = true
+                }
+            }
+
+            if (!anyUpdate) break
+            val temp = cost
+            cost = nextCost
+            nextCost = temp
+        }
+
+        return if (cost[dst] == Int.MAX_VALUE) -1 else cost[dst]
+    }
+
+    // Approach 3: Single-Buffer Bellman-Ford Algorithm (Multiple Heap Allocation)
+    // Time Complexity: O(K * E) | Auxiliary Space Complexity: O(N)
+    fun findCheapestPrice(n: Int, flights: Array<IntArray>, src: Int, dst: Int, k: Int): Int {
+        var cost = IntArray(n) { Int.MAX_VALUE }
+        cost[src] = 0
+
+        for (i in 0 .. k) {
+            val nextCost = cost.clone()
+            var anyUpdate = false
+
+            for (flight in flights) {
+                val v = flight[0]
+                val u = flight[1]
+                val w = flight[2]
+
+                if (cost[v] != Int.MAX_VALUE) {
+                    if (cost[v] + w < nextCost[u]) {
+                        nextCost[u] = cost[v] + w
+                        anyUpdate = true
+                    }
+                }
+            }
+            if (!anyUpdate) break
+            cost = nextCost
+        }
+
+        return if (cost[dst] == Int.MAX_VALUE) -1 else cost[dst]
+    }
+    // Code Analysis : findCheapestPriceDP(n: Int, flights: Array<IntArray>, src: Int, dst: Int,
+    // k: Int): Int
+    //
+    //    Staff-Level Review Findings for Bellman-Ford:
+    //
+    //    1. The Ripple Effect Guard (cost.clone()):
+    //      ◦ In standard Bellman-Ford (unbounded steps), we update cost in-place.
+    //      ◦ For bounded K stops, updating cost in-place in a single pass could allow a chain
+    //      A → B → C → D to relax 3 edges in 1 pass, violating the step limit constraint!
+    //      ◦ Cloning val nextCost = cost.clone() and evaluating cost[v] + w < nextCost[u] guarantees
+    //      that pass 𝒊 ONLY uses paths of length ≤ 𝒊.
+    //      ◦ Performance Improvement (Double Buffer Swapping):
+    //          ▪ cost.clone() allocates a new IntArray on every outer loop iteration
+    //          (K + 1 array allocations)!
+    //          ▪ Staff Optimization: Allocate two arrays upfront:
+    //                  var cost = IntArray(n); var nextCost = IntArray(n).
+    //          ▪ In each pass, copy cost.copyInto(nextCost), and after the pass, swap array
+    //          references (val temp = cost; cost = nextCost; nextCost = temp)!
+    //          ▪ This achieves ZERO heap array allocations during execution!
+    //
+    //    2. Is there a better top-tier performance solution for LC 787?
+    //
+    //    YES! Level-Order BFS / Modified Dijkstra with Stops Constraint O(E + V x Log V) / O(E x K)!
+    //
+    //      • Why Standard Dijkstra Fails for LC 787:
+    //          ◦ Standard Dijkstra chooses nodes purely by minimum cost. A lower-cost path with
+    //          K + 2 stops might be polled first and mark a node as visited, blocking a slightly
+    //          higher-cost path with ≤ K stops from reaching dst!
+    //      • Modified Dijkstra with State (cost, node, stops):
+    //          ◦ Maintain a min-heap prioritized by cost.
+    //          ◦ Store minStops[node] array to prune states that reach node with ≥ stops than
+    //          previously seen.
+    //          ◦ Or run BFS Level-Order Queue Traversal (K + 1 levels max):
+    //              ▪ Level 𝒊 processes nodes reachable in 𝒊 edges.
+    //              ▪ BFS processes level-by-level without Min-Heap O(Log V) polling overhead!
+    //              ▪ BFS Level-Order is strictly faster than Bellman-Ford because it ONLY relaxes
+    //              outgoing edges from active nodes at the current level, rather than scanning all
+    //              E flights on every pass!
+
+
     // Day 68 - LC 743. Network Delay Time
     // Approach 1: Bit-Packed Long Dijkstra (Staff Level - Zero Heap Object Allocations)
     // Time Complexity: O((V + E) log V) | Auxiliary Space Complexity: O(V + E)
@@ -145,8 +283,8 @@ object Week14AdvGraphs {
     //
     //    1. Outer Loop Iteration Bound:
     //      ◦ A shortest path in a graph without negative weight cycles contains at most V - 1 edges.
-    //      ◦ Therefore, the outer loop only needs to run $V - 1$ times (for (i in 1 until n)).
-    //      ◦ If an edge relaxation updates a distance on iteration $V$ (the n-th iteration),
+    //      ◦ Therefore, the outer loop only needs to run V - 1 times (for (i in 1 until n)).
+    //      ◦ If an edge relaxation updates a distance on iteration V (the n-th iteration),
     //        that indicates the presence of a negative weight cycle!
 
 }
