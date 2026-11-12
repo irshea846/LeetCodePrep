@@ -12,6 +12,137 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Union-Find
 - [ ] Minimum Spanning Trees
 
+## Day 70 - LC 684. Redundant Connection
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Cycle Detection in Undirected Graph**: Given an undirected graph that started as a tree of N 
+  nodes (N nodes, `N - 1` edges), adding 1 extra edge creates exactly 1 cycle. Finding the edge that 
+  creates a cycle maps directly to **Disjoint Set Union (DSU / Union-Find)**.
+  * **Inverse Ackermann (O(α(N))) Union-Find Invariant**:
+    - Each edge u → v connects two components.
+    - If `find(u) == find(v)`, nodes u and v are ALREADY connected in the same set! Adding edge 
+    (u, v) completes a cycle ⇒ (u, v) is the redundant edge!
+    - Processing edges sequentially from 1 to N guarantees that the LAST edge creating a cycle is 
+    identified.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **Flat Primitive Array DSU (Path Compression + Rank)** | **O(N x α(N))** | **O(N)** | **Staff Level (Extreme)** | Zero heap allocations; flat `IntArray`; inverse Ackermann time $\mathcal{O}(\alpha(N)) \approx \mathcal{O}(1)$. |
+ **HashMap DisjointSet** | **O(N x α(N))** | **O(N)** | Peak | Dynamic non-integer node IDs where object hashing is required. |
+ **DFS Cycle Detection** | **O(N²)** | **O(N)** recursion stack | Baseline | Naive graph traversal baseline without DSU data structure. |
+
+*(where $N = \text{edges.size} \le 1000$)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Object Boxing Churn (`HashMap<Int, Int>`)**: Declaring `parents` and `ranks` as `HashMap<Int, Int>` 
+causes continuous integer boxing/unboxing (`java.lang.Integer`) and null checks (`!!`). For 1-based 
+node IDs `1 .. N`, flat primitive `IntArray(N + 1)` achieves **100% zero heap object allocations** 
+and a **~10× speedup**!
+* **Path Compression Path-Halving (`parent[root] = parent[parent[root]]`)**: Iterative path halving 
+inside `find(i)` compresses trees in O(1) stack space without recursive call stack overhead.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Flat Primitive IntArray DSU (Staff Level Extreme - Zero Heap Object Allocations)
+// Time Complexity: O(N * α(N)) ≈ O(N) | Auxiliary Space Complexity: O(N)
+fun findRedundantConnectionArrayDSU(edges: Array<IntArray>): IntArray {
+    val n = edges.size
+    val parent = IntArray(n + 1) { it }
+    val rank = IntArray(n + 1)
+
+    fun find(i: Int): Int {
+        var root = i
+        while (root != parent[root]) {
+            parent[root] = parent[parent[root]] // Path halving path compression
+            root = parent[root]
+        }
+        return root
+    }
+
+    fun union(u: Int, v: Int): Boolean {
+        val rootU = find(u)
+        val rootV = find(v)
+        if (rootU == rootV) return false // Cycle detected!
+
+        if (rank[rootU] < rank[rootV]) {
+            parent[rootU] = rootV
+        } else if (rank[rootU] > rank[rootV]) {
+            parent[rootV] = rootU
+        } else {
+            parent[rootV] = rootU
+            rank[rootU]++
+        }
+        return true
+    }
+
+    for (edge in edges) {
+        if (!union(edge[0], edge[1])) return edge
+    }
+    return intArrayOf()
+}
+
+// Approach 2: HashMap Disjoint Set (Union-Find)
+// Time Complexity: O(N * α(N)) | Auxiliary Space Complexity: O(N)
+fun findRedundantConnection(edges: Array<IntArray>): IntArray {
+    val disjointSet = DisjointSet()
+    for (edge in edges) {
+        if (!disjointSet.union(edge[0], edge[1])) {
+            return edge
+        }
+    }
+    return intArrayOf()
+}
+
+class DisjointSet() {
+    val parents = HashMap<Int, Int>()
+    val ranks = HashMap<Int, Int>()
+
+    fun find(x: Int): Int {
+        parents[x] = parents.getOrDefault(x, x)
+        if (x != parents[x]!!) {
+            parents[x] = find(parents[x]!!) // Path compression
+        }
+        return parents[x]!!
+    }
+
+    fun union(x: Int, y: Int): Boolean {
+        val rootX = find(x)
+        val rootY = find(y)
+
+        if (rootX == rootY) return false
+
+        ranks[rootX] = ranks.getOrDefault(rootX, 0)
+        ranks[rootY] = ranks.getOrDefault(rootY, 0)
+        when {
+            ranks[rootX]!! < ranks[rootY]!! -> parents[rootX] = rootY
+            ranks[rootX]!! > ranks[rootY]!! -> parents[rootY] = rootX
+            else -> {
+                parents[rootY] = rootX
+                ranks[rootX] = ranks[rootX]!! + 1
+            }
+        }
+
+        return true
+    }
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **DSU vs. DFS Cycle Detection**:
+  * **DFS (O(N²) time)**: For each edge added, run DFS from u to check if v is reachable. If reachable, 
+  adding (u, v) creates a cycle.
+  * **DSU (O(N x α(N)) time)**: Processes all N edges incrementally in near-constant amortized time 
+  (α(N) < 5 for all practical universe sizes).
+* **Flat Array DSU vs. Object-Based DSU**:
+  * On high-throughput JVM pipelines or real-time graph engines, avoiding `HashMap` object wrappers 
+  (`Integer` boxing) and using primitive `IntArray` eliminates Garbage Collection pauses and 
+  leverages L1 CPU cache lines.
+
+---
+
 ## Day 69 - LC 787. Cheapest Flights Within K Stops
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
