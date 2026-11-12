@@ -5,6 +5,20 @@ import kotlin.test.assertEquals
 
 class Week14AdvGraphsTest {
 
+    // Day 70 - LC 684. Redundant Connection
+    @Test
+    fun testFindRedundantConnection() {
+        var edges = arrayOf(intArrayOf(1, 2), intArrayOf(1, 3), intArrayOf(2, 3))
+        var expected = intArrayOf(2, 3)
+        assertEquals(expected.contentToString(), Week14AdvGraphs.findRedundantConnectionArrayDSU(edges).contentToString())
+        assertEquals(expected.contentToString(), Week14AdvGraphs.findRedundantConnection(edges).contentToString())
+
+        edges = arrayOf(intArrayOf(1, 2), intArrayOf(2, 3), intArrayOf(3, 4), intArrayOf(1, 4), intArrayOf(1, 5))
+        expected = intArrayOf(1, 4)
+        assertEquals(expected.contentToString(), Week14AdvGraphs.findRedundantConnectionArrayDSU(edges).contentToString())
+        assertEquals(expected.contentToString(), Week14AdvGraphs.findRedundantConnection(edges).contentToString())
+    }
+
     // Day 69 - LC 787. Cheapest Flights Within K Stops
     @Test
     fun testFindCheapestPrice() {

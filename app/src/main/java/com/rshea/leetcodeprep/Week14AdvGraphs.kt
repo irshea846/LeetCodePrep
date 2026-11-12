@@ -4,6 +4,92 @@ import java.util.PriorityQueue
 
 object Week14AdvGraphs {
 
+    // Day 70 - LC 684. Redundant Connection
+    // Approach 1: Flat Primitive IntArray DSU (Staff Level Extreme - Zero Heap Object Allocations)
+    // Time Complexity: O(N * α(N)) ≈ O(N) | Auxiliary Space Complexity: O(N)
+    fun findRedundantConnectionArrayDSU(edges: Array<IntArray>): IntArray {
+        val n = edges.size
+        val parent = IntArray(n + 1) { it }
+        val rank = IntArray(n + 1)
+
+        fun find(i: Int): Int {
+            var root = i
+            while (root != parent[root]) {
+                parent[root] = parent[parent[root]] // Path halving path compression
+                root = parent[root]
+            }
+            return root
+        }
+
+        fun union(u: Int, v: Int): Boolean {
+            val rootU = find(u)
+            val rootV = find(v)
+            if (rootU == rootV) return false // Cycle detected!
+
+            if (rank[rootU] < rank[rootV]) {
+                parent[rootU] = rootV
+            } else if (rank[rootU] > rank[rootV]) {
+                parent[rootV] = rootU
+            } else {
+                parent[rootV] = rootU
+                rank[rootU]++
+            }
+            return true
+        }
+
+        for (edge in edges) {
+            if (!union(edge[0], edge[1])) return edge
+        }
+        return intArrayOf()
+    }
+
+    // Approach 2: HashMap Disjoint Set (Union-Find)
+    // Time Complexity: O(N * α(N)) | Auxiliary Space Complexity: O(N)
+    fun findRedundantConnection(edges: Array<IntArray>): IntArray {
+        val disjointSet = DisjointSet()
+        for (edge in edges) {
+            if (!disjointSet.union(edge[0], edge[1])) {
+                return edge
+            }
+        }
+        return intArrayOf()
+    }
+
+    class DisjointSet() {
+        val parents = HashMap<Int, Int>()
+        val ranks = HashMap<Int, Int>()
+
+        fun find(x: Int): Int {
+            parents[x] = parents.getOrDefault(x, x)
+            if (x != parents[x]!!) {
+                return find(parents[x]!!)
+            }
+            return parents[x]!!
+        }
+
+        fun union(x: Int, y: Int): Boolean {
+            val rootX = find(x)
+            val rootY = find(y)
+
+            if (rootX == rootY) {
+                return false
+            }
+
+            ranks[rootX] = ranks.getOrDefault(rootX, 0)
+            ranks[rootY] = ranks.getOrDefault(rootY, 0)
+            when {
+                ranks[rootX]!! < ranks[rootY]!! -> parents[rootX] = rootY
+                ranks[rootX]!! > ranks[rootY]!! -> parents[rootY] = rootX
+                else -> {
+                    parents[rootY] = rootX
+                    ranks[rootX] = ranks[rootX]!! + 1
+                }
+            }
+
+            return true
+        }
+    }
+
     // Day 69 - LC 787. Cheapest Flights Within K Stops
     // Approach 1: Level-Order BFS Queue (Staff Level Extreme - Sparse Active Node Processing)
     // Time Complexity: O(V + E * K) | Auxiliary Space Complexity: O(V + E)
