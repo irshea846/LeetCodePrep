@@ -5,6 +5,110 @@ import kotlin.math.abs
 
 object Week14AdvGraphs {
 
+    // Day 72 - LC 210. Course Schedule II
+    // Approach 1: Topological Sort (Kahn's Algorithm BFS - Staff Level Extreme)
+    // Time Complexity: O(V + E) | Auxiliary Space Complexity: O(V + E)
+    // (zero-allocation circular/linear ring queue)
+    fun findOrder(numCourses: Int, prerequisites: Array<IntArray>): IntArray {
+        val inOrder = IntArray(numCourses)
+        val graph = Array(numCourses) { mutableListOf<Int>() }
+
+        for (prereq in prerequisites) {
+            graph[prereq[1]].add(prereq[0])
+            inOrder[prereq[0]]++
+        }
+
+        var head = 0
+        var tail = 0
+        val schedule = IntArray(numCourses)
+        for (i in 0 until numCourses) {
+            if (inOrder[i] == 0) {
+                schedule[tail++] = i
+            }
+        }
+
+        while (head < tail) {
+            val pop = schedule[head++]
+            for (next in graph[pop]) {
+                if (--inOrder[next] == 0) {
+                    schedule[tail++] = next
+                }
+            }
+        }
+
+        return if (head == numCourses) schedule else intArrayOf()
+    }
+
+    // Approach 2: Traditional Topological Sort (Kahn's Algorithm BFS - Staff Level Optimal)
+    // Time Complexity: O(V + E) | Auxiliary Space Complexity: O(V + E)
+    fun findOrderBFS(numCourses: Int, prerequisites: Array<IntArray>): IntArray {
+        val inDegree = IntArray(numCourses)
+        val graph = Array(numCourses) { mutableListOf<Int>() }
+
+        for (prereq in prerequisites) {
+            graph[prereq[1]].add(prereq[0])
+            inDegree[prereq[0]]++
+        }
+
+        val q = ArrayDeque<Int>(numCourses)
+        for (i in 0 until numCourses) {
+            if (inDegree[i] == 0) {
+                q.addLast(i) // Standard FIFO Queue push
+            }
+        }
+
+        if (q.isEmpty()) return intArrayOf()
+
+        var index = 0
+        val schedule = IntArray(numCourses)
+        while (q.isNotEmpty()) {
+            val curr = q.removeFirst() // Standard FIFO Queue poll
+            schedule[index++] = curr
+
+            for (next in graph[curr]) {
+                if (--inDegree[next] == 0) {
+                    q.addLast(next)
+                }
+            }
+        }
+
+        return if (index == numCourses) schedule else intArrayOf()
+    }
+
+    // Approach 2: Topological Sort (DFS 3-Color State + Post-Order Reverse)
+    // Time Complexity: O(V + E) | Auxiliary Space Complexity: O(V + E)
+    fun findOrderDFS(numCourses: Int, prerequisites: Array<IntArray>): IntArray {
+        val graph = Array(numCourses) { mutableListOf<Int>() }
+        for (p in prerequisites) {
+            graph[p[1]].add(p[0])
+        }
+
+        val state = IntArray(numCourses) // 0 = Unvisited, 1 = Visiting, 2 = Visited
+        val schedule = IntArray(numCourses)
+        var index = numCourses - 1
+
+        fun hasCycle(curr: Int): Boolean {
+            if (state[curr] == 1) return true  // Cycle back-edge
+            if (state[curr] == 2) return false // Already verified
+
+            state[curr] = 1 // Visiting
+            for (next in graph[curr]) {
+                if (hasCycle(next)) return true
+            }
+            state[curr] = 2 // Visited
+            schedule[index--] = curr // Post-order reverse insertion
+            return false
+        }
+
+        for (i in 0 until numCourses) {
+            if (state[i] == 0) {
+                if (hasCycle(i)) return intArrayOf()
+            }
+        }
+
+        return schedule
+    }
+
     // Day 71 - LC 1584. Min Cost to Connect All Points
     // Approach 1: Dense Prim's Algorithm (Staff Level Optimal - O(N²) Time, O(N) Space)
     // Time Complexity: O(N²) | Auxiliary Space Complexity: O(N)

@@ -5,7 +5,81 @@ import kotlin.test.assertEquals
 
 class Week14AdvGraphsTest {
 
-    // Day 71 - LC 1584. Min Cost to Connect All Points
+    // Day 72 - LC 210. Course Schedule II
+    @Test
+    fun testFindOrder() {
+        var prerequisites = arrayOf(intArrayOf(1, 0))
+        var expected = intArrayOf(0, 1)
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrder(2, prerequisites).contentToString()
+        )
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrderBFS(2, prerequisites).contentToString()
+        )
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrderDFS(2, prerequisites).contentToString()
+        )
+
+        prerequisites =
+            arrayOf(intArrayOf(1, 0), intArrayOf(2, 0), intArrayOf(3, 1), intArrayOf(3, 2))
+        val validOrders = listOf("[0, 1, 2, 3]", "[0, 2, 1, 3]")
+        assert(validOrders.contains(Week14AdvGraphs.findOrder(4, prerequisites).contentToString()))
+        assert(validOrders.contains(Week14AdvGraphs.findOrderBFS(4, prerequisites).contentToString()))
+        assert(validOrders.contains(Week14AdvGraphs.findOrderDFS(4, prerequisites).contentToString()))
+
+        prerequisites = arrayOf()
+        expected = intArrayOf(0)
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrder(1, prerequisites).contentToString()
+        )
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrderBFS(1, prerequisites).contentToString()
+        )
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrderDFS(1, prerequisites).contentToString()
+        )
+
+        prerequisites = arrayOf(intArrayOf(1, 0), intArrayOf(0, 1))
+        expected = intArrayOf()
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrder(2, prerequisites).contentToString()
+        )
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrderBFS(2, prerequisites).contentToString()
+        )
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrderDFS(2, prerequisites).contentToString()
+        )
+
+
+        prerequisites = arrayOf(intArrayOf(0, 1), intArrayOf(1, 2), intArrayOf(2, 0))
+        expected = intArrayOf()
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrder(3, prerequisites).contentToString()
+        )
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrderBFS(3, prerequisites).contentToString()
+        )
+        assertEquals(
+            expected.contentToString(),
+            Week14AdvGraphs.findOrderDFS(3, prerequisites).contentToString()
+        )
+
+    }
+
+
+        // Day 71 - LC 1584. Min Cost to Connect All Points
     @Test
     fun testMinCostConnectPoints() {
         var points = arrayOf(intArrayOf(0, 0), intArrayOf(2, 2), intArrayOf(3, 10), intArrayOf(5, 2), intArrayOf(7, 0))
