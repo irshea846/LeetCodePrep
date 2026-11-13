@@ -10,7 +10,135 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Dijkstra
 - [ ] Bellman-Ford
 - [ ] Union-Find
-- [ ] Minimum Spanning Trees
+- [ ] Prim's Algorithm and Kruskal's Algorithm (MST) 
+
+## Day 71 - LC 1584. Min Cost to Connect All Points
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Minimum Spanning Tree (MST) on Complete Dense Graph**: Connecting all N points with minimum 
+  total Manhattan distance forms a Complete Dense Graph with V = N nodes and E = N(N - 1) / 2 = O(N²) 
+  edges.
+  * **Dense Prim's Algorithm Invariant (O(N²) Time, O(N) Space)**:
+    - On dense graphs where E = O(V²), Prim's algorithm with a linear scan over N unvisited nodes 
+    runs in O(V²) = O(N²) time and O(N) space.
+    - Min-Heap Prim's or Kruskal's algorithm requires O(E x Log(V)) = O(N² x Log(N)) time and O(N²) 
+    edge list space.
+    - Therefore, **Dense Linear-Scan Prim's Algorithm is strictly optimal** for LC 1584!
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When...                                                                                                   |
+ :--- | :--- | :--- | :--- |:--------------------------------------------------------------------------------------------------------------------|
+ **Dense Prim's (Linear Scan)** | **O(N²)** | **O(N)** | **Staff Level (Optimal)** | Dense complete graphs (E = O(N²)); zero edge list allocations; strictly beats O(N² x Log(N)).                       |
+ **Min-Heap Prim's Algorithm** | **O(N² x Log(N))** | **O(N²)** heap space | Peak | Sparse graphs (E ≪ V²).                                                                                             |
+ **Kruskal's Algorithm + DSU** | **O(N² x Log(N))** | **O(N²)** edge list | Good | Minimum Spanning Tree baseline; edge list already sorted or sparse graphs.                                          |
+
+*(where N = points.size ≤ 1000)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Avoid Edge Object Allocations**: Generating a `List<IntArray>` or `List<Edge>` of size 
+(N(N - 1) / 2) creates up to 500,000 objects on the JVM Heap. Dense Prim's algorithm maintains a 
+single flat `IntArray(N)` for minimum distances, achieving **zero heap edge allocations**!
+* **Inline Manhattan Distance Calculation**: 
+     `val dist = abs(currX - points[nextNode][0]) + abs(currY - points[nextNode][1])` 
+inside the inner loop avoids function call overhead.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Dense Prim's Algorithm (Staff Level Optimal - O(N²) Time, O(N) Space)
+// Time Complexity: O(N²) | Auxiliary Space Complexity: O(N)
+fun minCostConnectPoints(points: Array<IntArray>): Int {
+    val n = points.size
+    val minDist = IntArray(n) { Int.MAX_VALUE }
+    minDist[0] = 0
+    val connected = BooleanArray(n)
+    var totalCost = 0
+
+    for (step in 0 until n) {
+        var currNode = -1
+        var currMinDist = Int.MAX_VALUE
+
+        for (node in 0 until n) {
+            if (!connected[node] && minDist[node] < currMinDist) {
+                currMinDist = minDist[node]
+                currNode = node
+            }
+        }
+
+        connected[currNode] = true
+        totalCost += currMinDist
+
+        val currX = points[currNode][0]
+        val currY = points[currNode][1]
+
+        for (nextNode in 0 until n) {
+            if (!connected[nextNode]) {
+                val dist = abs(currX - points[nextNode][0]) + abs(currY - points[nextNode][1])
+                if (dist < minDist[nextNode]) {
+                    minDist[nextNode] = dist
+                }
+            }
+        }
+    }
+
+    return totalCost
+}
+
+// Approach 2: Kruskal's Algorithm + DSU (O(N² log N) Time, O(N²) Space)
+// Time Complexity: O(N² log N) | Auxiliary Space Complexity: O(N²)
+fun minCostConnectPointsKruskal(points: Array<IntArray>): Int {
+    val n = points.size
+    val edges = mutableListOf<IntArray>() // [cost, u, v]
+
+    for (i in 0 until n) {
+        for (j in i + 1 until n) {
+            val dist = abs(points[i][0] - points[j][0]) + abs(points[i][1] - points[j][1])
+            edges.add(intArrayOf(dist, i, j))
+        }
+    }
+
+    edges.sortBy { it[0] }
+
+    val parent = IntArray(n) { it }
+    fun find(i: Int): Int {
+        var root = i
+        while (root != parent[root]) {
+            parent[root] = parent[parent[root]]
+            root = parent[root]
+        }
+        return root
+    }
+
+    var mstCost = 0
+    var edgesCount = 0
+
+    for (edge in edges) {
+        val rootU = find(edge[1])
+        val rootV = find(edge[2])
+
+        if (rootU != rootV) {
+            parent[rootU] = rootV
+            mstCost += edge[0]
+            edgesCount++
+            if (edgesCount == n - 1) break
+        }
+    }
+
+    return mstCost
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Dense Prim's vs. Kruskal's vs. Borůvka's Algorithm**:
+  * **Dense Prim's (O(V²) time, O(V) space)**: Optimal choice for dense complete graphs. Avoids 
+  sorting E = O(V²) edges.
+  * **Kruskal's (O(E x Log(E)) time, O(E) space)**: Optimal choice for sparse graphs where E ≪ V². 
+  Sorts edges upfront and builds MST via DSU.
+  * **Borůvka's (O(E x Log(V)) time)**: Parallel MST algorithm where each component independently 
+  finds its cheapest outgoing edge. Highly effective for distributed GPU / MapReduce graph processing.
+---
+
 
 ## Day 70 - LC 684. Redundant Connection
 ### 1. Core Pattern Identifier

@@ -1,8 +1,93 @@
 package com.rshea.leetcodeprep
 
 import java.util.PriorityQueue
+import kotlin.math.abs
 
 object Week14AdvGraphs {
+
+    // Day 71 - LC 1584. Min Cost to Connect All Points
+    // Approach 1: Dense Prim's Algorithm (Staff Level Optimal - O(N²) Time, O(N) Space)
+    // Time Complexity: O(N²) | Auxiliary Space Complexity: O(N)
+    fun minCostConnectPoints(points: Array<IntArray>): Int {
+        val n = points.size
+        val minDist = IntArray(n) { Int.MAX_VALUE }
+        minDist[0] = 0
+        val connected = BooleanArray(n)
+        var totalCost = 0
+
+        for (step in 0 until n) {
+            var currNode = -1
+            var currMinDist = Int.MAX_VALUE
+
+            for (node in 0 until n) {
+                if (!connected[node] && minDist[node] < currMinDist) {
+                    currMinDist = minDist[node]
+                    currNode = node
+                }
+            }
+
+            connected[currNode] = true
+            totalCost += currMinDist
+
+            val currX = points[currNode][0]
+            val currY = points[currNode][1]
+
+            for (nextNode in 0 until n) {
+                if (!connected[nextNode]) {
+                    val dist = abs(currX - points[nextNode][0]) + abs(currY - points[nextNode][1])
+                    if (dist < minDist[nextNode]) {
+                        minDist[nextNode] = dist
+                    }
+                }
+            }
+        }
+
+        return totalCost
+    }
+
+    // Approach 2: Kruskal's Algorithm + DSU (O(N² log N) Time, O(N²) Space)
+    // Time Complexity: O(N² log N) | Auxiliary Space Complexity: O(N²)
+    fun minCostConnectPointsKruskal(points: Array<IntArray>): Int {
+        val n = points.size
+        val edges = mutableListOf<IntArray>() // [cost, u, v]
+
+        for (i in 0 until n) {
+            for (j in i + 1 until n) {
+                val dist = abs(points[i][0] - points[j][0]) + abs(points[i][1] - points[j][1])
+                edges.add(intArrayOf(dist, i, j))
+            }
+        }
+
+        edges.sortBy { it[0] }
+
+        val parent = IntArray(n) { it }
+        fun find(i: Int): Int {
+            var root = i
+            while (root != parent[root]) {
+                parent[root] = parent[parent[root]]
+                root = parent[root]
+            }
+            return root
+        }
+
+        var mstCost = 0
+        var edgesCount = 0
+
+        for (edge in edges) {
+            val rootU = find(edge[1])
+            val rootV = find(edge[2])
+
+            if (rootU != rootV) {
+                parent[rootU] = rootV
+                mstCost += edge[0]
+                edgesCount++
+                if (edgesCount == n - 1) break
+            }
+        }
+
+        return mstCost
+    }
+
 
     // Day 70 - LC 684. Redundant Connection
     // Approach 1: Flat Primitive IntArray DSU (Staff Level Extreme - Zero Heap Object Allocations)
