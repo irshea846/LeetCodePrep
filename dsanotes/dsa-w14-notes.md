@@ -10,7 +10,166 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Dijkstra
 - [ ] Bellman-Ford
 - [ ] Union-Find
-- [ ] Prim's Algorithm and Kruskal's Algorithm (MST) 
+- [ ] Prim's Algorithm and Kruskal's Algorithm (Minimum Spanning Tree) 
+- [ ] BFS (Kahn's Algorithm) and DFS (3-Color State) (Topological Sort) 
+
+## Day 72 - LC 210. Course Schedule II
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Directed Acyclic Graph (DAG) Topological Sort**: Course prerequisites form directed edges 
+  `prev -> post`. Finding the execution order of all courses requires ordering nodes such that for 
+  every directed edge u → v, u appears before v.
+  * **Zero-Allocation Two-Pointer Linear Ring Queue Invariant**:
+    - Every node is enqueued at most once into the topological sequence.
+    - Therefore, the output `schedule: IntArray(numCourses)` array itself acts as BOTH the 
+    **Output Array** AND the **BFS Queue**!
+    - Two pointers `head` (pop pointer) and `tail` (push pointer) advance linearly from 0 to V-1.
+    - `schedule[tail++] = i` enqueues courses when `inDegree[i] == 0`.
+    - `val pop = schedule[head++]` dequeues courses in O(1) time.
+    - If `head == numCourses`, all courses were processed in topological order (return `schedule`); 
+    otherwise, a directed cycle exists (return `intArrayOf()`).
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **Zero-Allocation Two-Pointer Ring Queue** | **O(V + E)** | **O(V + E)** | **Staff Level (Extreme)** | Zero queue heap allocations; uses `schedule` array as Queue; 100% cache-line locality. |
+ **ArrayDeque BFS (Kahn's Algorithm)** | **O(V + E)** | **O(V + E)** | Peak (Canonical) | Standard interview default; clear explicit FIFO queue structure. |
+ **DFS (3-Color State + Post-Order Reverse)** | **O(V + E)** | **O(V + E)** stack | Good | Fast recursive cycle detection + topological ordering. |
+
+*(where V = numCourses, E = prerequisites.size)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Zero-Allocation Memory Optimization**: Using the output `schedule: IntArray(numCourses)` array 
+directly as the BFS queue avoids instantiating `ArrayDeque<Int>`, achieving **zero auxiliary queue 
+object allocations**!
+* **CPU Cache Line Locality & Mechanical Sympathy**: Sequentially reading from `schedule[head++]` 
+and writing to `schedule[tail++]` operates on contiguous memory blocks in L1 CPU Cache with hardware
+prefetching.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Zero-Allocation Two-Pointer Ring Queue (Staff Level Extreme)
+// Time Complexity: O(V + E) | Auxiliary Space Complexity: O(V + E) 
+// (Zero-allocation output array dual-purpose queue)
+fun findOrderZeroAllocation(numCourses: Int, prerequisites: Array<IntArray>): IntArray {
+    val inOrder = IntArray(numCourses)
+    val graph = Array(numCourses) { mutableListOf<Int>() }
+  
+    for (prereq in prerequisites) {
+        graph[prereq[1]].add(prereq[0])
+        inOrder[prereq[0]]++
+    }
+  
+    var head = 0
+    var tail = 0
+    val schedule = IntArray(numCourses)
+    for (i in 0 until numCourses) {
+        if (inOrder[i] == 0) {
+            schedule[tail++] = i
+        }
+    }
+  
+    while (head < tail) {
+        val pop = schedule[head++]
+        for (next in graph[pop]) {
+            if (--inOrder[next] == 0) {
+                schedule[tail++] = next
+            }
+        }
+    }
+  
+    return if (head == numCourses) schedule else intArrayOf()
+}
+
+// Approach 2: Traditional ArrayDeque BFS (Kahn's Algorithm - Peak Canonical)
+// Time Complexity: O(V + E) | Auxiliary Space Complexity: O(V + E)
+fun findOrderBFS(numCourses: Int, prerequisites: Array<IntArray>): IntArray {
+    val inDegree = IntArray(numCourses)
+    val graph = Array(numCourses) { mutableListOf<Int>() }
+
+    for (prereq in prerequisites) {
+        graph[prereq[1]].add(prereq[0])
+        inDegree[prereq[0]]++
+    }
+
+    val q = ArrayDeque<Int>(numCourses)
+    for (i in 0 until numCourses) {
+        if (inDegree[i] == 0) {
+            q.addLast(i) // Standard FIFO Queue push
+        }
+    }
+
+    if (q.isEmpty()) return intArrayOf()
+
+    var index = 0
+    val schedule = IntArray(numCourses)
+    while (q.isNotEmpty()) {
+        val curr = q.removeFirst() // Standard FIFO Queue poll
+        schedule[index++] = curr
+
+        for (next in graph[curr]) {
+            if (--inDegree[next] == 0) {
+                q.addLast(next)
+            }
+        }
+    }
+
+    return if (index == numCourses) schedule else intArrayOf()
+}
+
+// Approach 3: Topological Sort (DFS 3-Color State + Post-Order Reverse)
+// Time Complexity: O(V + E) | Auxiliary Space Complexity: O(V + E)
+fun findOrderDFS(numCourses: Int, prerequisites: Array<IntArray>): IntArray {
+    val graph = Array(numCourses) { mutableListOf<Int>() }
+    for (p in prerequisites) {
+        graph[p[1]].add(p[0])
+    }
+
+    val state = IntArray(numCourses) // 0 = Unvisited, 1 = Visiting, 2 = Visited
+    val schedule = IntArray(numCourses)
+    var index = numCourses - 1
+
+    fun hasCycle(curr: Int): Boolean {
+        if (state[curr] == 1) return true  // Cycle back-edge
+        if (state[curr] == 2) return false // Already verified
+
+        state[curr] = 1 // Visiting
+        for (next in graph[curr]) {
+            if (hasCycle(next)) return true
+        }
+        state[curr] = 2 // Visited
+        schedule[index--] = curr // Post-order reverse insertion
+        return false
+    }
+
+    for (i in 0 until numCourses) {
+        if (state[i] == 0) {
+            if (hasCycle(i)) return intArrayOf()
+        }
+    }
+
+    return schedule
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Two-Pointer Array Queue vs. `ArrayDeque`**:
+  * `ArrayDeque` incurs object allocation and internal array resizing overhead.
+  * The **Two-Pointer Array Queue (`schedule[tail++] = next` and `schedule[head++]`)** reuses the 
+  output array itself as the queue. Since every node is enqueued at most once, `head` and `tail` 
+  move strictly forward from 0 to V-1 without needing modulo wrapping (`% V`).
+* **DFS Call Stack Overflow vs. Kahn's BFS Safety**:
+  * On a deep linear graph (0 → 1 → 2 → ... → V-1), DFS recursion call stack reaches depth V. 
+  For V = 10^5, this risks a JVM `StackOverflowError`.
+  * Kahn's BFS operates iteratively, guaranteeing **100% StackOverflow safety**.
+* **Parallel Task Schedulers (Gradle, Bazel, Airflow)**:
+  * Kahn's algorithm models real-world build systems and DAG orchestrators. At any BFS step, all 
+  nodes in the queue with `inDegree == 0` have satisfied their prerequisites and **can be executed 
+  concurrently in parallel across worker nodes/threads**!
+
+---
 
 ## Day 71 - LC 1584. Min Cost to Connect All Points
 ### 1. Core Pattern Identifier
