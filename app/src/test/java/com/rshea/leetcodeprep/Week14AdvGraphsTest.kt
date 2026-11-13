@@ -5,6 +5,23 @@ import kotlin.test.assertEquals
 
 class Week14AdvGraphsTest {
 
+    // Day 71 - LC 1584. Min Cost to Connect All Points
+    @Test
+    fun testMinCostConnectPoints() {
+        var points = arrayOf(intArrayOf(0, 0), intArrayOf(2, 2), intArrayOf(3, 10), intArrayOf(5, 2), intArrayOf(7, 0))
+        assertEquals(20, Week14AdvGraphs.minCostConnectPoints(points))
+        assertEquals(20, Week14AdvGraphs.minCostConnectPointsKruskal(points))
+
+        points = arrayOf(intArrayOf(3, 12), intArrayOf(-2, 5), intArrayOf(-4, 1))
+        assertEquals(18, Week14AdvGraphs.minCostConnectPoints(points))
+        assertEquals(18, Week14AdvGraphs.minCostConnectPointsKruskal(points))
+
+        points = arrayOf(intArrayOf(0, 0), intArrayOf(1, 1), intArrayOf(1, 0), intArrayOf(-1, 1))
+        assertEquals(4, Week14AdvGraphs.minCostConnectPoints(points))
+        assertEquals(4, Week14AdvGraphs.minCostConnectPointsKruskal(points))
+
+    }
+
     // Day 70 - LC 684. Redundant Connection
     @Test
     fun testFindRedundantConnection() {
