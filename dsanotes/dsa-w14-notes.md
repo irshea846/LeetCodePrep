@@ -442,7 +442,7 @@ class DisjointSet() {
     (`nextCost[v] = min(nextCost[v], cost[u] + w)`).
   * **Level-Order BFS Queue Efficiency**:
     Processing nodes level-by-level up to K+1 edge levels ONLY relaxes edges originating from active 
-    level nodes, skipping unnecessary scans over all $E$ flights!
+    level nodes, skipping unnecessary scans over all E flights!
 
 ### 2. Complexity Boundaries
 * Comparison Matrix
