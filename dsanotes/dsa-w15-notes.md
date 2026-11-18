@@ -7,11 +7,160 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 # ==================================================================
 
 ## Topics Covered
-- [ ] 2D Grid DAG Topological Sort
-- [ ] Shortest Path + DP State Accumulation
+- [ ] Kahn's 2D Grid DAG Topological Sort
+- [ ] Dijkstra + DP State Accumulation
 - [ ] Multi-Source BFS vs. Two-Pass 2D Dynamic Programming.
 - [ ] Tree/Graph State DP
 - [ ] State-Space Shortest Path
+
+## Day 75 - LC 1976. Number of Ways to Arrive at Destination
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Shortest Path + DP Combination State Accumulation**: Finding the number of paths to node n-1 
+  with minimum total travel time.
+  * **State Accumulation Invariants**:
+    - As Dijkstra relaxes edges u → v with weight w:
+      - If `d + w < dist[v]`: Strict improvement found! Reset `dist[v] = d + w`, inherit 
+      `ways[v] = ways[u]`, and enqueue `(dist[v], v)`.
+      - If `d + w == dist[v]`: Alternative shortest path to v found! Accumulate 
+      `ways[v] = (ways[v] + ways[u]) % MOD`. (Do NOT re-enqueue `(dist[v], v)`).
+  * **Zero Heap Allocation Bit-Packing**: Packing `(distance shl 16) or node` into a primitive `Long` 
+  enables `PriorityQueue<Long>()` natural ascending comparison without `Comparator` or `LongArray` 
+  object allocations.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **Bit-Packed Long Dijkstra + DP** | **O((V + E) log V)** | **O(V + E)** | **Staff Level (Extreme)** | High-throughput JVM microservices; zero heap object allocation. |
+ **Object Dijkstra + DP (`LongArray`)** | **O((V + E) log V)** | **O(V + E)** | Peak (Canonical) | Standard interview default; explicit `LongArray` heap entries. |
+
+*(where V = n, E = roads.size)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Bit Packing Capacity Bounds & Overflow Protection**:
+  In LC 1976, individual edge weights are up to 10^9, and cumulative shortest distances `dist[v]` 
+  can reach `200 x 10^9 = 2 x 10^11`!
+  If we shift distance left by 32 bits (`w shl 32`), any distance > 2^31 - 1 ≅ 2.14 x 10^9 will 
+  overflow the upper 32 bits of a 64-bit `Long`!
+  **Bit Allocation**: Since node v ⩽ 200, node v requires only 16 bits (`0xFFFFL`). Shifting distance 
+  left by 16 bits (`w shl 16`) allocates **48 bits for cumulative distance w**, supporting path 
+  lengths up to 2.8 x 10^14 without 64-bit integer overflow!
+* **Avoid Re-enqueuing on Equal Distance**: When `newTime == dist[v]`, only update 
+        `ways[v] = (ways[v] + ways[u]) % MOD` 
+  Re-enqueuing v to PriorityQueue creates redundant graph explorations and slows execution!
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bit-Packed Primitive Long Dijkstra + DP (Staff Level Extreme - Zero Heap Allocations)
+// Time Complexity: O((V + E) log V) | Auxiliary Space Complexity: O(V + E)
+// Bit Allocation: 16 bits for node v (v <= 200 < 65,536), 48 bits for cumulative distance w (up to 2.8 * 10^14)
+fun countPathsBitPacking(n: Int, roads: Array<IntArray>): Int {
+    val MOD = 1_000_000_007
+    val dist = LongArray(n) { Long.MAX_VALUE }
+    val ways = IntArray(n)
+    dist[0] = 0L
+    ways[0] = 1
+
+    val graph = Array(n) { mutableListOf<Long>() }
+
+    fun encode(w: Long, v: Int): Long {
+        return (w shl 16) or (v.toLong() and 0xFFFFL)
+    }
+
+    for (road in roads) {
+        val u = road[0]
+        val v = road[1]
+        val w = road[2].toLong()
+        graph[u].add(encode(w, v))
+        graph[v].add(encode(w, u))
+    }
+
+    val pq = PriorityQueue<Long>() // Natural ascending Long order (Zero Comparator Heap)
+    pq.add(encode(0L, 0))
+
+    while (pq.isNotEmpty()) {
+        val code = pq.poll()!!
+        val d = code ushr 16
+        val u = (code and 0xFFFFL).toInt()
+
+        if (d > dist[u]) continue // Lazy deletion pruning
+
+        for (edge in graph[u]) {
+            val w = edge ushr 16
+            val v = (edge and 0xFFFFL).toInt()
+            val newTime = d + w
+
+            if (newTime < dist[v]) {
+                dist[v] = newTime
+                ways[v] = ways[u]
+                pq.add(encode(newTime, v))
+            } else if (newTime == dist[v]) {
+                ways[v] = (ways[v] + ways[u]) % MOD
+            }
+        }
+    }
+
+    return ways[n - 1]
+}
+
+// Approach 2: Dijkstra's Algorithm + Heap (Priority Queue) + DP
+// Time Complexity: O(E x Log(V)) | Auxiliary Space Complexity: O(V + E)
+fun countPaths(n: Int, roads: Array<IntArray>): Int {
+    val MOD = 1_000_000_007L
+    val currMinTime = LongArray(n) { Long.MAX_VALUE }
+    val ways = LongArray(n)
+    currMinTime[0] = 0L
+    ways[0] = 1L
+    val adjacent = Array(n) { mutableListOf<LongArray>() }
+
+    for (road in roads) {
+        adjacent[road[0]].add(longArrayOf(road[2].toLong(), road[1].toLong()))
+        adjacent[road[1]].add(longArrayOf(road[2].toLong(), road[0].toLong()))
+    }
+
+    val pq =
+        PriorityQueue<LongArray>(if (roads.isEmpty()) 1 else roads.size, compareBy { it[0] })
+    pq.add(longArrayOf(0L, 0))
+
+    while (pq.isNotEmpty()) {
+        val src = pq.poll()!!
+        val d = src[0]
+        val u = src[1].toInt()
+        if (d > currMinTime[u]) continue
+        for (adj in adjacent[u]) {
+            val w = adj[0]
+            val v = adj[1].toInt()
+            val time = d + w
+            if (time < currMinTime[v]) {
+                currMinTime[v] = time
+                ways[v] = ways[u]
+                pq.add(longArrayOf(time, v.toLong()))
+            } else if (time == currMinTime[v]){
+                ways[v] = (ways[v] + ways[u]) % MOD
+            }
+        }
+    }
+
+    return ways[n - 1].toInt()
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Dijkstra DP State Accumulation Invariant**:
+  * Dijkstra guarantees that nodes are finalized in non-decreasing order of their shortest distance 
+  from source 0.
+  * When `dist[v]` is finalized, all shortest paths to v have already been accumulated into `ways[v]`.
+  * Therefore, when v relaxes an edge to neighbor, `ways[v]` contains the complete count of shortest 
+  paths to v, allowing `ways[neighbor]` to inherit or accumulate `ways[v]` correctly!
+* **Zero Heap Allocation Bit Packing (`(weight shl 16) or target_node`)**:
+  * For `N ⩽ 200, E ⩽ 20,000`, standard `Pair(d, v)` or `LongArray` instantiates tens of thousands 
+  of objects.
+  * Bit packing encodes distance in the upper 48 bits and target node in lower 16 bits into a single 
+  primitive `Long`, achieving **zero heap object allocations** during graph traversal.
+
+---
 
 ## Day 74 - LC 329. Longest Increasing Path in a Matrix
 ### 1. Core Pattern Identifier
