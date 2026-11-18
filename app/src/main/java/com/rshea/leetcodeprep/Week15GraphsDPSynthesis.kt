@@ -1,6 +1,103 @@
 package com.rshea.leetcodeprep
 
+import java.util.PriorityQueue
+
 object Week15GraphsDPSynthesis {
+
+    // Day 75 - LC 1976. Number of Ways to Arrive at Destination
+    // Approach 1: Bit-Packed Primitive Long Dijkstra + DP (Staff Level Extreme - Zero Heap Allocations)
+    // Time Complexity: O((V + E) log V) | Auxiliary Space Complexity: O(V + E)
+    // Bit Packing Capacity: 16 bits for node v (N <= 200 < 65,536), 48 bits for cumulative distance w (up to 2.8 * 10^14)
+    fun countPathsBitPacking(n: Int, roads: Array<IntArray>): Int {
+        val MOD = 1_000_000_007
+        val dist = LongArray(n) { Long.MAX_VALUE }
+        val ways = IntArray(n)
+        dist[0] = 0L
+        ways[0] = 1
+
+        val graph = Array(n) { mutableListOf<Long>() }
+
+        fun encode(w: Long, v: Int): Long {
+            return (w shl 16) or (v.toLong() and 0xFFFFL)
+        }
+
+        for (road in roads) {
+            val u = road[0]
+            val v = road[1]
+            val w = road[2].toLong()
+            graph[u].add(encode(w, v))
+            graph[v].add(encode(w, u))
+        }
+
+        val pq = PriorityQueue<Long>() // Natural ascending Long order (Zero Comparator Heap)
+        pq.add(encode(0L, 0))
+
+        while (pq.isNotEmpty()) {
+            val code = pq.poll()!!
+            val d = code ushr 16
+            val u = (code and 0xFFFFL).toInt()
+
+            if (d > dist[u]) continue
+
+            for (edge in graph[u]) {
+                val w = edge ushr 16
+                val v = (edge and 0xFFFFL).toInt()
+                val newTime = d + w
+
+                if (newTime < dist[v]) {
+                    dist[v] = newTime
+                    ways[v] = ways[u]
+                    pq.add(encode(newTime, v))
+                } else if (newTime == dist[v]) {
+                    ways[v] = (ways[v] + ways[u]) % MOD
+                }
+            }
+        }
+
+        return ways[n - 1]
+    }
+
+    // Approach 2: Dijkstra's Algorithm + Heap (Priority Queue) + DP
+    // Time Complexity: O(E x Log(V)) | Auxiliary Space Complexity: O(V + E)
+    fun countPaths(n: Int, roads: Array<IntArray>): Int {
+        val MOD = 1_000_000_007L
+        val currMinTime = LongArray(n) { Long.MAX_VALUE }
+        val ways = LongArray(n)
+        currMinTime[0] = 0L
+        ways[0] = 1L
+        val adjacent = Array(n) { mutableListOf<LongArray>() }
+
+        for (road in roads) {
+            adjacent[road[0]].add(longArrayOf(road[2].toLong(), road[1].toLong()))
+            adjacent[road[1]].add(longArrayOf(road[2].toLong(), road[0].toLong()))
+        }
+
+        val pq =
+            PriorityQueue<LongArray>(if (roads.isEmpty()) 1 else roads.size, compareBy { it[0] })
+        pq.add(longArrayOf(0L, 0))
+
+        while (pq.isNotEmpty()) {
+            val src = pq.poll()!!
+            val d = src[0]
+            val u = src[1].toInt()
+            if (d > currMinTime[u]) continue
+            for (adj in adjacent[u]) {
+                val w = adj[0]
+                val v = adj[1].toInt()
+                val time = d + w
+                if (time < currMinTime[v]) {
+                    currMinTime[v] = time
+                    ways[v] = ways[u]
+                    pq.add(longArrayOf(time, v.toLong()))
+                } else if (time == currMinTime[v]){
+                    ways[v] = (ways[v] + ways[u]) % MOD
+                }
+            }
+        }
+
+        return ways[n - 1].toInt()
+    }
+
 
     // Day 74 - LC 329. Longest Increasing Path in a Matrix
     // Approach 1: Top-Down Memoized DFS (Staff Level Optimal - Static Direction Vector)
