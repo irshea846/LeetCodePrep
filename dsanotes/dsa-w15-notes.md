@@ -13,6 +13,113 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Tree/Graph State DP
 - [ ] State-Space Shortest Path
 
+## Day 76 - LC 542. 01 Matrix
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **2D Grid Manhattan Distance to Nearest Zero**: Finding the shortest distance from every cell 
+  (r, c) to the nearest `0` in a 2D matrix.
+  * **Two-Pass 2D Dynamic Programming Invariant (O(M x  N) Time, O(1) Space)**:
+    - Distance to nearest `0` can be decomposed into Top-Left moves and Bottom-Right moves.
+    - **Pass 1 (Top-Left to Bottom-Right Pass)**: 
+        `dist[r][c] = min(dist[r][c], dist[r-1][c] + 1, dist[r][c-1] + 1)`
+    - **Pass 2 (Bottom-Right to Top-Left Pass)**: 
+        `dist[r][c] = \min(dist[r][c], dist[r+1][c] + 1, dist[r][c+1] + 1)`.
+  * **Multi-Source BFS (O(M x  N) Time, O(M x  N) Space)**:
+    - Enqueue all `0` cells simultaneously with distance 0 into a BFS queue.
+    - Expand level-by-level using a primitive bit-packed queue (`(r shl 16) or c`).
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **Two-Pass 2D DP** | **O(M * N)** | **O(1)** aux space | **Staff Level (Optimal Memory)** | $100\%$ `StackOverflowError` safe; zero queue allocations; flat linear 2-pass matrix scan. |
+ **Multi-Source BFS (Bit-Packed)** | **O(M * N)** | **O(M * N)** | **Staff Level (Zero GC BFS)** | Standard shortest path level-order expansion; zero heap object allocations via primitive bit-packing. |
+
+*(where $M = \text{rows}, N = \text{cols}$)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Boundary Guard Sentinel (`INF = 10,000`)**: Initializing $1$ cells to `10_000` (or `m + n`) avoids 32-bit Integer overflow during `+ 1` distance operations (unlike `Int.MAX_VALUE`).
+* **Branchless Pass Guard Conditions**: Checking `if (r > 0)` and `if (c > 0)` in Pass 1, and `if (r < m - 1)` and `if (c < n - 1)` in Pass 2 eliminates complex nested `if-else if-else` branching.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Two-Pass 2D Dynamic Programming (Staff Level Optimal - Clean Boundary Guards)
+// Time Complexity: O(M * N) | Auxiliary Space Complexity: O(M * N)
+fun updateMatrix(mat: Array<IntArray>): Array<IntArray> {
+    val m = mat.size
+    val n = mat[0].size
+    val INF = 10_000
+    val dist = Array(m) { r -> IntArray(n) { c -> if (mat[r][c] == 0) 0 else INF } }
+
+    // Pass 1: Top-Left to Bottom-Right (Check Top and Left neighbors)
+    for (r in 0 until m) {
+        for (c in 0 until n) {
+            if (mat[r][c] == 0) continue
+            if (r > 0) dist[r][c] = minOf(dist[r][c], dist[r - 1][c] + 1)
+            if (c > 0) dist[r][c] = minOf(dist[r][c], dist[r][c - 1] + 1)
+        }
+    }
+
+    // Pass 2: Bottom-Right to Top-Left (Check Bottom and Right neighbors)
+    for (r in m - 1 downTo 0) {
+        for (c in n - 1 downTo 0) {
+            if (mat[r][c] == 0) continue
+            if (r < m - 1) dist[r][c] = minOf(dist[r][c], dist[r + 1][c] + 1)
+            if (c < n - 1) dist[r][c] = minOf(dist[r][c], dist[r][c + 1] + 1)
+        }
+    }
+
+    return dist
+}
+
+// Approach 2: Multi-Source BFS (Bit-Packed Primitive Int Queue - Zero Heap Allocations)
+// Time Complexity: O(M * N) | Auxiliary Space Complexity: O(M * N)
+fun updateMatrixMultiSourceBFS(mat: Array<IntArray>): Array<IntArray> {
+    val m = mat.size
+    val n = mat[0].size
+    val dist = Array(m) { IntArray(n) { -1 } }
+    val queue = ArrayDeque<Int>() // Bit-packed coordinate (r shl 16) or c
+
+    // Enqueue all 0 cells simultaneously
+    for (r in 0 until m) {
+        for (c in 0 until n) {
+            if (mat[r][c] == 0) {
+                dist[r][c] = 0
+                queue.addLast((r shl 16) or c)
+            }
+        }
+    }
+
+    val dirs = intArrayOf(0, 1, 0, -1, 0)
+    while (queue.isNotEmpty()) {
+        val code = queue.removeFirst()
+        val r = code ushr 16
+        val c = code and 0xFFFF
+
+        for (k in 0 until 4) {
+            val nr = r + dirs[k]
+            val nc = c + dirs[k + 1]
+            if (nr in 0 until m && nc in 0 until n && dist[nr][nc] == -1) {
+                dist[nr][nc] = dist[r][c] + 1
+                queue.addLast((nr shl 16) or nc)
+            }
+        }
+    }
+
+    return dist
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **Two-Pass 2D DP vs. Multi-Source BFS**:
+  * **Two-Pass 2D DP**: Executes two linear matrix scans. Requires zero queue memory allocations and 
+  operates with 100\% cache locality.
+  * **Multi-Source BFS**: Expands shortest distances level-by-level outward from all zeros. Best when 
+  distances are small or target matrix is dynamically generated.
+
+---
+
 ## Day 75 - LC 1976. Number of Ways to Arrive at Destination
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**

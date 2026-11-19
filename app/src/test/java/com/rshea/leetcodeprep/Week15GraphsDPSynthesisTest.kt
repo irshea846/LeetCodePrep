@@ -1,9 +1,70 @@
 package com.rshea.leetcodeprep
 
+import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 import kotlin.test.assertEquals
 
 class Week15GraphsDPSynthesisTest {
+
+    // Day 76 - LC 542. 01 Matrix
+    @Test
+    fun testUpdateMatrix() {
+        var mat = arrayOf(
+            intArrayOf(0, 1, 1),
+            intArrayOf(1, 1, 1),
+            intArrayOf(1, 1, 1)
+        )
+        var expected = arrayOf(
+            intArrayOf(0, 1, 2),
+            intArrayOf(1, 2, 3),
+            intArrayOf(2, 3, 4)
+        )
+        assertArrayEquals(expected, Week15GraphsDPSynthesis.updateMatrix(mat))
+        assertArrayEquals(expected, Week15GraphsDPSynthesis.updateMatrixMultiSourceBFS(mat))
+
+        mat = arrayOf(
+            intArrayOf(1, 1, 1),
+            intArrayOf(1, 1, 1),
+            intArrayOf(1, 1, 0)
+        )
+        expected = arrayOf(
+            intArrayOf(4, 3, 2),
+            intArrayOf(3, 2, 1),
+            intArrayOf(2, 1, 0)
+        )
+        assertArrayEquals(expected, Week15GraphsDPSynthesis.updateMatrix(mat))
+        assertArrayEquals(expected, Week15GraphsDPSynthesis.updateMatrixMultiSourceBFS(mat))
+
+        mat = arrayOf(
+            intArrayOf(0, 0, 0),
+            intArrayOf(0, 1, 0),
+            intArrayOf(1, 1, 1)
+        )
+        expected = arrayOf(
+            intArrayOf(0, 0, 0),
+            intArrayOf(0, 1, 0),
+            intArrayOf(1, 2, 1)
+        )
+        assertArrayEquals(expected, Week15GraphsDPSynthesis.updateMatrix(mat))
+        assertArrayEquals(expected, Week15GraphsDPSynthesis.updateMatrixMultiSourceBFS(mat))
+
+        mat = arrayOf(
+            intArrayOf(0, 1, 0, 1, 1),
+            intArrayOf(1, 1, 0, 0, 1),
+            intArrayOf(0, 0, 0, 1, 0),
+            intArrayOf(1, 0, 1, 1, 1)
+        )
+        expected = arrayOf(
+            intArrayOf(0, 1, 0, 1, 2),
+            intArrayOf(1, 1, 0, 0, 1),
+            intArrayOf(0, 0, 0, 1, 0),
+            intArrayOf(1, 0, 1, 2, 1)
+        )
+        assertArrayEquals(expected, Week15GraphsDPSynthesis.updateMatrix(mat))
+        assertArrayEquals(expected, Week15GraphsDPSynthesis.updateMatrixMultiSourceBFS(mat))
+
+    }
+
 
     // Day 75 - LC 1976. Number of Ways to Arrive at Destination
     @Test
