@@ -4,6 +4,74 @@ import java.util.PriorityQueue
 
 object Week15GraphsDPSynthesis {
 
+    // Day 76 - LC 542. 01 Matrix
+    // Approach 1: Two-Pass 2D Dynamic Programming (Staff Level Optimal - Clean Boundary Guards)
+    // Time Complexity: O(M * N) | Auxiliary Space Complexity: O(M * N)
+    fun updateMatrix(mat: Array<IntArray>): Array<IntArray> {
+        val m = mat.size
+        val n = mat[0].size
+        val INF = 10_000
+        val dist = Array(m) { r -> IntArray(n) { c -> if (mat[r][c] == 0) 0 else INF } }
+
+        // Pass 1: Top-Left to Bottom-Right (Check Top and Left neighbors)
+        for (r in 0 until m) {
+            for (c in 0 until n) {
+                if (mat[r][c] == 0) continue
+                if (r > 0) dist[r][c] = minOf(dist[r][c], dist[r - 1][c] + 1)
+                if (c > 0) dist[r][c] = minOf(dist[r][c], dist[r][c - 1] + 1)
+            }
+        }
+
+        // Pass 2: Bottom-Right to Top-Left (Check Bottom and Right neighbors)
+        for (r in m - 1 downTo 0) {
+            for (c in n - 1 downTo 0) {
+                if (mat[r][c] == 0) continue
+                if (r < m - 1) dist[r][c] = minOf(dist[r][c], dist[r + 1][c] + 1)
+                if (c < n - 1) dist[r][c] = minOf(dist[r][c], dist[r][c + 1] + 1)
+            }
+        }
+
+        return dist
+    }
+
+    // Approach 2: Multi-Source BFS (Bit-Packed Primitive Int Queue - Zero Heap Allocations)
+    // Time Complexity: O(M * N) | Auxiliary Space Complexity: O(M * N)
+    fun updateMatrixMultiSourceBFS(mat: Array<IntArray>): Array<IntArray> {
+        val m = mat.size
+        val n = mat[0].size
+        val dist = Array(m) { IntArray(n) { -1 } }
+        val queue = ArrayDeque<Int>() // Bit-packed coordinate (r shl 16) or c
+
+        // Enqueue all 0 cells simultaneously
+        for (r in 0 until m) {
+            for (c in 0 until n) {
+                if (mat[r][c] == 0) {
+                    dist[r][c] = 0
+                    queue.addLast((r shl 16) or c)
+                }
+            }
+        }
+
+        val dirs = intArrayOf(0, 1, 0, -1, 0)
+        while (queue.isNotEmpty()) {
+            val code = queue.removeFirst()
+            val r = code ushr 16
+            val c = code and 0xFFFF
+
+            for (k in 0 until 4) {
+                val nr = r + dirs[k]
+                val nc = c + dirs[k + 1]
+                if (nr in 0 until m && nc in 0 until n && dist[nr][nc] == -1) {
+                    dist[nr][nc] = dist[r][c] + 1
+                    queue.addLast((nr shl 16) or nc)
+                }
+            }
+        }
+
+        return dist
+    }
+
+
     // Day 75 - LC 1976. Number of Ways to Arrive at Destination
     // Approach 1: Bit-Packed Primitive Long Dijkstra + DP (Staff Level Extreme - Zero Heap Allocations)
     // Time Complexity: O((V + E) log V) | Auxiliary Space Complexity: O(V + E)
