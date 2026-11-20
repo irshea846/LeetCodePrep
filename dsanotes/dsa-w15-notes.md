@@ -10,8 +10,95 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Kahn's 2D Grid DAG Topological Sort
 - [ ] Dijkstra + DP State Accumulation
 - [ ] Multi-Source BFS vs. Two-Pass 2D Dynamic Programming.
-- [ ] Tree/Graph State DP
+- [ ] Tree/Graph State DFS DP
 - [ ] State-Space Shortest Path
+
+## Day 77 - LC 337. House Robber III
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Tree Post-Order Dynamic Programming Tuple `(robThisNode, skipThisNode)`**:
+    - Adjacent tree nodes cannot be robbed.
+    - For each subtree root:
+      1. `robThisNode`: node.val + skipLeft + skipRight (must skip children).
+      2. `skipThisNode`: max(robLeft, skipLeft) + max(robRight, skipRight) 
+      (can choose best option for each child).
+  * **Zero Heap Allocation Bit-Packing**:
+    - Packing `(robThisNode shl 32) or skipThisNode` into a primitive `Long` enables returning both 
+    subproblem answers in a single 64-bit integer, achieving **zero heap object allocations** during 
+    post-order tree traversal.
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **Bit-Packed Primitive `Long` DFS** | **O(N)** | **O(H)** call stack | **Staff Level (Extreme)** | High-throughput JVM services; zero heap array/pair object allocations. |
+ **Post-Order DFS (`IntArray(2)`)** | **O(N)** | **O(H)** call stack | Peak (Canonical) | Standard interview default; returns tuple array `IntArray(2)`. |
+
+*(where N = tree nodes, H = tree height)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Bitwise Shift Operator Precedence**: `shl` has lower precedence than `+` or `-`, but higher than
+`or`. Always parenthesize bitwise bit packing expressions: 
+        `(totalRobSum shl 32) or (totalUnrobSum and 0xFFFFFFFFL)` 
+to prevent logical operator evaluation bugs!
+* **Unsigned Bit Shift (`ushr`)**: Use `code ushr 32` (unsigned shift right) when extracting the 
+upper 32-bit `robThisNode` value to avoid negative sign extension.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bit-Packed Primitive Long DFS (Staff Level Extreme - Zero Heap Allocations)
+// Time Complexity: O(N) | Auxiliary Space Complexity: O(H)
+fun robBitPacking(root: TreeNode?): Int {
+
+    fun dfs(node: TreeNode?): Long {
+        if (node == null) return 0L
+
+        val leftCode = dfs(node.left)
+        val rightCode = dfs(node.right)
+
+        val totalRobSum = node.`val`.toLong() + (leftCode and 0xFFFFFFFFL) + (rightCode and 0xFFFFFFFFL)
+        val totalUnrobSum = maxOf(leftCode ushr 32, leftCode and 0xFFFFFFFFL) + maxOf(rightCode ushr 32, rightCode and 0xFFFFFFFFL)
+
+        return (totalRobSum shl 32) or (totalUnrobSum and 0xFFFFFFFFL)
+    }
+
+    val code = dfs(root)
+    return maxOf((code ushr 32).toInt(), (code and 0xFFFFFFFFL).toInt())
+}
+
+// Approach 2: Top-Down DFS (Staff Level Optimal - Peak Canonical - IntArray(2))
+// Time Complexity: O(N) | Auxiliary Space Complexity: O(H)
+fun robDFS(root: TreeNode?): Int {
+
+    fun dfs(node: TreeNode?): IntArray {
+        if (node == null) return intArrayOf(0, 0)
+
+        val left = dfs(node.left)
+        val right = dfs(node.right)
+
+        return intArrayOf(node.`val` + left[1] + right[1], maxOf(left[0], left[1]) + maxOf(right[0], right[1]))
+    }
+
+    val (robSum, unrobSum) = dfs(root)
+    return maxOf(robSum, unrobSum)
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **House Robber Progression (LC 198 → LC 213 → LC 337)**:
+  * **LC 198 (1D Array)**: Linear DP with scalar state variables `(prev1, prev2)` in O(N) time, 
+  O(1) space.
+  * **LC 213 (Circular Array)**: First & last houses adjacent ⇒ solve two linear 
+  subproblems `rob(0..n-2)` and `rob(1..n-1)` in O(N) time, O(1) space.
+  * **LC 337 (Binary Tree)**: Tree state DP post-order traversal in O(N) time, O(H) call stack space.
+* **Bit Packing vs. Heap Allocation**:
+  * Standard tree DP returns `IntArray(2)` or `Pair(rob, unrob)` for every node, allocating N heap 
+  objects.
+  * Bit packing encodes `robThisNode` in upper 32 bits and `skipThisNode` in lower 32 bits of a 
+  primitive `Long`, achieving **zero heap object allocations**.
+
+---
 
 ## Day 76 - LC 542. 01 Matrix
 ### 1. Core Pattern Identifier

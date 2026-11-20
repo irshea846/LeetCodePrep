@@ -4,6 +4,50 @@ import java.util.PriorityQueue
 
 object Week15GraphsDPSynthesis {
 
+    // Day 77 - LC 337. House Robber III
+    class TreeNode(var `val`: Int) {
+        var left: TreeNode? = null
+        var right: TreeNode? = null
+    }
+
+    // Approach 1: Bit-Packed Primitive Long DFS (Staff Level Extreme - Zero Heap Allocations)
+    // Time Complexity: O(N) | Auxiliary Space Complexity: O(H)
+    fun robBitPacking(root: TreeNode?): Int {
+
+        fun dfs(node: TreeNode?): Long {
+            if (node == null) return 0L
+
+            val leftCode = dfs(node.left)
+            val rightCode = dfs(node.right)
+
+            val totalRobSum = node.`val`.toLong() + (leftCode and 0xFFFFFFFFL) + (rightCode and 0xFFFFFFFFL)
+            val totalUnrobSum = maxOf(leftCode ushr 32, leftCode and 0xFFFFFFFFL) + maxOf(rightCode ushr 32, rightCode and 0xFFFFFFFFL)
+
+            return (totalRobSum shl 32) or (totalUnrobSum and 0xFFFFFFFFL)
+        }
+
+        val code = dfs(root)
+        return maxOf((code ushr 32).toInt(), (code and 0xFFFFFFFFL).toInt())
+    }
+
+    // Approach 2: Top-Down DFS (Staff Level Optimal - Peak Canonical - IntArray(2))
+    // Time Complexity: O(N) | Auxiliary Space Complexity: O(H)
+    fun robDFS(root: TreeNode?): Int {
+
+        fun dfs(node: TreeNode?): IntArray {
+            if (node == null) return intArrayOf(0, 0)
+
+            val left = dfs(node.left)
+            val right = dfs(node.right)
+
+            return intArrayOf(node.`val` + left[1] + right[1], maxOf(left[0], left[1]) + maxOf(right[0], right[1]))
+        }
+
+        val (robSum, unrobSum) = dfs(root)
+        return maxOf(robSum, unrobSum)
+    }
+
+
     // Day 76 - LC 542. 01 Matrix
     // Approach 1: Two-Pass 2D Dynamic Programming (Staff Level Optimal - Clean Boundary Guards)
     // Time Complexity: O(M * N) | Auxiliary Space Complexity: O(M * N)
