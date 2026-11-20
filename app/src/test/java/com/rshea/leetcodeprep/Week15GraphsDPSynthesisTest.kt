@@ -6,6 +6,39 @@ import kotlin.test.assertEquals
 
 class Week15GraphsDPSynthesisTest {
 
+    // Day 77 - LC 337. House Robber III
+    @Test
+    fun testRob() {
+        var root = Week15GraphsDPSynthesis.TreeNode(3)
+        root.left = Week15GraphsDPSynthesis.TreeNode(2)
+        root.right = Week15GraphsDPSynthesis.TreeNode(3)
+        root.left!!.right = Week15GraphsDPSynthesis.TreeNode(3)
+        root.right!!.right = Week15GraphsDPSynthesis.TreeNode(1)
+        var expected = 7
+        assertEquals(expected, Week15GraphsDPSynthesis.robBitPacking(root))
+        assertEquals(expected, Week15GraphsDPSynthesis.robDFS(root))
+
+        root = Week15GraphsDPSynthesis.TreeNode(3)
+        root.left = Week15GraphsDPSynthesis.TreeNode(4)
+        root.right = Week15GraphsDPSynthesis.TreeNode(5)
+        root.left!!.left = Week15GraphsDPSynthesis.TreeNode(1)
+        root.left!!.right = Week15GraphsDPSynthesis.TreeNode(3)
+        root.right!!.right = Week15GraphsDPSynthesis.TreeNode(1)
+        expected = 9
+        assertEquals(expected, Week15GraphsDPSynthesis.robBitPacking(root))
+        assertEquals(expected, Week15GraphsDPSynthesis.robDFS(root))
+
+        root = Week15GraphsDPSynthesis.TreeNode(4)
+        root.left = Week15GraphsDPSynthesis.TreeNode(1)
+        root.left!!.left = Week15GraphsDPSynthesis.TreeNode(2)
+        root.left!!.left!!.left = Week15GraphsDPSynthesis.TreeNode(3)
+        expected = 7
+        assertEquals(expected, Week15GraphsDPSynthesis.robBitPacking(root))
+        assertEquals(expected, Week15GraphsDPSynthesis.robDFS(root))
+
+    }
+
+
     // Day 76 - LC 542. 01 Matrix
     @Test
     fun testUpdateMatrix() {
