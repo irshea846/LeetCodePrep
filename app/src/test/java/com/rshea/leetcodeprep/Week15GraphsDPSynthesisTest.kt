@@ -6,6 +6,27 @@ import kotlin.test.assertEquals
 
 class Week15GraphsDPSynthesisTest {
 
+    // Day 78 - LC 847. Shortest Path Visiting All Nodes
+    @Test
+    fun testShortestPathLength() {
+        var graph = arrayOf(intArrayOf(1, 2, 3), intArrayOf(0), intArrayOf(0), intArrayOf(0))
+        var expected = 4
+        assertEquals(expected, Week15GraphsDPSynthesis.shortestPathLengthBitPacking(graph))
+        assertEquals(expected, Week15GraphsDPSynthesis.shortestPathLengthBFS(graph))
+
+        graph = arrayOf(
+            intArrayOf(1),
+            intArrayOf(0, 2, 4),
+            intArrayOf(1, 3, 4),
+            intArrayOf(2),
+            intArrayOf(1, 2)
+        )
+        expected = 4
+        assertEquals(expected, Week15GraphsDPSynthesis.shortestPathLengthBitPacking(graph))
+        assertEquals(expected, Week15GraphsDPSynthesis.shortestPathLengthBFS(graph))
+
+    }
+
     // Day 77 - LC 337. House Robber III
     @Test
     fun testRob() {

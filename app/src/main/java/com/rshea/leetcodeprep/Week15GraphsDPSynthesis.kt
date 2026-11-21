@@ -4,6 +4,79 @@ import java.util.PriorityQueue
 
 object Week15GraphsDPSynthesis {
 
+    // Day 78 - LC 847. Shortest Path Visiting All Nodes
+    // Approach 1: Bit-Packed Primitive Int BFS (Staff Level Extreme - 1D Array allocation)
+    // Time Complexity: O(N² x 2ᴺ) | Auxiliary Space Complexity: O(N x 2ᴺ)
+    fun shortestPathLengthBitPacking(graph: Array<IntArray>): Int {
+        val n = graph.size
+        if (n == 1) return 0
+        val visited = BooleanArray(n shl 12)
+        val targetMask = (1 shl n) - 1
+
+        var head = 0
+        var tail = 0
+        val q = IntArray(n * (1 shl n))
+
+        for (i in 0 until n) {
+            val state = (i shl 12) or (1 shl i)
+            visited[state] = true
+            q[tail++] = state
+        }
+
+        var steps = 0
+        while (head < tail) {
+            val wave = tail - head
+            for (i in 0 until wave) {
+                val state = q[head++]
+                val u = state ushr 12
+                val currMask = state and 0xFFF
+                for (v in graph[u]) {
+                    val nextMask = currMask or (1 shl v)
+                    if (nextMask == targetMask) return steps + 1
+                    val nextState = (v shl 12) or nextMask
+                    if (!visited[nextState]) {
+                        visited[nextState] = true
+                        q[tail++] = nextState
+                    }
+                }
+            }
+            steps++
+        }
+
+        return steps
+    }
+
+    // Approach 2: Standard BFS (Staff Level Optimal - 2D Array Allocations)
+    // Time Complexity: O(N² x 2ᴺ) | Auxiliary Space Complexity: O(N x 2ᴺ)
+    fun shortestPathLengthBFS(graph: Array<IntArray>): Int {
+        val n = graph.size
+        val visited = Array(n) { BooleanArray(1 shl n) }
+        val targetMask = (1 shl n) - 1
+
+        val q = ArrayDeque<Triple<Int, Int, Int>>()
+
+        for (i in 0 until n) {
+            val initialMask = 1 shl i
+            visited[i][initialMask] = true
+            q.addLast(Triple(i, initialMask, 0))
+        }
+
+        while (q.isNotEmpty()) {
+            val (currNode, currMask, steps) = q.removeFirst()
+            for (adj in graph[currNode]) {
+                val nextMask = currMask or (1 shl adj)
+                if (nextMask == targetMask) return steps + 1
+                if (!visited[adj][nextMask]) {
+                    visited[adj][nextMask] = true
+                    q.addLast(Triple(adj, nextMask, steps + 1))
+                }
+            }
+        }
+
+        return 0
+    }
+
+
     // Day 77 - LC 337. House Robber III
     class TreeNode(var `val`: Int) {
         var left: TreeNode? = null

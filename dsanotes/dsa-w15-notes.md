@@ -13,6 +13,116 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 - [ ] Tree/Graph State DFS DP
 - [ ] State-Space Shortest Path
 
+## Day 78 - LC 847. Shortest Path Visiting All Nodes
+### 1. Core Pattern Identifier
+* **What specific constraint triggered the solution design?**
+  * **Shortest Path Visiting All Nodes (State-Space BFS)**: $N \le 12$ nodes, find the shortest path that visits every node at least once.
+  * **Bitmask State Representation**:
+    - State is defined by `(currNode, visitedMask)`.
+    - `visitedMask` is a bitmask of length $N$ where the $i$-th bit is $1$ if node $i$ has been visited.
+    - Target state: `visitedMask == (1 shl N) - 1` (all $N$ bits set).
+  * **Multi-Source BFS Initialization**:
+    - Start BFS from ALL $N$ nodes simultaneously with `dist = 0` and initial mask `1 shl i`.
+    - Level-order BFS guarantees that the first state reaching `targetMask` is the global shortest path!
+
+### 2. Complexity Boundaries
+* Comparison Matrix
+
+ Approach | Time | Space | Performance | Best Used When... |
+ :--- | :--- | :--- | :--- | :--- |
+ **Bit-Packed 1D Queue BFS** | **O(N² x 2ᴺ)** | **O(N x 2ᴺ)** | **Staff Level (Extreme)** | Zero heap object allocations; flat primitive `IntArray` queue & visited array. |
+ **Standard Queue BFS (`ArrayDeque<Triple>`)** | **O(N² x 2ᴺ)** | **O(N x 2ᴺ)** | Peak (Canonical) | Standard interview default; explicit `Triple(node, mask, steps)` state queue. |
+
+*(where $N = \text{graph.size} \le 12$)*
+
+### 3. Native Kotlin Syntax Pitfalls
+* **Triple Object Allocation Churn**: Enqueuing `Triple(currNode, mask, steps)` instantiates up to $12 \times 2^{12} = 49,152$ objects on the heap. Bit-packing `(node shl 12) or mask` into a single primitive `Int` eliminates $100\%$ of heap object allocations during BFS!
+* **1D Visited Array Alignment**: `val visited = BooleanArray(N shl 12)` flatly indexes state `(node shl 12) or mask`, enabling $\mathcal{O}(1)$ primitive array lookup.
+
+### 4. Code Block
+```kotlin
+// Approach 1: Bit-Packed Primitive Int BFS (Staff Level Extreme - 1D Array allocation)
+// Time Complexity: O(N² x 2ᴺ) | Auxiliary Space Complexity: O(N x 2ᴺ)
+fun shortestPathLengthBitPacking(graph: Array<IntArray>): Int {
+    val n = graph.size
+    if (n == 1) return 0
+    val visited = BooleanArray(n shl 12)
+    val targetMask = (1 shl n) - 1
+
+    var head = 0
+    var tail = 0
+    val q = IntArray(n * (1 shl n))
+
+    for (i in 0 until n) {
+        val state = (i shl 12) or (1 shl i)
+        visited[state] = true
+        q[tail++] = state
+    }
+
+    var steps = 0
+    while (head < tail) {
+        val wave = tail - head
+        for (i in 0 until wave) {
+            val state = q[head++]
+            val u = state ushr 12
+            val currMask = state and 0xFFF
+            for (v in graph[u]) {
+                val nextMask = currMask or (1 shl v)
+                if (nextMask == targetMask) return steps + 1
+                val nextState = (v shl 12) or nextMask
+                if (!visited[nextState]) {
+                    visited[nextState] = true
+                    q[tail++] = nextState
+                }
+            }
+        }
+        steps++
+    }
+
+    return steps
+}
+
+// Approach 2: Standard BFS (Staff Level Optimal - 2D Array Allocations)
+// Time Complexity: O(N² x 2ᴺ) | Auxiliary Space Complexity: O(N x 2ᴺ)
+fun shortestPathLengthBFS(graph: Array<IntArray>): Int {
+    val n = graph.size
+    val visited = Array(n) { BooleanArray(1 shl n) }
+    val targetMask = (1 shl n) - 1
+
+    val q = ArrayDeque<Triple<Int, Int, Int>>()
+
+    for (i in 0 until n) {
+        val initialMask = 1 shl i
+        visited[i][initialMask] = true
+        q.addLast(Triple(i, initialMask, 0))
+    }
+
+    while (q.isNotEmpty()) {
+        val (currNode, currMask, steps) = q.removeFirst()
+        for (adj in graph[currNode]) {
+            val nextMask = currMask or (1 shl adj)
+            if (nextMask == targetMask) return steps + 1
+            if (!visited[adj][nextMask]) {
+                visited[adj][nextMask] = true
+                q.addLast(Triple(adj, nextMask, steps + 1))
+            }
+        }
+    }
+
+    return 0
+}
+```
+
+### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
+* **State-Space BFS Invariant**:
+  * Why standard shortest path algorithms (Dijkstra/BFS) on simple node graph fail: In LC 847, nodes CAN be revisited!
+  * By augmenting state from `node` to `(node, visitedMask)`, visiting a node with a *different subset of previously visited nodes* is treated as a distinct state in a state-space graph with $N \cdot 2^N$ vertices.
+* **Multi-Source BFS vs. Single-Source BFS**:
+  * If we start BFS from node $0$ only, we might miss a shorter path starting from node $k$.
+  * Enqueuing all $N$ nodes simultaneously at step 0 explores all possible starting vertices concurrently, guaranteeing global minimum path length.
+
+---
+
 ## Day 77 - LC 337. House Robber III
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
