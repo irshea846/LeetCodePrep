@@ -16,13 +16,14 @@ A collection of LeetCode problem solutions implemented in Kotlin.
 ## Day 78 - LC 847. Shortest Path Visiting All Nodes
 ### 1. Core Pattern Identifier
 * **What specific constraint triggered the solution design?**
-  * **Shortest Path Visiting All Nodes (State-Space BFS)**: $N \le 12$ nodes, find the shortest path that visits every node at least once.
+  * **Shortest Path Visiting All Nodes (State-Space BFS)**: N ≤ 12 nodes, find the shortest path that 
+  visits every node at least once.
   * **Bitmask State Representation**:
     - State is defined by `(currNode, visitedMask)`.
-    - `visitedMask` is a bitmask of length $N$ where the $i$-th bit is $1$ if node $i$ has been visited.
-    - Target state: `visitedMask == (1 shl N) - 1` (all $N$ bits set).
+    - `visitedMask` is a bitmask of length N where the i-th bit is 1 if node i has been visited.
+    - Target state: `visitedMask == (1 shl N) - 1` (all N bits set).
   * **Multi-Source BFS Initialization**:
-    - Start BFS from ALL $N$ nodes simultaneously with `dist = 0` and initial mask `1 shl i`.
+    - Start BFS from ALL N nodes simultaneously with `dist = 0` and initial mask `1 shl i`.
     - Level-order BFS guarantees that the first state reaching `targetMask` is the global shortest path!
 
 ### 2. Complexity Boundaries
@@ -33,11 +34,14 @@ A collection of LeetCode problem solutions implemented in Kotlin.
  **Bit-Packed 1D Queue BFS** | **O(N² x 2ᴺ)** | **O(N x 2ᴺ)** | **Staff Level (Extreme)** | Zero heap object allocations; flat primitive `IntArray` queue & visited array. |
  **Standard Queue BFS (`ArrayDeque<Triple>`)** | **O(N² x 2ᴺ)** | **O(N x 2ᴺ)** | Peak (Canonical) | Standard interview default; explicit `Triple(node, mask, steps)` state queue. |
 
-*(where $N = \text{graph.size} \le 12$)*
+*(where N = graph.size ≤ 12)*
 
 ### 3. Native Kotlin Syntax Pitfalls
-* **Triple Object Allocation Churn**: Enqueuing `Triple(currNode, mask, steps)` instantiates up to $12 \times 2^{12} = 49,152$ objects on the heap. Bit-packing `(node shl 12) or mask` into a single primitive `Int` eliminates $100\%$ of heap object allocations during BFS!
-* **1D Visited Array Alignment**: `val visited = BooleanArray(N shl 12)` flatly indexes state `(node shl 12) or mask`, enabling $\mathcal{O}(1)$ primitive array lookup.
+* **Triple Object Allocation Churn**: Enqueuing `Triple(currNode, mask, steps)` instantiates up to
+`12 x 2^12 = 49,152` objects on the heap. Bit-packing `(node shl 12) or mask` into a single primitive 
+`Int` eliminates 100% of heap object allocations during BFS!
+* **1D Visited Array Alignment**: `val visited = BooleanArray(N shl 12)` flatly indexes state 
+`(node shl 12) or mask`, enabling O(1) primitive array lookup.
 
 ### 4. Code Block
 ```kotlin
@@ -115,11 +119,15 @@ fun shortestPathLengthBFS(graph: Array<IntArray>): Int {
 
 ### 5. Alternative Trade-offs & Staff-Level Architectural Discussions
 * **State-Space BFS Invariant**:
-  * Why standard shortest path algorithms (Dijkstra/BFS) on simple node graph fail: In LC 847, nodes CAN be revisited!
-  * By augmenting state from `node` to `(node, visitedMask)`, visiting a node with a *different subset of previously visited nodes* is treated as a distinct state in a state-space graph with $N \cdot 2^N$ vertices.
+  * Why standard shortest path algorithms (Dijkstra/BFS) on simple node graph fail: In LC 847, nodes 
+  CAN be revisited!
+  * By augmenting state from `node` to `(node, visitedMask)`, visiting a node with a *different subset 
+  of previously visited nodes* is treated as a distinct state in a state-space graph with N x 2^N 
+  vertices.
 * **Multi-Source BFS vs. Single-Source BFS**:
-  * If we start BFS from node $0$ only, we might miss a shorter path starting from node $k$.
-  * Enqueuing all $N$ nodes simultaneously at step 0 explores all possible starting vertices concurrently, guaranteeing global minimum path length.
+  * If we start BFS from node 0 only, we might miss a shorter path starting from node k.
+  * Enqueuing all N nodes simultaneously at step 0 explores all possible starting vertices concurrently, 
+  guaranteeing global minimum path length.
 
 ---
 
@@ -483,10 +491,10 @@ fun countPaths(n: Int, roads: Array<IntArray>): Int {
 ### 2. Complexity Boundaries
 * Comparison Matrix
 
- Approach | Time | Space | Performance | Best Used When... |
- :--- | :--- | :--- | :--- | :--- |
- **Top-Down Memoized DFS (Static Direction)** | **O(M * N)** | **O(M * N)** call stack | **Staff Level (Optimal DFS)** | Standard production choice; visits each cell $(r, c)$ at most once; optimal $\mathcal{O}(M \cdot N)$ time. |
- **Out-Degree BFS Topological Sort (Kahn's)** | **O(M * N)** | **O(M * N)** queue | **Staff Level (Stack-Safe)** | 100% `StackOverflowError` safe; models level-by-level topological DAG peeling. |
+ Approach | Time | Space | Performance | Best Used When...                                                                        |
+ :--- | :--- | :--- | :--- |:-----------------------------------------------------------------------------------------|
+ **Top-Down Memoized DFS (Static Direction)** | **O(M * N)** | **O(M * N)** call stack | **Staff Level (Optimal DFS)** | Standard production choice; visits each cell (r, c) at most once; optimal O(M x N) time. |
+ **Out-Degree BFS Topological Sort (Kahn's)** | **O(M * N)** | **O(M * N)** queue | **Staff Level (Stack-Safe)** | 100% `StackOverflowError` safe; models level-by-level topological DAG peeling.           |
 
 *(where M = rows, N = cols)*
 
